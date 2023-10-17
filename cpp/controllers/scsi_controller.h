@@ -76,9 +76,6 @@ public:
 
 private:
 
-	// Execution start time
-	uint32_t execstart = 0;
-
 	// The initiator ID may be unavailable, e.g. with Atari ACSI and old host adapters
 	int initiator_id = UNKNOWN_INITIATOR_ID;
 
@@ -102,8 +99,6 @@ private:
 	void ProcessCommand();
 	void ParseMessage();
 	void ProcessMessage();
-
-	void Sleep();
 
 	scsi_t scsi = {};
 };

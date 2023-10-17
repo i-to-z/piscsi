@@ -41,7 +41,6 @@ void ScsiController::Reset()
 {
 	AbstractController::Reset();
 
-	execstart = 0;
 	identified_lun = -1;
 	initiator_id = UNKNOWN_INITIATOR_ID;
 
@@ -189,7 +188,6 @@ void ScsiController::Execute()
 	// Initialization for data transfer
 	ResetOffset();
 	SetBlocks(1);
-	execstart = SysTimer::GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if (GetOpcode() != scsi_command::eCmdRequestSense) {
@@ -243,13 +241,7 @@ void ScsiController::Execute()
 void ScsiController::Status()
 {
 	if (!IsStatus()) {
-		// Minimum execution time
-		// TODO Why is a delay needed? Is this covered by the SCSI specification?
-		if (execstart > 0) {
-			Sleep();
-		} else {
-			SysTimer::SleepUsec(5);
-		}
+		SysTimer::SleepUsec(5);
 
 		stringstream s;
 		s << "Status phase, status is $" << setfill('0') << setw(2) << hex << static_cast<int>(GetStatus());
@@ -321,11 +313,6 @@ void ScsiController::MsgOut()
 void ScsiController::DataIn()
 {
 	if (!IsDataIn()) {
-		// Minimum execution time
-		if (execstart > 0) {
-			Sleep();
-		}
-
 		// If the length is 0, go to the status phase
 		if (!HasValidLength()) {
 			Status();
@@ -350,11 +337,6 @@ void ScsiController::DataIn()
 void ScsiController::DataOut()
 {
 	if (!IsDataOut()) {
-		// Minimum execution time
-		if (execstart > 0) {
-			Sleep();
-		}
-
 		// If the length is 0, go to the status phase
 		if (!HasValidLength()) {
 			Status();
@@ -983,12 +965,4 @@ int ScsiController::GetEffectiveLun() const
 {
 	// Return LUN from IDENTIFY message, or return the LUN from the CDB as fallback
 	return identified_lun != -1 ? identified_lun : GetLun();
-}
-
-void ScsiController::Sleep()
-{
-	if (const uint32_t time = SysTimer::GetTimerLow() - execstart; time < MIN_EXEC_TIME) {
-		SysTimer::SleepUsec(MIN_EXEC_TIME - time);
-	}
-	execstart = 0;
 }
