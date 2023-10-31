@@ -316,10 +316,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
         // Wait for ACK to clear
         WaitACK(OFF);
     } else {
-        // Get Phase
-        Acquire();
-        phase_t phase = GetPhase();
-
         for (i = 0; i < count; i++) {
             // Set the DATA signals
             SetDAT(*buf);
@@ -329,12 +325,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 
             // Check for timeout waiting for REQ to be asserted
             if (!ret) {
-                break;
-            }
-
-            // Phase error
-            Acquire();
-            if (GetPhase() != phase) {
                 break;
             }
 
@@ -351,12 +341,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 
             // Check for timeout waiting for REQ to clear
             if (!ret) {
-                break;
-            }
-
-            // Phase error
-            Acquire();
-            if (GetPhase() != phase) {
                 break;
             }
 
