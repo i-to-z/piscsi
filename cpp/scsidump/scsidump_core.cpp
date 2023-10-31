@@ -93,10 +93,9 @@ bool ScsiDump::Init() const
 
 void ScsiDump::ParseArguments(span<char *> args)
 {
-    int opt;
-
     int buffer_size = DEFAULT_BUFFER_SIZE;
 
+    int opt;
     opterr = 0;
     while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rvpIS")) != -1) {
         switch (opt) {
