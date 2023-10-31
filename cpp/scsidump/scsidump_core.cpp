@@ -3,8 +3,6 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Powered by XM6 TypeG Technology.
-// Copyright (C) 2016-2020 GIMONS
 // Copyright (C) 2022 akuker
 // Copyright (C) 2022-2023 Uwe Seimet
 //
@@ -19,6 +17,7 @@
 #include "controllers/controller_manager.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_util.h"
+#include <unistd.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <chrono>
@@ -28,7 +27,6 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <unistd.h>
 
 using namespace std;
 using namespace filesystem;
@@ -568,6 +566,9 @@ int ScsiDump::DumpRestore()
         throw phase_exception("Can't open image file '" + filename + "'");
     }
 
+    const off_t disk_size = inq_info.capacity * inq_info.sector_size;
+
+    size_t effective_size;
     if (restore) {
         cout << "Starting restore\n" << flush;
 
@@ -579,20 +580,29 @@ int ScsiDump::DumpRestore()
         	throw phase_exception(string("Can't determine file size: ") + e.what());
         }
 
+        effective_size = min(size, disk_size);
+
         cout << "Restore file size: " << size << " bytes\n";
-        if (size > (off_t)(inq_info.sector_size * inq_info.capacity)) {
-            cout << "WARNING: File size is larger than disk size\n" << flush;
-        } else if (size < (off_t)(inq_info.sector_size * inq_info.capacity)) {
-            cout << "WARNING: File size is smaller than disk size\n" << flush;
+        if (size > disk_size) {
+            cout << "WARNING: File size of " << size
+            		<< " byte(s) is larger than disk size of " << disk_size << " bytes(s)\n" << flush;
+        } else if (size < disk_size) {
+            cout << "WARNING: File size of " << size
+            		<< " byte(s) is smaller than disk size of " << disk_size << " bytes(s)\n" << flush;
         }
     } else {
-        cout << "Starting dump\n" << flush;
+    	effective_size = disk_size;
+
+    	cout << "Starting dump\n" << flush;
     }
 
-    // Dump by buffer size
+    // TODO Test the code below
+
+    auto remaining = effective_size;
+
     auto dsiz = static_cast<int>(buffer.size());
     const int duni = dsiz / inq_info.sector_size;
-    auto dnum = static_cast<int>((inq_info.capacity * inq_info.sector_size) / dsiz);
+    auto dnum = static_cast<int>(effective_size / dsiz);
 
     const auto start_time = chrono::high_resolution_clock::now();
 
@@ -613,20 +623,22 @@ int ScsiDump::DumpRestore()
         cout << ((i + 1) * 100 / dnum) << "%"
              << " (" << (i + 1) * duni << "/" << inq_info.capacity << ")\n"
              << flush;
+
+        remaining -= dsiz;
     }
 
-    // Rounding on capacity
+    auto rem = remaining / inq_info.sector_size;
     dnum = inq_info.capacity % duni;
     dsiz = dnum * inq_info.sector_size;
-    if (dnum > 0) {
+    if (remaining > 0) {
         if (restore) {
-            fs.read((char*)buffer.data(), dsiz);
+            fs.read((char*)buffer.data(), remaining);
             if (!fs.fail()) {
-                Write(i * duni, dnum, dsiz);
+                Write(i * duni, rem, dsiz);
             }
         } else {
-            Read(i * duni, dnum, dsiz);
-            fs.write((const char*)buffer.data(), dsiz);
+            Read(i * duni, rem, dsiz);
+            fs.write((const char*)buffer.data(), remaining);
         }
 
         if (fs.fail()) {
@@ -641,11 +653,11 @@ int ScsiDump::DumpRestore()
     const auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
 
     cout << DIVIDER << "\n";
-    cout << "Transfered : " << inq_info.capacity * inq_info.sector_size << " bytes ["
-         << inq_info.capacity * inq_info.sector_size / 1024 / 1024 << "MiB]\n";
+    cout << "Transfered : " << effective_size << " bytes ["
+         << effective_size / 1024 / 1024 << "MiB]\n";
     cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes\n";
-    cout << "Averate transfer rate: " << (inq_info.capacity * inq_info.sector_size / 8) / duration
-         << " bytes per second (" << (inq_info.capacity * inq_info.sector_size / 8) / duration / 1024
+    cout << "Average transfer rate: " << (effective_size / 8) / duration
+         << " bytes per second (" << (effective_size / 8) / duration / 1024
          << " KiB per second)\n";
     cout << DIVIDER << "\n";
 
