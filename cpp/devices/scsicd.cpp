@@ -52,23 +52,19 @@ void SCSICD::Open()
 	// Default sector size is 2048 bytes
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048);
 
-	if (GetFilename()[0] == '\\') {
-		OpenPhysical();
-	} else {
-		// Judge whether it is a CUE sheet or an ISO file
-		array<char, 4> cue;
-		ifstream in(GetFilename(), ios::binary);
-		in.read(cue.data(), cue.size());
-		if (!in.good()) {
-			throw io_exception("Can't read header of CD-ROM file '" + GetFilename() + "'");
-		}
+	// Judge whether it is a CUE sheet or an ISO file
+	array<char, 4> cue;
+	ifstream in(GetFilename(), ios::binary);
+	in.read(cue.data(), cue.size());
+	if (!in.good()) {
+		throw io_exception("Can't read header of CD-ROM file '" + GetFilename() + "'");
+	}
 
-		// If it starts with FILE consider it a CUE sheet
-		if (!strncasecmp(cue.data(), "FILE", cue.size())) {
-			throw io_exception("CUE CD-ROM files are not supported");
-		} else {
-			OpenIso();
-		}
+	// If it starts with FILE consider it a CUE sheet
+	if (!strncasecmp(cue.data(), "FILE", cue.size())) {
+		throw io_exception("CUE CD-ROM files are not supported");
+	} else {
+		OpenIso();
 	}
 
 	Disk::ValidateFile();
@@ -124,23 +120,6 @@ void SCSICD::OpenIso()
 	} else {
 		SetBlockCount(static_cast<uint32_t>(size >> GetSectorSizeShiftCount()));
 	}
-
-	CreateDataTrack();
-}
-
-// TODO This code is only executed if the filename starts with a `\`, but fails to open files starting with `\`.
-void SCSICD::OpenPhysical()
-{
-	off_t size = GetFileSize();
-	if (size < 2048) {
-		throw io_exception("CD-ROM file size must be at least 2048 bytes");
-	}
-
-	// Effective size must be a multiple of 512
-	size = (size / 512) * 512;
-
-	// Set the number of blocks
-	SetBlockCount(static_cast<uint32_t>(size >> GetSectorSizeShiftCount()));
 
 	CreateDataTrack();
 }

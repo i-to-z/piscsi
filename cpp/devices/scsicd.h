@@ -49,7 +49,6 @@ private:
 	scsi_defs::scsi_level scsi_level;
 
 	void OpenIso();
-	void OpenPhysical();
 
 	void CreateDataTrack();
 
