@@ -57,18 +57,17 @@ public:
     bool DisplayInquiry(inquiry_info&, bool);
     int DumpRestore();
     bool GetDeviceInfo(inquiry_info&);
-    void Execute();
+    bool Execute(scsi_command);
     void TestUnitReady();
     void RequestSense();
-    void Inquiry();
+    bool Inquiry();
     pair<uint64_t, uint32_t> ReadCapacity();
     void Read10(uint32_t, uint32_t);
     void Write10(uint32_t, uint32_t);
     void WaitForBusy() const;
 
-	void BusFree();
 	void Selection();
-	void Command();
+	void Command(scsi_command);
 	void Status();
 	void DataIn();
 	void DataOut();
@@ -82,8 +81,6 @@ public:
     static inline unique_ptr<BUS> bus;
 
     vector<uint8_t> buffer;
-
-    scsi_command cmd = {};
 
     array<uint8_t, 16> cdb;
 
