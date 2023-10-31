@@ -12,7 +12,6 @@
 
 // TODO Evaluate CHECK CONDITION after sending a command
 // TODO Send IDENTIFY message in order to support LUNS > 7
-// TODO Get rid of some fields in favor of method arguments
 
 #include "scsidump/scsidump_core.h"
 #include "hal/gpiobus_factory.h"
@@ -197,18 +196,13 @@ void ScsiDump::Process()
 
         	try {
         		switch(phase) {
-        			case phase_t::busfree:
-        				BusFree();
-        				return;
-
         			case phase_t::command:
         				Command();
         				break;
 
         			case phase_t::status:
         				Status();
-        				// TODO This may be wrong, MESSAGE IN may follow
-        				return;
+        				break;
 
         			case phase_t::datain:
         				DataIn();
@@ -220,14 +214,14 @@ void ScsiDump::Process()
 
         			case phase_t::msgin:
         				MsgIn();
-        				break;
+        				return;
 
         			case phase_t::msgout:
         				MsgOut();
         				break;
 
         			default:
-        				cerr << "Ignored invalid bus phase" << endl;
+        				throw phase_exception("Ignored unexpected bus phase");
         				break;
         		}
         	}
