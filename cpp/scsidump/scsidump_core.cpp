@@ -188,12 +188,18 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
         bus->Acquire();
 
         if (bus->GetREQ()) {
-        	if (Dispatch(bus->GetPhase(), cmd, cdb, length)) {
-        		now = SysTimer::GetTimerLow();
+        	try {
+        		if (Dispatch(bus->GetPhase(), cmd, cdb, length)) {
+        			now = SysTimer::GetTimerLow();
+        		}
+        		else {
+        			bus->Reset();
+        			return true;
+        		}
         	}
-        	else {
-        		bus->Reset();
-        		return true;
+        	catch (const phase_exception& e) {
+        		cerr << "Error: " << e.what() << endl;
+        		return false;
         	}
         }
     }
@@ -203,43 +209,37 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
 
 bool ScsiDump::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, int length)
 {
-    spdlog::debug(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
+	spdlog::debug(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
 
-    try {
-    	switch(phase) {
-    		case phase_t::command:
-    			Command(cmd, cdb);
-    			break;
+	switch (phase) {
+		case phase_t::command:
+			Command(cmd, cdb);
+			break;
 
-    		case phase_t::status:
-    			Status();
-    			break;
+		case phase_t::status:
+			Status();
+			break;
 
-    		case phase_t::datain:
-    			DataIn(length);
-    			break;
+		case phase_t::datain:
+			DataIn(length);
+			break;
 
-    		case phase_t::dataout:
-    			DataOut(length);
-    			break;
+    	case phase_t::dataout:
+    		DataOut(length);
+    		break;
 
-    		case phase_t::msgin:
-    			MsgIn();
-    			return false;
+    	case phase_t::msgin:
+    		MsgIn();
+    		return false;
 
-    		case phase_t::msgout:
-    			MsgOut();
-    			break;
+    	case phase_t::msgout:
+    		MsgOut();
+    		break;
 
-    		default:
-    			throw phase_exception(string("Ignoring ") + BUS::GetPhaseStrRaw(phase) + " phase");
-    			break;
-    	}
-    }
-    catch (const phase_exception& e) {
-    	cerr << "Error: " << e.what() << endl;
-    	return false;
-    }
+    	default:
+    		throw phase_exception(string("Ignoring ") + BUS::GetPhaseStrRaw(phase) + " phase");
+    		break;
+	}
 
     return true;
 }
@@ -309,12 +309,12 @@ void ScsiDump::MsgIn()
 
 void ScsiDump::MsgOut()
 {
-	vector<uint8_t> buf;
+	array<uint8_t, 1> buf;
 
 	// IDENTIFY
 	buf[0] = target_lun | 0x80;
 
-	if (!bus->SendHandShake(buf.data(), 1, BUS::SEND_NO_DELAY)) {
+	if (bus->SendHandShake(buf.data(), buf.size(), BUS::SEND_NO_DELAY) != buf.size()) {
         throw phase_exception("MESSAGE OUT failed");
     }
 }
