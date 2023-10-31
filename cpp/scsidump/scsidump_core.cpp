@@ -252,7 +252,7 @@ bool ScsiDump::Selection()
     bus->SetSEL(true);
 
     // Request MESSAGE OUT for IDENTIFY
-    //bus->SetATN(true);
+    bus->SetATN(true);
 
     if (!WaitForBusy()) {
     	return false;
@@ -308,7 +308,7 @@ void ScsiDump::MsgOut()
 	array<uint8_t, 1> buf;
 
 	// IDENTIFY
-	buf[0] = target_lun | 0x80;
+	buf[0] = static_cast<uint8_t>(target_lun | 0x80);
 
 	if (bus->SendHandShake(buf.data(), buf.size(), BUS::SEND_NO_DELAY) != buf.size()) {
         throw phase_exception("MESSAGE OUT failed");
