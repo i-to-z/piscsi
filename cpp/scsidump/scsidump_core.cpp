@@ -251,16 +251,14 @@ bool ScsiDump::Selection()
     data |= static_cast<byte>(1 << target_id);
     bus->SetDAT(static_cast<uint8_t>(data));
 
+    bus->SetSEL(true);
+
     // Request MESSAGE OUT for IDENTIFY
     //bus->SetATN(true);
-
-    bus->SetSEL(true);
 
     if (!WaitForBusy()) {
     	return false;
     }
-
-    //bus->SetATN(false);
 
     bus->SetSEL(false);
 
@@ -317,6 +315,8 @@ void ScsiDump::MsgOut()
 	if (bus->SendHandShake(buf.data(), buf.size(), BUS::SEND_NO_DELAY) != buf.size()) {
         throw phase_exception("MESSAGE OUT failed");
     }
+
+	bus->SetATN(false);
 }
 
 void ScsiDump::TestUnitReady()
@@ -565,7 +565,7 @@ int ScsiDump::DumpRestore()
     fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
 
     if (fs.fail()) {
-        throw parser_exception("Can't open image file '" + filename + "'");
+        throw phase_exception("Can't open image file '" + filename + "'");
     }
 
     if (restore) {
@@ -576,14 +576,14 @@ int ScsiDump::DumpRestore()
         	size = file_size(path(filename));
         }
         catch (const filesystem_error& e) {
-        	throw parser_exception(string("Can't determine file size: ") + e.what());
+        	throw phase_exception(string("Can't determine file size: ") + e.what());
         }
 
         cout << "Restore file size: " << size << " bytes\n";
         if (size > (off_t)(inq_info.sector_size * inq_info.capacity)) {
             cout << "WARNING: File size is larger than disk size\n" << flush;
         } else if (size < (off_t)(inq_info.sector_size * inq_info.capacity)) {
-            throw parser_exception("File size is smaller than disk size");
+            cout << "WARNING: File size is smaller than disk size\n" << flush;
         }
     } else {
         cout << "Starting dump\n" << flush;
@@ -607,7 +607,7 @@ int ScsiDump::DumpRestore()
         }
 
         if (fs.fail()) {
-            throw parser_exception("File I/O failed");
+            throw phase_exception("File I/O failed");
         }
 
         cout << ((i + 1) * 100 / dnum) << "%"
@@ -630,7 +630,7 @@ int ScsiDump::DumpRestore()
         }
 
         if (fs.fail()) {
-            throw parser_exception("File I/O failed");
+            throw phase_exception("File I/O failed");
         }
 
         cout << "100% (" << inq_info.capacity << "/" << inq_info.capacity << ")\n" << flush;
