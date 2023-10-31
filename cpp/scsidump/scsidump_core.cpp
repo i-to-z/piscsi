@@ -172,11 +172,10 @@ void ScsiDump::ParseArguments(span<char *> args)
 
 bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
 {
-	try {
-		Selection();
-	}
-	catch(const phase_exception& e) {
-		spdlog::debug(e.what());
+    spdlog::debug("Executing " + command_mapping.find(cmd)->second.second);
+
+    if (!Selection()) {
+		spdlog::debug("SELECTION failed");
 
 		bus->Reset();
 
@@ -184,53 +183,17 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
 	}
 
 	// Timeout (3000 ms)
-    const uint32_t now = SysTimer::GetTimerLow();
+	uint32_t now = SysTimer::GetTimerLow();
     while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
         bus->Acquire();
 
         if (bus->GetREQ()) {
-        	const phase_t phase = bus->GetPhase();
-
-        	spdlog::debug(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
-
-        	try {
-        		switch(phase) {
-        			case phase_t::command:
-        				Command(cmd, cdb);
-        				break;
-
-        			case phase_t::status:
-        				Status();
-        				break;
-
-        			case phase_t::datain:
-        				DataIn(length);
-        				break;
-
-        			case phase_t::dataout:
-        				DataOut(length);
-        				break;
-
-        			case phase_t::msgin:
-        				MsgIn();
-
-        				bus->Reset();
-
-        				return true;
-
-        			case phase_t::msgout:
-        				MsgOut();
-        				break;
-
-        			default:
-        				throw phase_exception("Ignored unexpected bus phase");
-        				break;
-        		}
+        	if (Dispatch(bus->GetPhase(), cmd, cdb, length)) {
+        		now = SysTimer::GetTimerLow();
         	}
-        	catch(const phase_exception& e) {
-        		cerr << e.what() << endl;
-
+        	else {
         		bus->Reset();
+        		return true;
         	}
         }
     }
@@ -238,24 +201,74 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
     return false;
 }
 
-void ScsiDump::Selection()
+bool ScsiDump::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, int length)
+{
+    spdlog::debug(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
+
+    try {
+    	switch(phase) {
+    		case phase_t::command:
+    			Command(cmd, cdb);
+    			break;
+
+    		case phase_t::status:
+    			Status();
+    			break;
+
+    		case phase_t::datain:
+    			DataIn(length);
+    			break;
+
+    		case phase_t::dataout:
+    			DataOut(length);
+    			break;
+
+    		case phase_t::msgin:
+    			MsgIn();
+    			return false;
+
+    		case phase_t::msgout:
+    			MsgOut();
+    			break;
+
+    		default:
+    			throw phase_exception(string("Ignoring ") + BUS::GetPhaseStrRaw(phase) + " phase");
+    			break;
+    	}
+    }
+    catch (const phase_exception& e) {
+    	cerr << "Error: " << e.what() << endl;
+    	return false;
+    }
+
+    return true;
+}
+
+bool ScsiDump::Selection()
 {
     // Set initiator and target ID
     auto data = static_cast<byte>(1 << initiator_id);
     data |= static_cast<byte>(1 << target_id);
     bus->SetDAT(static_cast<uint8_t>(data));
 
+    // Request MESSAGE OUT for IDENTIFY
+    //bus->SetATN(true);
+
     bus->SetSEL(true);
 
-    WaitForBusy();
+    if (!WaitForBusy()) {
+    	return false;
+    }
+
+    //bus->SetATN(false);
 
     bus->SetSEL(false);
+
+    return true;
 }
 
 void ScsiDump::Command(scsi_command cmd, span<uint8_t> cdb)
 {
-    spdlog::debug("Executing " + command_mapping.find(cmd)->second.second);
-
     cdb[0] = static_cast<uint8_t>(cmd);
     cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
     if (static_cast<int>(cdb.size()) !=
@@ -296,8 +309,14 @@ void ScsiDump::MsgIn()
 
 void ScsiDump::MsgOut()
 {
-	// TODO Send MESSAGE REJECT?
-	assert(false);
+	vector<uint8_t> buf;
+
+	// IDENTIFY
+	buf[0] = target_lun | 0x80;
+
+	if (!bus->SendHandShake(buf.data(), 1, BUS::SEND_NO_DELAY)) {
+        throw phase_exception("MESSAGE OUT failed");
+    }
 }
 
 void ScsiDump::TestUnitReady()
@@ -383,7 +402,7 @@ void ScsiDump::Write(uint32_t bstart, uint32_t blength, int length)
     Execute(scsi_command::eCmdWrite10, cdb, length);
 }
 
-void ScsiDump::WaitForBusy() const
+bool ScsiDump::WaitForBusy() const
 {
     // Wait for busy for up to 2 s
     int count = 10000;
@@ -398,9 +417,7 @@ void ScsiDump::WaitForBusy() const
     } while (count--);
 
     // Success if the target is busy
-    if (!bus->GetBSY()) {
-    	throw phase_exception("SELECTION failed");
-    }
+    return bus->GetBSY();
 }
 
 int ScsiDump::run(span<char *> args)

@@ -57,15 +57,16 @@ public:
     int DumpRestore();
     bool GetDeviceInfo(inquiry_info&);
     bool Execute(scsi_command, span<uint8_t>, int length);
+    bool Dispatch(phase_t phase, scsi_command, span<uint8_t>, int);
     void TestUnitReady();
     void RequestSense();
     bool Inquiry();
     pair<uint64_t, uint32_t> ReadCapacity();
     void Read(uint32_t, uint32_t, int);
     void Write(uint32_t, uint32_t, int);
-    void WaitForBusy() const;
+    bool WaitForBusy() const;
 
-	void Selection();
+	bool Selection();
 	void Command(scsi_command, span<uint8_t>);
 	void Status();
 	void DataIn(int);
