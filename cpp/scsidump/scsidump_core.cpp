@@ -172,6 +172,91 @@ void ScsiDump::ParseArguments(span<char *> args)
     buffer = vector<uint8_t>(buffer_size);
 }
 
+void ScsiDump::ProcessPhase()
+{
+    // Timeout (3000ms)
+    const uint32_t now = SysTimer::GetTimerLow();
+    while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
+        bus->Acquire();
+
+        if (bus->GetREQ()) {
+        	const phase_t phase = bus->GetPhase();
+
+        	spdlog::trace(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
+
+            switch(phase) {
+        		case phase_t::busfree:
+        			EnterBusFree();
+        			break;
+
+        		case phase_t::selection:
+        			EnterSelection();
+        			break;
+
+        		case phase_t::command:
+        			EnterCommand();
+        			break;
+
+        		case phase_t::status:
+        			EnterStatus();
+        			break;
+
+        		case phase_t::datain:
+        			EnterDataIn();
+        			break;
+
+        		case phase_t::dataout:
+        			EnterDataOut();
+        			break;
+
+        		case phase_t::msgin:
+        			EnterMsgIn();
+        			break;
+
+        		case phase_t::msgout:
+        			EnterMsgOut();
+        			break;
+
+        		default:
+        			cerr << "Ignored invalid bus phase" << endl;
+        			break;
+        	}
+        }
+    }
+}
+
+void ScsiDump::EnterBusFree()
+{
+}
+
+void ScsiDump::EnterSelection()
+{
+}
+
+void ScsiDump::EnterCommand()
+{
+}
+
+void ScsiDump::EnterStatus()
+{
+}
+
+void ScsiDump::EnterDataIn()
+{
+}
+
+void ScsiDump::EnterDataOut()
+{
+}
+
+void ScsiDump::EnterMsgIn()
+{
+}
+
+void ScsiDump::EnterMsgOut()
+{
+}
+
 void ScsiDump::WaitForPhase(phase_t phase) const
 {
     spdlog::debug(string("Waiting for ") + BUS::GetPhaseStrRaw(phase) + " phase");

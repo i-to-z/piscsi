@@ -55,6 +55,7 @@ class ScsiDump
     bool DisplayInquiry(inquiry_info_t&, bool);
     int DumpRestore();
     bool GetDeviceInfo(inquiry_info_t&);
+    void ProcessPhase();
     void WaitForPhase(phase_t) const;
     void Selection() const;
     void Command(scsi_defs::scsi_command, vector<uint8_t>&) const;
@@ -70,6 +71,15 @@ class ScsiDump
     void Read10(uint32_t, uint32_t, uint32_t);
     void Write10(uint32_t, uint32_t, uint32_t);
     void WaitForBusy() const;
+
+	void EnterBusFree();
+	void EnterSelection();
+	void EnterCommand();
+	void EnterStatus();
+	void EnterDataIn();
+	void EnterDataOut();
+	void EnterMsgIn();
+	void EnterMsgOut();
 
     static void CleanUp();
     static void TerminationHandler(int);
