@@ -16,6 +16,7 @@
 #include <vector>
 #include <unordered_map>
 #include <stdexcept>
+#include <functional>
 
 using namespace std;
 
@@ -27,9 +28,9 @@ class phase_exception : public runtime_error
 class ScsiDump
 {
 
-  public:
+public:
 
-    ScsiDump()  = default;
+    ScsiDump() = default;
     ~ScsiDump() = default;
 
     int run(const span<char *>);
@@ -52,34 +53,26 @@ class ScsiDump
     void ParseArguments(span<char *>);
     void DisplayBoardId() const;
     void ScanBus();
-    bool DisplayInquiry(inquiry_info_t&, bool);
+    bool DisplayInquiry(inquiry_info&, bool);
     int DumpRestore();
-    bool GetDeviceInfo(inquiry_info_t&);
-    void ProcessPhase();
-    void WaitForPhase(phase_t) const;
-    void Selection() const;
-    void Command(scsi_defs::scsi_command, vector<uint8_t>&) const;
-    void DataIn(int);
-    void DataOut(int);
-    void Status() const;
-    void MessageIn() const;
-    void BusFree() const;
-    void TestUnitReady() const;
+    bool GetDeviceInfo(inquiry_info&);
+    void Process();
+    void TestUnitReady();
     void RequestSense();
     void Inquiry();
     pair<uint64_t, uint32_t> ReadCapacity();
-    void Read10(uint32_t, uint32_t, uint32_t);
-    void Write10(uint32_t, uint32_t, uint32_t);
+    void Read10(uint32_t, uint32_t);
+    void Write10(uint32_t, uint32_t);
     void WaitForBusy() const;
 
-	void EnterBusFree();
-	void EnterSelection();
-	void EnterCommand();
-	void EnterStatus();
-	void EnterDataIn();
-	void EnterDataOut();
-	void EnterMsgIn();
-	void EnterMsgOut();
+	void BusFree();
+	void Selection();
+	void Command();
+	void Status();
+	void DataIn();
+	void DataOut();
+	void MsgIn();
+	void MsgOut();
 
     static void CleanUp();
     static void TerminationHandler(int);
@@ -88,6 +81,12 @@ class ScsiDump
     static inline unique_ptr<BUS> bus;
 
     vector<uint8_t> buffer;
+
+    scsi_command cmd = {};
+
+    vector<uint8_t> cdb = vector<uint8_t>(16);
+
+    int length = 0;
 
     int target_id = -1;
 

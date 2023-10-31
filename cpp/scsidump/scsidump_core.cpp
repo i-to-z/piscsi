@@ -153,7 +153,7 @@ void ScsiDump::ParseArguments(span<char *> args)
         throw parser_exception("Missing filename");
     }
 
-    if (!scan_bus && !inquiry && target_id == -1) {
+    if (!scan_bus && target_id == -1) {
     	throw parser_exception("Missing target ID");
     }
 
@@ -172,9 +172,20 @@ void ScsiDump::ParseArguments(span<char *> args)
     buffer = vector<uint8_t>(buffer_size);
 }
 
-void ScsiDump::ProcessPhase()
+void ScsiDump::Process()
 {
-    // Timeout (3000ms)
+	try {
+		Selection();
+	}
+	catch(const phase_exception& e) {
+		spdlog::debug(e.what());
+
+		bus->Reset();
+
+		return;
+	}
+
+	// Timeout (3000ms)
     const uint32_t now = SysTimer::GetTimerLow();
     while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
         bus->Acquire();
@@ -182,99 +193,59 @@ void ScsiDump::ProcessPhase()
         if (bus->GetREQ()) {
         	const phase_t phase = bus->GetPhase();
 
-        	spdlog::trace(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
+        	spdlog::debug(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
 
-            switch(phase) {
-        		case phase_t::busfree:
-        			EnterBusFree();
-        			break;
+        	try {
+        		switch(phase) {
+        			case phase_t::busfree:
+        				BusFree();
+        				return;
 
-        		case phase_t::selection:
-        			EnterSelection();
-        			break;
+        			case phase_t::command:
+        				Command();
+        				break;
 
-        		case phase_t::command:
-        			EnterCommand();
-        			break;
+        			case phase_t::status:
+        				Status();
+        				// TODO This may be wrong, MESSAGE IN may follow
+        				return;
 
-        		case phase_t::status:
-        			EnterStatus();
-        			break;
+        			case phase_t::datain:
+        				DataIn();
+        				break;
 
-        		case phase_t::datain:
-        			EnterDataIn();
-        			break;
+        			case phase_t::dataout:
+        				DataOut();
+        				break;
 
-        		case phase_t::dataout:
-        			EnterDataOut();
-        			break;
+        			case phase_t::msgin:
+        				MsgIn();
+        				break;
 
-        		case phase_t::msgin:
-        			EnterMsgIn();
-        			break;
+        			case phase_t::msgout:
+        				MsgOut();
+        				break;
 
-        		case phase_t::msgout:
-        			EnterMsgOut();
-        			break;
+        			default:
+        				cerr << "Ignored invalid bus phase" << endl;
+        				break;
+        		}
+        	}
+        	catch(const phase_exception& e) {
+        		cerr << e.what() << endl;
 
-        		default:
-        			cerr << "Ignored invalid bus phase" << endl;
-        			break;
+        		bus->Reset();
         	}
         }
     }
 }
 
-void ScsiDump::EnterBusFree()
+void ScsiDump::BusFree()
 {
+	bus->Reset();
 }
 
-void ScsiDump::EnterSelection()
-{
-}
-
-void ScsiDump::EnterCommand()
-{
-}
-
-void ScsiDump::EnterStatus()
-{
-}
-
-void ScsiDump::EnterDataIn()
-{
-}
-
-void ScsiDump::EnterDataOut()
-{
-}
-
-void ScsiDump::EnterMsgIn()
-{
-}
-
-void ScsiDump::EnterMsgOut()
-{
-}
-
-void ScsiDump::WaitForPhase(phase_t phase) const
-{
-    spdlog::debug(string("Waiting for ") + BUS::GetPhaseStrRaw(phase) + " phase");
-
-    // Timeout (3000ms)
-    const uint32_t now = SysTimer::GetTimerLow();
-    while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
-        bus->Acquire();
-        if (bus->GetREQ() && bus->GetPhase() == phase) {
-            return;
-        }
-    }
-
-    throw phase_exception("Expected " + string(BUS::GetPhaseStrRaw(phase)) + " phase, actual phase is " +
-    		string(BUS::GetPhaseStrRaw(bus->GetPhase())));
-}
-
-void ScsiDump::Selection() const
+void ScsiDump::Selection()
 {
     // Set initiator and target ID
     auto data = static_cast<byte>(1 << initiator_id);
@@ -288,193 +259,144 @@ void ScsiDump::Selection() const
     bus->SetSEL(false);
 }
 
-void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
+void ScsiDump::Command()
 {
     spdlog::debug("Executing " + command_mapping.find(cmd)->second.second);
-
-    Selection();
-
-    WaitForPhase(phase_t::command);
 
     cdb[0] = static_cast<uint8_t>(cmd);
     cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
     if (static_cast<int>(cdb.size()) !=
         bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
-        BusFree();
+        bus->Reset();
 
         throw phase_exception(command_mapping.find(cmd)->second.second + string(" failed"));
     }
 }
 
-void ScsiDump::DataIn(int length)
+void ScsiDump::Status()
 {
-    WaitForPhase(phase_t::datain);
-
-    if (!bus->ReceiveHandShake(buffer.data(), length)) {
-        throw phase_exception("DATA IN failed");
-    }
-}
-
-void ScsiDump::DataOut(int length)
-{
-    WaitForPhase(phase_t::dataout);
-
-    if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
-        throw phase_exception("DATA OUT failed");
-    }
-}
-
-void ScsiDump::Status() const
-{
-    WaitForPhase(phase_t::status);
-
     if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
         throw phase_exception("STATUS failed");
     }
 }
 
-void ScsiDump::MessageIn() const
+void ScsiDump::DataIn()
 {
-    WaitForPhase(phase_t::msgin);
+    if (!bus->ReceiveHandShake(buffer.data(), length)) {
+        throw phase_exception("DATA IN failed");
+    }
+}
 
+void ScsiDump::DataOut()
+{
+    if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
+        throw phase_exception("DATA OUT failed");
+    }
+}
+
+void ScsiDump::MsgIn()
+{
     if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
         throw phase_exception("MESSAGE IN failed");
     }
 }
 
-void ScsiDump::BusFree() const
+void ScsiDump::MsgOut()
 {
-    bus->Reset();
+	// TODO Send MESSAGE REJECT?
+	assert(false);
 }
 
-void ScsiDump::TestUnitReady() const
+void ScsiDump::TestUnitReady()
 {
-    vector<uint8_t> cdb(6);
-    Command(scsi_command::eCmdTestUnitReady, cdb);
+	cdb.resize(6);
+    cmd = scsi_command::eCmdTestUnitReady;
 
-    Status();
-
-    MessageIn();
-
-    BusFree();
+    Process();
 }
 
 void ScsiDump::RequestSense()
 {
-    vector<uint8_t> cdb(6);
+	cdb.resize(6);
     cdb[4] = 0xff;
-    Command(scsi_command::eCmdRequestSense, cdb);
+    cmd = scsi_command::eCmdRequestSense;
+    length = 256;
 
-    DataIn(256);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
+    Process();
 }
 
 void ScsiDump::Inquiry()
 {
-    vector<uint8_t> cdb(6);
+	cdb.resize(6);
     cdb[4] = 0xff;
-    Command(scsi_command::eCmdInquiry, cdb);
+    cmd = scsi_command::eCmdInquiry;
+    length = 256;
 
-    DataIn(256);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
+    Process();
 }
 
 pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
 {
-    vector<uint8_t> cdb(10);
-    Command(scsi_command::eCmdReadCapacity10, cdb);
+	cdb.resize(10);
+    cmd = scsi_command::eCmdReadCapacity10;
+    length = 8;
 
-    DataIn(8);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
+    Process();
 
     uint64_t capacity = (static_cast<uint32_t>(buffer[0]) << 24) | (static_cast<uint32_t>(buffer[1]) << 16) |
-                        (static_cast<uint32_t>(buffer[2]) << 8) | static_cast<uint32_t>(buffer[3]);
+    		(static_cast<uint32_t>(buffer[2]) << 8) | static_cast<uint32_t>(buffer[3]);
 
     int sector_size_offset = 4;
 
     if (static_cast<int32_t>(capacity) == -1) {
-        cdb.resize(16);
-        // READ CAPACITY(16), not READ LONG(16)
-        cdb[1] = 0x10;
-        Command(scsi_command::eCmdReadCapacity16_ReadLong16, cdb);
+    	cdb.resize(16);
+    	// READ CAPACITY(16), not READ LONG(16)
+    	cdb[1] = 0x10;
+    	cmd = scsi_command::eCmdReadCapacity16_ReadLong16;
+    	length = 14;
 
-        DataIn(14);
+    	capacity = (static_cast<uint64_t>(buffer[0]) << 56) | (static_cast<uint64_t>(buffer[1]) << 48) |
+    			(static_cast<uint64_t>(buffer[2]) << 40) | (static_cast<uint64_t>(buffer[3]) << 32) |
+				(static_cast<uint64_t>(buffer[4]) << 24) | (static_cast<uint64_t>(buffer[5]) << 16) |
+				(static_cast<uint64_t>(buffer[6]) << 8) | static_cast<uint64_t>(buffer[7]);
 
-        Status();
-
-        MessageIn();
-
-        BusFree();
-
-        capacity = (static_cast<uint64_t>(buffer[0]) << 56) | (static_cast<uint64_t>(buffer[1]) << 48) |
-                   (static_cast<uint64_t>(buffer[2]) << 40) | (static_cast<uint64_t>(buffer[3]) << 32) |
-                   (static_cast<uint64_t>(buffer[4]) << 24) | (static_cast<uint64_t>(buffer[5]) << 16) |
-                   (static_cast<uint64_t>(buffer[6]) << 8) | static_cast<uint64_t>(buffer[7]);
-
-        sector_size_offset = 8;
+    	sector_size_offset = 8;
     }
 
     const uint32_t sector_size = (static_cast<uint32_t>(buffer[sector_size_offset]) << 24) |
-                                 (static_cast<uint32_t>(buffer[sector_size_offset + 1]) << 16) |
-                                 (static_cast<uint32_t>(buffer[sector_size_offset + 2]) << 8) |
-                                 static_cast<uint32_t>(buffer[sector_size_offset + 3]);
+    		(static_cast<uint32_t>(buffer[sector_size_offset + 1]) << 16) |
+			(static_cast<uint32_t>(buffer[sector_size_offset + 2]) << 8) |
+			static_cast<uint32_t>(buffer[sector_size_offset + 3]);
 
     return { capacity, sector_size };
 }
 
-void ScsiDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
+void ScsiDump::Read10(uint32_t bstart, uint32_t blength)
 {
-    vector<uint8_t> cdb(10);
+	cdb.resize(10);
     cdb[2] = (uint8_t)(bstart >> 24);
     cdb[3] = (uint8_t)(bstart >> 16);
     cdb[4] = (uint8_t)(bstart >> 8);
     cdb[5] = (uint8_t)bstart;
     cdb[7] = (uint8_t)(blength >> 8);
     cdb[8] = (uint8_t)blength;
-    Command(scsi_command::eCmdRead10, cdb);
+    cmd = scsi_command::eCmdRead10;
 
-    DataIn(length);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
+    Process();
 }
 
-void ScsiDump::Write10(uint32_t bstart, uint32_t blength, uint32_t length)
+void ScsiDump::Write10(uint32_t bstart, uint32_t blength)
 {
-    vector<uint8_t> cdb(10);
+	cdb.resize(10);
     cdb[2] = (uint8_t)(bstart >> 24);
     cdb[3] = (uint8_t)(bstart >> 16);
     cdb[4] = (uint8_t)(bstart >> 8);
     cdb[5] = (uint8_t)bstart;
     cdb[7] = (uint8_t)(blength >> 8);
     cdb[8] = (uint8_t)blength;
-    Command(scsi_command::eCmdWrite10, cdb);
+    cmd = scsi_command::eCmdWrite10;
 
-    DataOut(length);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
+    Process();
 }
 
 void ScsiDump::WaitForBusy() const
@@ -582,7 +504,7 @@ void ScsiDump::ScanBus()
 	}
 }
 
-bool ScsiDump::DisplayInquiry(ScsiDump::inquiry_info_t& inq_info, bool check_type)
+bool ScsiDump::DisplayInquiry(inquiry_info_t& inq_info, bool check_type)
 {
     // Assert RST for 1 ms
     bus->SetRST(true);
@@ -636,9 +558,9 @@ bool ScsiDump::DisplayInquiry(ScsiDump::inquiry_info_t& inq_info, bool check_typ
 int ScsiDump::DumpRestore()
 {
 	inquiry_info_t inq_info;
-    if (!GetDeviceInfo(inq_info)) {
-    	return EXIT_FAILURE;
-    }
+	if (!GetDeviceInfo(inq_info)) {
+		return EXIT_FAILURE;
+	}
 
     fstream fs;
     fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
@@ -679,9 +601,11 @@ int ScsiDump::DumpRestore()
     for (i = 0; i < dnum; i++) {
         if (restore) {
             fs.read((char*)buffer.data(), dsiz);
-            Write10(i * duni, duni, dsiz);
+            length = dsiz;
+            Write10(i * duni, duni);
         } else {
-            Read10(i * duni, duni, dsiz);
+        	length = dsiz;
+            Read10(i * duni, duni);
             fs.write((const char*)buffer.data(), dsiz);
         }
 
@@ -701,10 +625,12 @@ int ScsiDump::DumpRestore()
         if (restore) {
             fs.read((char*)buffer.data(), dsiz);
             if (!fs.fail()) {
-                Write10(i * duni, dnum, dsiz);
+            	length = dsiz;
+                Write10(i * duni, dnum);
             }
         } else {
-            Read10(i * duni, dnum, dsiz);
+        	length = dsiz;
+            Read10(i * duni, dnum);
             fs.write((const char*)buffer.data(), dsiz);
         }
 
@@ -748,15 +674,16 @@ bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
     RequestSense();
 
     const auto [capacity, sector_size] = ReadCapacity();
+
     inq_info.capacity = capacity;
     inq_info.sector_size = sector_size;
 
     cout << "Sectors:     " << capacity << "\n"
-         << "Sector size: " << sector_size << " bytes\n"
-         << "Capacity:    " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
-         << " bytes)\n"
-         << DIVIDER << "\n\n"
-         << flush;
+    		<< "Sector size: " << sector_size << " bytes\n"
+			<< "Capacity:    " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
+			<< " bytes)\n"
+			<< DIVIDER << "\n\n"
+			<< flush;
 
     return true;
 }
