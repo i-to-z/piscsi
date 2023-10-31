@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 #include <span>
+#include <array>
 #include <vector>
 #include <unordered_map>
 #include <stdexcept>
@@ -56,7 +57,7 @@ public:
     bool DisplayInquiry(inquiry_info&, bool);
     int DumpRestore();
     bool GetDeviceInfo(inquiry_info&);
-    void Process();
+    void Execute();
     void TestUnitReady();
     void RequestSense();
     void Inquiry();
@@ -84,7 +85,7 @@ public:
 
     scsi_command cmd = {};
 
-    vector<uint8_t> cdb = vector<uint8_t>(16);
+    array<uint8_t, 16> cdb;
 
     int length = 0;
 
