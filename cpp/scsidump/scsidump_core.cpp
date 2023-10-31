@@ -214,6 +214,9 @@ bool ScsiDump::Execute(scsi_command cmd, int length)
 
         			case phase_t::msgin:
         				MsgIn();
+
+        				bus->Reset();
+
         				return true;
 
         			case phase_t::msgout:
