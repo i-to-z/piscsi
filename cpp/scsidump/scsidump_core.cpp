@@ -357,9 +357,9 @@ pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
     return { capacity, sector_size };
 }
 
-void ScsiDump::Read10(uint32_t bstart, uint32_t blength, int length)
+void ScsiDump::Read(uint32_t bstart, uint32_t blength, int length)
 {
-	vector<uint8_t> cdb(6);
+	vector<uint8_t> cdb(10);
 	cdb[2] = (uint8_t)(bstart >> 24);
     cdb[3] = (uint8_t)(bstart >> 16);
     cdb[4] = (uint8_t)(bstart >> 8);
@@ -370,9 +370,9 @@ void ScsiDump::Read10(uint32_t bstart, uint32_t blength, int length)
     Execute(scsi_command::eCmdRead10, cdb, length);
 }
 
-void ScsiDump::Write10(uint32_t bstart, uint32_t blength, int length)
+void ScsiDump::Write(uint32_t bstart, uint32_t blength, int length)
 {
-	vector<uint8_t> cdb(6);
+	vector<uint8_t> cdb(10);
     cdb[2] = (uint8_t)(bstart >> 24);
     cdb[3] = (uint8_t)(bstart >> 16);
     cdb[4] = (uint8_t)(bstart >> 8);
@@ -583,9 +583,9 @@ int ScsiDump::DumpRestore()
     for (i = 0; i < dnum; i++) {
         if (restore) {
             fs.read((char*)buffer.data(), dsiz);
-            Write10(i * duni, duni, dsiz);
+            Write(i * duni, duni, dsiz);
         } else {
-            Read10(i * duni, duni, dsiz);
+            Read(i * duni, duni, dsiz);
             fs.write((const char*)buffer.data(), dsiz);
         }
 
@@ -605,10 +605,10 @@ int ScsiDump::DumpRestore()
         if (restore) {
             fs.read((char*)buffer.data(), dsiz);
             if (!fs.fail()) {
-                Write10(i * duni, dnum, dsiz);
+                Write(i * duni, dnum, dsiz);
             }
         } else {
-            Read10(i * duni, dnum, dsiz);
+            Read(i * duni, dnum, dsiz);
             fs.write((const char*)buffer.data(), dsiz);
         }
 
