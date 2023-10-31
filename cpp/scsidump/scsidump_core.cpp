@@ -477,14 +477,10 @@ void ScsiDump::ScanBus()
 
 		for (target_lun = 0; target_lun < 8; target_lun++) {
 			inquiry_info_t inq_info;
-			try {
-				DisplayInquiry(inq_info, false);
-			}
-			catch(const phase_exception&) {
-				// Continue with next ID if there is no LUN 0
-				if (!target_lun) {
-					break;
-				}
+
+			// Continue with next ID if there is no LUN 0
+			if (!DisplayInquiry(inq_info, false) && !target_lun) {
+				break;
 			}
 		}
 	}
@@ -500,7 +496,9 @@ bool ScsiDump::DisplayInquiry(inquiry_info_t& inq_info, bool check_type)
 
     cout << DIVIDER << "\nTarget device is " << target_id << ":" << target_lun << "\n" << flush;
 
-    Inquiry();
+    if (!Inquiry()) {
+    	return false;
+    }
 
     const auto type = static_cast<byte>(buffer[0]);
     if ((type & byte{0x1f}) == byte{0x1f}) {
