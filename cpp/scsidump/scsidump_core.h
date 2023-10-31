@@ -57,20 +57,20 @@ public:
     bool DisplayInquiry(inquiry_info&, bool);
     int DumpRestore();
     bool GetDeviceInfo(inquiry_info&);
-    bool Execute(scsi_command);
+    bool Execute(scsi_command, int length);
     void TestUnitReady();
     void RequestSense();
     bool Inquiry();
     pair<uint64_t, uint32_t> ReadCapacity();
-    void Read10(uint32_t, uint32_t);
-    void Write10(uint32_t, uint32_t);
+    void Read10(uint32_t, uint32_t, int);
+    void Write10(uint32_t, uint32_t, int);
     void WaitForBusy() const;
 
 	void Selection();
 	void Command(scsi_command);
 	void Status();
-	void DataIn();
-	void DataOut();
+	void DataIn(int);
+	void DataOut(int);
 	void MsgIn();
 	void MsgOut();
 
@@ -83,8 +83,6 @@ public:
     vector<uint8_t> buffer;
 
     array<uint8_t, 16> cdb;
-
-    int length = 0;
 
     int target_id = -1;
 

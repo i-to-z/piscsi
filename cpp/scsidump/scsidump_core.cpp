@@ -171,7 +171,7 @@ void ScsiDump::ParseArguments(span<char *> args)
     buffer = vector<uint8_t>(buffer_size);
 }
 
-bool ScsiDump::Execute(scsi_command cmd)
+bool ScsiDump::Execute(scsi_command cmd, int length)
 {
 	try {
 		Selection();
@@ -205,11 +205,11 @@ bool ScsiDump::Execute(scsi_command cmd)
         				break;
 
         			case phase_t::datain:
-        				DataIn();
+        				DataIn(length);
         				break;
 
         			case phase_t::dataout:
-        				DataOut();
+        				DataOut(length);
         				break;
 
         			case phase_t::msgin:
@@ -271,14 +271,14 @@ void ScsiDump::Status()
     }
 }
 
-void ScsiDump::DataIn()
+void ScsiDump::DataIn(int length)
 {
     if (!bus->ReceiveHandShake(buffer.data(), length)) {
         throw phase_exception("DATA IN failed");
     }
 }
 
-void ScsiDump::DataOut()
+void ScsiDump::DataOut(int length)
 {
     if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
         throw phase_exception("DATA OUT failed");
@@ -302,33 +302,30 @@ void ScsiDump::TestUnitReady()
 {
 	cdb = {};
 
-    Execute(scsi_command::eCmdTestUnitReady);
+    Execute(scsi_command::eCmdTestUnitReady, 0);
 }
 
 void ScsiDump::RequestSense()
 {
 	cdb = {};
     cdb[4] = 0xff;
-    length = 256;
 
-    Execute(scsi_command::eCmdRequestSense);
+    Execute(scsi_command::eCmdRequestSense, 256);
 }
 
 bool ScsiDump::Inquiry()
 {
 	cdb = {};
     cdb[4] = 0xff;
-    length = 256;
 
-    return Execute(scsi_command::eCmdInquiry);
+    return Execute(scsi_command::eCmdInquiry, 256);
 }
 
 pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
 {
 	cdb = {};
-    length = 8;
 
-    Execute(scsi_command::eCmdReadCapacity10);
+    Execute(scsi_command::eCmdReadCapacity10, 8);
 
     uint64_t capacity = (static_cast<uint32_t>(buffer[0]) << 24) | (static_cast<uint32_t>(buffer[1]) << 16) |
     		(static_cast<uint32_t>(buffer[2]) << 8) | static_cast<uint32_t>(buffer[3]);
@@ -339,9 +336,8 @@ pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
     	cdb = {};
        	// READ CAPACITY(16), not READ LONG(16)
     	cdb[1] = 0x10;
-    	length = 14;
 
-    	Execute(scsi_command::eCmdReadCapacity16_ReadLong16);
+    	Execute(scsi_command::eCmdReadCapacity16_ReadLong16, 14);
 
     	capacity = (static_cast<uint64_t>(buffer[0]) << 56) | (static_cast<uint64_t>(buffer[1]) << 48) |
     			(static_cast<uint64_t>(buffer[2]) << 40) | (static_cast<uint64_t>(buffer[3]) << 32) |
@@ -359,7 +355,7 @@ pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
     return { capacity, sector_size };
 }
 
-void ScsiDump::Read10(uint32_t bstart, uint32_t blength)
+void ScsiDump::Read10(uint32_t bstart, uint32_t blength, int length)
 {
 	cdb = {};
 	cdb[2] = (uint8_t)(bstart >> 24);
@@ -369,10 +365,10 @@ void ScsiDump::Read10(uint32_t bstart, uint32_t blength)
     cdb[7] = (uint8_t)(blength >> 8);
     cdb[8] = (uint8_t)blength;
 
-    Execute(scsi_command::eCmdRead10);
+    Execute(scsi_command::eCmdRead10, length);
 }
 
-void ScsiDump::Write10(uint32_t bstart, uint32_t blength)
+void ScsiDump::Write10(uint32_t bstart, uint32_t blength, int length)
 {
 	cdb = {};
     cdb[2] = (uint8_t)(bstart >> 24);
@@ -382,7 +378,7 @@ void ScsiDump::Write10(uint32_t bstart, uint32_t blength)
     cdb[7] = (uint8_t)(blength >> 8);
     cdb[8] = (uint8_t)blength;
 
-    Execute(scsi_command::eCmdWrite10);
+    Execute(scsi_command::eCmdWrite10, length);
 }
 
 void ScsiDump::WaitForBusy() const
@@ -585,11 +581,9 @@ int ScsiDump::DumpRestore()
     for (i = 0; i < dnum; i++) {
         if (restore) {
             fs.read((char*)buffer.data(), dsiz);
-            length = dsiz;
-            Write10(i * duni, duni);
+            Write10(i * duni, duni, dsiz);
         } else {
-        	length = dsiz;
-            Read10(i * duni, duni);
+            Read10(i * duni, duni, dsiz);
             fs.write((const char*)buffer.data(), dsiz);
         }
 
@@ -609,12 +603,10 @@ int ScsiDump::DumpRestore()
         if (restore) {
             fs.read((char*)buffer.data(), dsiz);
             if (!fs.fail()) {
-            	length = dsiz;
-                Write10(i * duni, dnum);
+                Write10(i * duni, dnum, dsiz);
             }
         } else {
-        	length = dsiz;
-            Read10(i * duni, dnum);
+            Read10(i * duni, dnum, dsiz);
             fs.write((const char*)buffer.data(), dsiz);
         }
 
