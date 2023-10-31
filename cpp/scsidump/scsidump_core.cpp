@@ -171,7 +171,7 @@ void ScsiDump::ParseArguments(span<char *> args)
     buffer = vector<uint8_t>(buffer_size);
 }
 
-bool ScsiDump::Execute(scsi_command cmd, int length)
+bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
 {
 	try {
 		Selection();
@@ -197,7 +197,7 @@ bool ScsiDump::Execute(scsi_command cmd, int length)
         	try {
         		switch(phase) {
         			case phase_t::command:
-        				Command(cmd);
+        				Command(cmd, cdb);
         				break;
 
         			case phase_t::status:
@@ -253,7 +253,7 @@ void ScsiDump::Selection()
     bus->SetSEL(false);
 }
 
-void ScsiDump::Command(scsi_command cmd)
+void ScsiDump::Command(scsi_command cmd, span<uint8_t> cdb)
 {
     spdlog::debug("Executing " + command_mapping.find(cmd)->second.second);
 
@@ -303,32 +303,32 @@ void ScsiDump::MsgOut()
 
 void ScsiDump::TestUnitReady()
 {
-	cdb = {};
+	vector<uint8_t> cdb(6);
 
-    Execute(scsi_command::eCmdTestUnitReady, 0);
+    Execute(scsi_command::eCmdTestUnitReady, cdb, 0);
 }
 
 void ScsiDump::RequestSense()
 {
-	cdb = {};
+	vector<uint8_t> cdb(6);
     cdb[4] = 0xff;
 
-    Execute(scsi_command::eCmdRequestSense, 256);
+    Execute(scsi_command::eCmdRequestSense, cdb, 256);
 }
 
 bool ScsiDump::Inquiry()
 {
-	cdb = {};
-    cdb[4] = 0xff;
+	vector<uint8_t> cdb(6);
+	cdb[4] = 0xff;
 
-    return Execute(scsi_command::eCmdInquiry, 256);
+    return Execute(scsi_command::eCmdInquiry, cdb, 256);
 }
 
 pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
 {
-	cdb = {};
+	vector<uint8_t> cdb(10);
 
-    Execute(scsi_command::eCmdReadCapacity10, 8);
+    Execute(scsi_command::eCmdReadCapacity10, cdb, 8);
 
     uint64_t capacity = (static_cast<uint32_t>(buffer[0]) << 24) | (static_cast<uint32_t>(buffer[1]) << 16) |
     		(static_cast<uint32_t>(buffer[2]) << 8) | static_cast<uint32_t>(buffer[3]);
@@ -336,11 +336,11 @@ pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
     int sector_size_offset = 4;
 
     if (static_cast<int32_t>(capacity) == -1) {
-    	cdb = {};
+    	cdb.resize(16);
        	// READ CAPACITY(16), not READ LONG(16)
     	cdb[1] = 0x10;
 
-    	Execute(scsi_command::eCmdReadCapacity16_ReadLong16, 14);
+    	Execute(scsi_command::eCmdReadCapacity16_ReadLong16, cdb, 14);
 
     	capacity = (static_cast<uint64_t>(buffer[0]) << 56) | (static_cast<uint64_t>(buffer[1]) << 48) |
     			(static_cast<uint64_t>(buffer[2]) << 40) | (static_cast<uint64_t>(buffer[3]) << 32) |
@@ -360,7 +360,7 @@ pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
 
 void ScsiDump::Read10(uint32_t bstart, uint32_t blength, int length)
 {
-	cdb = {};
+	vector<uint8_t> cdb(6);
 	cdb[2] = (uint8_t)(bstart >> 24);
     cdb[3] = (uint8_t)(bstart >> 16);
     cdb[4] = (uint8_t)(bstart >> 8);
@@ -368,12 +368,12 @@ void ScsiDump::Read10(uint32_t bstart, uint32_t blength, int length)
     cdb[7] = (uint8_t)(blength >> 8);
     cdb[8] = (uint8_t)blength;
 
-    Execute(scsi_command::eCmdRead10, length);
+    Execute(scsi_command::eCmdRead10, cdb, length);
 }
 
 void ScsiDump::Write10(uint32_t bstart, uint32_t blength, int length)
 {
-	cdb = {};
+	vector<uint8_t> cdb(6);
     cdb[2] = (uint8_t)(bstart >> 24);
     cdb[3] = (uint8_t)(bstart >> 16);
     cdb[4] = (uint8_t)(bstart >> 8);
@@ -381,7 +381,7 @@ void ScsiDump::Write10(uint32_t bstart, uint32_t blength, int length)
     cdb[7] = (uint8_t)(blength >> 8);
     cdb[8] = (uint8_t)blength;
 
-    Execute(scsi_command::eCmdWrite10, length);
+    Execute(scsi_command::eCmdWrite10, cdb, length);
 }
 
 void ScsiDump::WaitForBusy() const

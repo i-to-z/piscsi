@@ -13,7 +13,6 @@
 #include <memory>
 #include <string>
 #include <span>
-#include <array>
 #include <vector>
 #include <unordered_map>
 #include <stdexcept>
@@ -57,7 +56,7 @@ public:
     bool DisplayInquiry(inquiry_info&, bool);
     int DumpRestore();
     bool GetDeviceInfo(inquiry_info&);
-    bool Execute(scsi_command, int length);
+    bool Execute(scsi_command, span<uint8_t>, int length);
     void TestUnitReady();
     void RequestSense();
     bool Inquiry();
@@ -67,7 +66,7 @@ public:
     void WaitForBusy() const;
 
 	void Selection();
-	void Command(scsi_command);
+	void Command(scsi_command, span<uint8_t>);
 	void Status();
 	void DataIn(int);
 	void DataOut(int);
@@ -81,8 +80,6 @@ public:
     static inline unique_ptr<BUS> bus;
 
     vector<uint8_t> buffer;
-
-    array<uint8_t, 16> cdb;
 
     int target_id = -1;
 
