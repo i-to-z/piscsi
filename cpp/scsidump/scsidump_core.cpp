@@ -617,8 +617,6 @@ string ScsiDump::DumpRestore()
     int sector_offset = 0;
     auto remaining = effective_size;
 
-    spdlog::debug("Chunk size: " + to_string(length));
-
     const auto start_time = chrono::high_resolution_clock::now();
 
     while (remaining) {
