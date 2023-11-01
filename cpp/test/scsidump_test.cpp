@@ -58,8 +58,7 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
     expected_str = "{\n"
                    "   \"vendor\": \"\",\n"
                    "   \"product\": \"\",\n"
-                   "   \"revision\": \"\",\n"
-                   "   \"block_size\": \"0\"\n"
+                   "   \"revision\": \"\"\n"
                    "}\n";
     EXPECT_EQ(expected_str, ReadTempFileToString(filename));
     remove(filename);

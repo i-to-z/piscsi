@@ -698,9 +698,11 @@ void ScsiDump::inquiry_info::GeneratePropertiesFile(const string& property_file)
     out << "{" << endl
     		<< "   \"vendor\": \"" << vendor << "\"," << endl
 			<< "   \"product\": \"" << product << "\"," << endl
-			<< "   \"revision\": \"" << revision << "\"," << endl
-			<< "   \"block_size\": \"" << sector_size << "\"" << endl
-			<< "}" << endl;
+			<< "   \"revision\": \"" << revision << "\"";
+    if (sector_size) {
+    	out << "," << endl << "   \"block_size\": \"" << sector_size << "\"";
+    }
+    out << endl << "}" << endl;
 
     if (out.fail()) {
         cerr << "Error: Can't create properties file '" + property_file + "'" << endl;
