@@ -63,6 +63,7 @@ public:
     bool Inquiry();
     pair<uint64_t, uint32_t> ReadCapacity();
     void ReadWrite(uint32_t, uint32_t, int, bool);
+    void SynchronizeCache();
     bool WaitForBusy() const;
 
 	bool Selection() const;

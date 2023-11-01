@@ -395,6 +395,13 @@ void ScsiDump::ReadWrite(uint32_t bstart, uint32_t blength, int length, bool isW
     Execute(isWrite ? scsi_command::eCmdWrite10 : scsi_command::eCmdRead10, cdb, length);
 }
 
+void ScsiDump::SynchronizeCache()
+{
+	vector<uint8_t> cdb(10);
+
+	Execute(scsi_command::eCmdSynchronizeCache10, cdb, 0);
+}
+
 bool ScsiDump::WaitForBusy() const
 {
     // Wait for busy for up to 2 s
@@ -633,6 +640,11 @@ string ScsiDump::DumpRestore()
 
         cout << setw(3) << (effective_size - remaining) * 100 / effective_size << "% ("
         		<< effective_size - remaining << "/" << effective_size << ")\n" << flush;
+    }
+
+    if (restore) {
+    	// Ensure that if the target device is also a PiSCSI instance its image file becomes complete immediately
+    	SynchronizeCache();
     }
 
     const auto stop_time = chrono::high_resolution_clock::now();
