@@ -583,17 +583,17 @@ string ScsiDump::DumpRestore()
         	size = file_size(path(filename));
         }
         catch (const filesystem_error& e) {
-        	return string("Can't determine file size: ") + e.what();
+        	return string("Can't determine image file size: ") + e.what();
         }
 
         effective_size = min(size, disk_size);
 
-        cout << "Restore file size: " << size << " bytes\n";
+        cout << "Restore image file size: " << size << " bytes\n" << flush;
         if (size > disk_size) {
-            cout << "WARNING: File size of " << size
+            cout << "Warning: Image file size of " << size
             		<< " byte(s) is larger than disk size of " << disk_size << " bytes(s)\n" << flush;
         } else if (size < disk_size) {
-            cout << "WARNING: File size of " << size
+            cout << "Warning: Image file size of " << size
             		<< " byte(s) is smaller than disk size of " << disk_size << " bytes(s)\n" << flush;
         }
     } else {
