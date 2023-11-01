@@ -64,11 +64,12 @@ public:
     pair<uint64_t, uint32_t> ReadCapacity();
     void ReadWrite(uint32_t, uint32_t, int, bool);
     void SynchronizeCache();
+    vector<bool> ReportLuns();
     bool WaitForBusy() const;
 
 	bool Selection() const;
 	void Command(scsi_command, span<uint8_t>) const;
-	void Status() const;
+	void Status();
 	void DataIn(int);
 	void DataOut(int);
 	void MsgIn() const;
@@ -88,11 +89,15 @@ public:
 
     int initiator_id = 7;
 
+    int status = 0;
+
     string filename;
 
     bool inquiry = false;
 
     bool scan_bus = false;
+
+    bool all_luns = false;
 
     bool restore = false;
 

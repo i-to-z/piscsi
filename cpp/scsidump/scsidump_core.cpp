@@ -8,7 +8,7 @@
 //
 //---------------------------------------------------------------------------
 
-// TODO Evaluate CHECK CONDITION after sending a command
+// TODO Evaluate result of Execute() after sending a command
 
 #include "scsidump/scsidump_core.h"
 #include "hal/gpiobus_factory.h"
@@ -27,6 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <array>
 
 using namespace std;
 using namespace filesystem;
@@ -53,7 +54,7 @@ bool ScsiDump::Banner(span<char *> args) const
     cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE] [-p] [-I] [-S]\n"
+        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-a] [-v] [-r] [-s BUFFER_SIZE] [-p] [-I] [-S]\n"
              << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
              << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
 			 << " Default is 0.\n"
@@ -61,6 +62,7 @@ bool ScsiDump::Banner(span<char *> args) const
              << " FILE is the dump file path.\n"
              << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
              << " bytes. Default is 1 MiB.\n"
+			 << " -a Scan all potential LUNs, default is LUN 0 only.\n"
              << " -v Enable verbose logging.\n"
              << " -r Restore instead of dump.\n"
              << " -p Generate .properties file to be used with the PiSCSI web interface."
@@ -96,7 +98,7 @@ void ScsiDump::ParseArguments(span<char *> args)
 
     int opt;
     opterr = 0;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rvpIS")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:arvpIS")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -132,6 +134,10 @@ void ScsiDump::ParseArguments(span<char *> args)
         case 'v':
             set_level(level::debug);
             break;
+
+        case 'a':
+        	all_luns = true;
+        	break;
 
         case 'r':
             restore = true;
@@ -181,7 +187,9 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
 		return false;
 	}
 
-	// Timeout (3000 ms)
+    status = 0;
+
+    // Timeout (3000 ms)
 	uint32_t now = SysTimer::GetTimerLow();
     while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
         bus->Acquire();
@@ -275,11 +283,15 @@ void ScsiDump::Command(scsi_command cmd, span<uint8_t> cdb) const
     }
 }
 
-void ScsiDump::Status() const
+void ScsiDump::Status()
 {
-    if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
+	array<uint8_t, 256> buf;
+
+	if (bus->ReceiveHandShake(buf.data(), 1) != 1) {
         throw phase_exception("STATUS failed");
     }
+
+	status = buf[0];
 }
 
 void ScsiDump::DataIn(int length)
@@ -398,6 +410,33 @@ void ScsiDump::SynchronizeCache()
 	Execute(scsi_command::eCmdSynchronizeCache10, cdb, 0);
 }
 
+vector<bool> ScsiDump::ReportLuns()
+{
+	const int TRANFER_LENGTH = 255;
+
+	vector<uint8_t> cdb(12);
+	cdb[9] = TRANFER_LENGTH;
+
+	Execute(scsi_command::eCmdReportLuns, cdb, TRANFER_LENGTH);
+
+	// Assume 8 LUNs in case REPORT LUNS is not available
+	vector<bool> luns(8, true);
+	if (!status) {
+		luns.resize(ControllerManager::GetScsiLunMax());
+
+		const auto lun_count = static_cast<int>(min(static_cast<size_t>(buffer[0] / 8), luns.size()));
+
+		for (auto i = 0; i < lun_count && i < TRANFER_LENGTH - 8; i++) {
+			const int lun = buffer[2 * i + 3];
+			if (lun < static_cast<int>(luns.size())) {
+				luns[lun] = true;
+			}
+		}
+	}
+
+	return luns;
+}
+
 bool ScsiDump::WaitForBusy() const
 {
     // Wait for busy for up to 2 s
@@ -489,12 +528,18 @@ void ScsiDump::ScanBus()
 			continue;
 		}
 
-		for (target_lun = 0; target_lun < ControllerManager::GetScsiLunMax(); target_lun++) {
-			inquiry_info_t inq_info;
+		target_lun = 0;
+		inquiry_info_t inq_info;
+		if (!DisplayInquiry(inq_info, false) || !all_luns) {
+			// Continue with next ID if there is no LUN 0 or only LUN 0 should be scanned
+			continue;
+		}
 
-			// Continue with next ID if there is no LUN 0
-			if (!DisplayInquiry(inq_info, false) && !target_lun) {
-				break;
+		const auto luns = ReportLuns();
+
+		for (target_lun = 1; target_lun < static_cast<int>(luns.size()); target_lun++) {
+			if (luns[target_lun]) {
+				DisplayInquiry(inq_info, false);
 			}
 		}
 	}
@@ -509,6 +554,8 @@ bool ScsiDump::DisplayInquiry(inquiry_info_t& inq_info, bool check_type)
     bus->SetRST(false);
 
     cout << DIVIDER << "\nTarget device is " << target_id << ":" << target_lun << "\n" << flush;
+
+    inq_info = {};
 
     if (!Inquiry()) {
     	return false;

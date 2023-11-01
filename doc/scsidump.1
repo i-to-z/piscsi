@@ -7,6 +7,7 @@ scsidump \- SCSI disk dumping tool for PiSCSI
 [\fB\-i\fR \fIBID\fR]
 \fB\-f\fR \fIFILE\fR
 [\fB\-s\fR \fIBUFFER_SIZE\fR]
+[\fB\-a\fR]
 [\fB\-r\fR]
 [\fB\-v\fR]
 [\fB\-p\fR]
@@ -40,6 +41,9 @@ Path to the dump file.
 .TP
 .BR \-s\fI " "\fIBUFFER_SIZE
 The transfer buffer size, specified in bytes. Default is 1 MiB. This is specified in bytes with a minimum value of 65536 (64 KiB).
+.TP
+.BR \-a\fI
+Scan all potential LUNs. Defaults to only scanning LUN 0.
 .TP
 .BR \-r\fI
 Run in restore mode. Defaults to dump mode if not specified.
