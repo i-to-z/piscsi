@@ -608,32 +608,30 @@ string ScsiDump::DumpRestore()
     cout << "Starting " << (restore ? "restore" : "dump") << ", buffer size is " << buffer.size()
     		<< " bytes\n\n" << flush;
 
-    auto sector_count = static_cast<uint32_t>(min(effective_size / inq_info.sector_size, buffer.size()
-    		/ inq_info.sector_size));
-    if (!sector_count) {
-    	sector_count = 1;
-    }
-    auto length = min(static_cast<size_t>(sector_count) * inq_info.sector_size, effective_size);
     int sector_offset = 0;
     auto remaining = effective_size;
 
     const auto start_time = chrono::high_resolution_clock::now();
 
     while (remaining) {
-        const int bytes = static_cast<int>(length > inq_info.sector_size ? length : inq_info.sector_size);
+    	const int byte_count = static_cast<int>(min(remaining, buffer.size()));
+        auto sector_count = byte_count / inq_info.sector_size;
+        if (byte_count % inq_info.sector_size) {
+        	++sector_count;
+        }
 
         spdlog::debug("Remaining bytes: " + to_string(remaining));
         spdlog::debug("Next sector: " + to_string(sector_offset));
         spdlog::debug("Sector count: " + to_string(sector_count));
-        spdlog::debug("Byte count: " + to_string(bytes));
-        spdlog::debug("File I/O count: " + to_string(length));
+        spdlog::debug("Transfer size: " + to_string(sector_count * inq_info.sector_size));
+        spdlog::debug("File I/O size: " + to_string(byte_count));
 
         if (restore) {
-            fs.read((char*)buffer.data(), length);
-            Write(sector_offset, sector_count, bytes);
+            fs.read((char*)buffer.data(), byte_count);
+            Write(sector_offset, sector_count, sector_count * inq_info.sector_size);
         } else {
-            Read(sector_offset, sector_count, bytes);
-            fs.write((const char*)buffer.data(), length);
+            Read(sector_offset, sector_count, sector_count * inq_info.sector_size);
+            fs.write((const char*)buffer.data(), byte_count);
         }
 
         if (fs.fail()) {
@@ -641,15 +639,7 @@ string ScsiDump::DumpRestore()
         }
 
         sector_offset += sector_count;
-        remaining -= length;
-
-        if (remaining < length) {
-        	sector_count = remaining / inq_info.sector_size;
-            if (!sector_count) {
-            	sector_count = 1;
-            }
-        	length = remaining;
-        }
+        remaining -= byte_count;
 
         cout << setw(3) << (effective_size - remaining) * 100 / effective_size << "% ("
         		<< effective_size - remaining << "/" << effective_size << ")\n" << flush;
