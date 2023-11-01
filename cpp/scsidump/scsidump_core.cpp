@@ -264,8 +264,6 @@ bool ScsiDump::Selection() const
     bus->SetATN(true);
 
     if (!WaitForBusy()) {
-    	bus->SetATN(false);
-
     	return false;
     }
 
