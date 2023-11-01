@@ -27,6 +27,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 using namespace std;
 using namespace filesystem;
@@ -572,8 +573,6 @@ string ScsiDump::DumpRestore()
 
     size_t effective_size;
     if (restore) {
-        cout << "Starting restore\n" << flush;
-
         off_t size;
         try {
         	size = file_size(path(filename));
@@ -594,73 +593,71 @@ string ScsiDump::DumpRestore()
         }
     } else {
     	effective_size = disk_size;
-
-    	cout << "Starting dump\n" << flush;
     }
 
-    // TODO Test the code below
+    if (!effective_size) {
+    	cout << "Nothing to do, effective size is 0\n" << flush;
+    	return "";
+    }
 
+    cout << "Starting " << (restore ? "restore" : "dump") << ", buffer size is " << buffer.size()
+    		<< " bytes\n\n" << flush;
+
+    auto sector_count = min(effective_size / inq_info.sector_size, buffer.size() / inq_info.sector_size);
+    if (!sector_count) {
+    	sector_count = 1;
+    }
+    auto length = min(sector_count * inq_info.sector_size, effective_size);
+    int sector_offset = 0;
     auto remaining = effective_size;
 
-    auto dsiz = static_cast<int>(buffer.size());
-    const int duni = dsiz / inq_info.sector_size;
-    auto dnum = static_cast<int>(effective_size / dsiz);
+    spdlog::debug("Chunk size: " + to_string(length));
 
     const auto start_time = chrono::high_resolution_clock::now();
 
-    int i;
-    for (i = 0; i < dnum; i++) {
+    while (remaining) {
+        const int bytes = length > inq_info.sector_size ? length : inq_info.sector_size;
+
+        spdlog::debug("Remaining bytes: " + to_string(remaining));
+        spdlog::debug("Next sector: " + to_string(sector_offset));
+        spdlog::debug("Sector count: " + to_string(sector_count));
+        spdlog::debug("Byte count: " + to_string(bytes));
+
         if (restore) {
-            fs.read((char*)buffer.data(), dsiz);
-            Write(i * duni, duni, dsiz);
+            fs.read((char*)buffer.data(), length);
+            Write(sector_offset, sector_count, bytes);
         } else {
-            Read(i * duni, duni, dsiz);
-            fs.write((const char*)buffer.data(), dsiz);
+            Read(sector_offset, sector_count, bytes);
+            fs.write((const char*)buffer.data(), length);
         }
 
         if (fs.fail()) {
             return (restore ? "Reading from '" : "Writing to '") + filename + " failed";
         }
 
-        cout << ((i + 1) * 100 / dnum) << "%"
-             << " (" << (i + 1) * duni << "/" << inq_info.capacity << ")\n"
-             << flush;
+        sector_offset += sector_count;
+        remaining -= length;
 
-        remaining -= dsiz;
-    }
-
-    auto rem = remaining / inq_info.sector_size;
-    dnum = inq_info.capacity % duni;
-    dsiz = dnum * inq_info.sector_size;
-    if (remaining > 0) {
-        if (restore) {
-            fs.read((char*)buffer.data(), remaining);
-            if (!fs.fail()) {
-                Write(i * duni, rem, dsiz);
+        if (remaining < length) {
+        	sector_count = remaining / inq_info.sector_size;
+            if (!sector_count) {
+            	sector_count = 1;
             }
-        } else {
-            Read(i * duni, rem, dsiz);
-            fs.write((const char*)buffer.data(), remaining);
+        	length = remaining;
         }
 
-        if (fs.fail()) {
-            return (restore ? "Reading from '" : "Writing to '") + filename + " failed";
-        }
-
-        cout << "100% (" << inq_info.capacity << "/" << inq_info.capacity << ")\n" << flush;
+        cout << setw(3) << (effective_size - remaining) * 100 / effective_size << "% ("
+        		<< effective_size - remaining << "/" << effective_size << ")\n" << flush;
     }
 
     const auto stop_time = chrono::high_resolution_clock::now();
-
     const auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
 
     cout << DIVIDER << "\n";
-    cout << "Transfered : " << effective_size << " bytes ["
-         << effective_size / 1024 / 1024 << "MiB]\n";
-    cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes\n";
-    cout << "Average transfer rate: " << (effective_size / 8) / duration
-         << " bytes per second (" << (effective_size / 8) / duration / 1024
-         << " KiB per second)\n";
+    cout << "Transferred " << effective_size / 1024 / 1024 << " MiB (" << effective_size << " bytes)\n";
+    cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes)\n";
+    cout << "Average transfer rate: " << effective_size / duration << " bytes per second ("
+    		<< effective_size / 1024 / duration << " KiB per second)\n";
     cout << DIVIDER << "\n";
 
     if (properties_file && !restore) {
