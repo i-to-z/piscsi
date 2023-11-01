@@ -66,13 +66,13 @@ public:
     void Write(uint32_t, uint32_t, int);
     bool WaitForBusy() const;
 
-	bool Selection();
-	void Command(scsi_command, span<uint8_t>);
+	bool Selection() const;
+	void Command(scsi_command, span<uint8_t>) const;
 	void Status();
 	void DataIn(int);
 	void DataOut(int);
-	void MsgIn();
-	void MsgOut();
+	void MsgIn() const;
+	void MsgOut() const;
 
     static void CleanUp();
     static void TerminationHandler(int);

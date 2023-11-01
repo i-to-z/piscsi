@@ -243,7 +243,7 @@ bool ScsiDump::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, int 
     return true;
 }
 
-bool ScsiDump::Selection()
+bool ScsiDump::Selection() const
 {
     // Set initiator and target ID
     auto data = static_cast<byte>(1 << initiator_id);
@@ -264,7 +264,7 @@ bool ScsiDump::Selection()
     return true;
 }
 
-void ScsiDump::Command(scsi_command cmd, span<uint8_t> cdb)
+void ScsiDump::Command(scsi_command cmd, span<uint8_t> cdb) const
 {
     cdb[0] = static_cast<uint8_t>(cmd);
     cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
@@ -297,7 +297,7 @@ void ScsiDump::DataOut(int length)
     }
 }
 
-void ScsiDump::MsgIn()
+void ScsiDump::MsgIn() const
 {
 	array<uint8_t, 256> buf;
 
@@ -310,7 +310,7 @@ void ScsiDump::MsgIn()
 	}
 }
 
-void ScsiDump::MsgOut()
+void ScsiDump::MsgOut() const
 {
 	array<uint8_t, 1> buf;
 
@@ -417,12 +417,11 @@ bool ScsiDump::WaitForBusy() const
         nanosleep(&ts, nullptr);
         bus->Acquire();
         if (bus->GetBSY()) {
-            break;
+            return true;
         }
     } while (count--);
 
-    // Success if the target is busy
-    return bus->GetBSY();
+    return false;
 }
 
 int ScsiDump::run(span<char *> args)
@@ -609,11 +608,12 @@ string ScsiDump::DumpRestore()
     cout << "Starting " << (restore ? "restore" : "dump") << ", buffer size is " << buffer.size()
     		<< " bytes\n\n" << flush;
 
-    auto sector_count = min(effective_size / inq_info.sector_size, buffer.size() / inq_info.sector_size);
+    auto sector_count = static_cast<uint32_t>(min(effective_size / inq_info.sector_size, buffer.size()
+    		/ inq_info.sector_size));
     if (!sector_count) {
     	sector_count = 1;
     }
-    auto length = min(sector_count * inq_info.sector_size, effective_size);
+    auto length = min(static_cast<size_t>(sector_count) * inq_info.sector_size, effective_size);
     int sector_offset = 0;
     auto remaining = effective_size;
 
@@ -622,7 +622,7 @@ string ScsiDump::DumpRestore()
     const auto start_time = chrono::high_resolution_clock::now();
 
     while (remaining) {
-        const int bytes = length > inq_info.sector_size ? length : inq_info.sector_size;
+        const int bytes = static_cast<int>(length > inq_info.sector_size ? length : inq_info.sector_size);
 
         spdlog::debug("Remaining bytes: " + to_string(remaining));
         spdlog::debug("Next sector: " + to_string(sector_offset));
