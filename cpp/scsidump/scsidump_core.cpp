@@ -179,6 +179,12 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
 {
     spdlog::debug("Executing " + command_mapping.find(cmd)->second.second);
 
+    if (!Arbitration()) {
+		spdlog::debug("ARBITRATION failed");
+
+		return false;
+    }
+
     if (!Selection()) {
 		spdlog::debug("SELECTION failed");
 
@@ -251,6 +257,35 @@ bool ScsiDump::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, int 
     return true;
 }
 
+bool ScsiDump::Arbitration() const
+{
+	if (!WaitForFree()) {
+		return false;
+	}
+
+	nanosleep(&BUS_FREE_DELAY, nullptr);
+
+	bus->SetDAT(1 << initiator_id);
+
+	bus->SetBSY(true);
+
+	nanosleep(&ARBITRATION_DELAY, nullptr);
+
+	bus->Acquire();
+	if (bus->GetDAT() > (1 << initiator_id)) {
+		bus->SetDAT(0);
+		bus->SetBSY(false);
+		return false;
+	}
+
+	bus->SetSEL(true);
+
+	nanosleep(&BUS_CLEAR_DELAY, nullptr);
+	nanosleep(&BUS_SETTLE_DELAY, nullptr);
+
+	return true;
+}
+
 bool ScsiDump::Selection() const
 {
     // Set initiator and target ID
@@ -258,10 +293,15 @@ bool ScsiDump::Selection() const
     data |= static_cast<byte>(1 << target_id);
     bus->SetDAT(static_cast<uint8_t>(data));
 
-    bus->SetSEL(true);
-
     // Request MESSAGE OUT for IDENTIFY
     bus->SetATN(true);
+
+	nanosleep(&DESKEW_DELAY, nullptr);
+	nanosleep(&DESKEW_DELAY, nullptr);
+
+    bus->SetBSY(false);
+
+	nanosleep(&BUS_SETTLE_DELAY, nullptr);
 
     if (!WaitForBusy()) {
     	return false;
@@ -430,9 +470,26 @@ vector<bool> ScsiDump::ReportLuns()
 	return luns;
 }
 
+bool ScsiDump::WaitForFree() const
+{
+    // Wait for up to 2 s
+    int count = 10000;
+    do {
+        // Wait 20 ms
+        const timespec ts = {.tv_sec = 0, .tv_nsec = 20 * 1000};
+        nanosleep(&ts, nullptr);
+        bus->Acquire();
+        if (!bus->GetBSY() && !bus->GetSEL()) {
+            return true;
+        }
+    } while (count--);
+
+    return false;
+}
+
 bool ScsiDump::WaitForBusy() const
 {
-    // Wait for busy for up to 2 s
+    // Wait for up to 2 s
     int count = 10000;
     do {
         // Wait 20 ms

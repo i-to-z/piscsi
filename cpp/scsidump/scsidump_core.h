@@ -46,7 +46,7 @@ public:
     };
     using inquiry_info_t = struct inquiry_info;
 
-  private:
+private:
 
     bool Banner(span<char *>) const;
     bool Init() const;
@@ -64,8 +64,12 @@ public:
     void ReadWrite(uint32_t, uint32_t, int, bool);
     void SynchronizeCache();
     vector<bool> ReportLuns();
+    bool WaitForFree() const;
     bool WaitForBusy() const;
+    void BusFreeDelay() const;
+    void ArbitrationDelay() const;
 
+    bool Arbitration() const;
 	bool Selection() const;
 	void Command(scsi_command, span<uint8_t>) const;
 	void Status();
@@ -131,4 +135,47 @@ public:
 			{ byte{20}, "Host Managed Zoned Block" },
 			{ byte{30}, "Well Known Logical Unit" }
     };
+
+	// 400 nanoseconds
+    inline static const timespec BUS_SETTLE_DELAY = {.tv_sec = 0, .tv_nsec = 400};
+
+	// 800 nanoseconds
+    inline static const timespec BUS_CLEAR_DELAY = {.tv_sec = 0, .tv_nsec = 800};
+
+	// 800 nanoseconds
+    inline static const timespec BUS_FREE_DELAY = {.tv_sec = 0, .tv_nsec = 800};
+
+    // 45 nanoseconds
+    inline static const timespec DESKEW_DELAY = {.tv_sec = 0, .tv_nsec = 45};
+
+	// 2.4 microseconds
+    inline static const timespec ARBITRATION_DELAY = {.tv_sec = 0, .tv_nsec = 2'400};
+
+//+==============================-===================================+
+//|  Timing description          |      Timing value                 |
+//|------------------------------+-----------------------------------|
+//|  Arbitration delay           |     2,4 us                        |
+//|  Assertion period            |      90 ns                        |
+//|  Bus clear delay             |     800 ns                        |
+//|  Bus free delay              |     800 ns                        |
+//|  Bus set delay               |     1,8 us                        |
+//|  Bus settle delay            |     400 ns                        |
+//|  Cable skew delay            |      10 ns                        |
+//|  Data release delay          |     400 ns                        |
+//|  Deskew delay                |      45 ns                        |
+//|  Disconnection delay         |     200 us                        |
+//|  Hold time                   |      45 ns                        |
+//|  Negation period             |      90 ns                        |
+//|  Power-on to selection time  |      10 s recommended             |
+//|  Reset to selection time     |     250 ms recommended            |
+//|  Reset hold time             |      25 us                        |
+//|  Selection abort time        |     200 us                        |
+//|  Selection time-out delay    |     250 ms recommended            |
+//|  Transfer period             |     set during an SDTR message    |
+//|  Fast assertion period       |      30 ns                        |
+//|  Fast cable skew delay       |       5 ns                        |
+//|  Fast deskew delay           |      20 ns                        |
+//|  Fast hold time              |      10 ns                        |
+//|  Fast negation period        |      30 ns                        |
+//+==================================================================+
 };
