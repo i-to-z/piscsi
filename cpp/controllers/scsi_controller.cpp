@@ -57,6 +57,8 @@ bool ScsiController::Process(int id)
 
 		Reset();
 
+		BusFree();
+
 		return false;
 	}
 
