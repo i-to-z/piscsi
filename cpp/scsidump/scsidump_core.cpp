@@ -263,6 +263,8 @@ bool ScsiDump::Selection() const
     bus->SetATN(true);
 
     if (!WaitForBusy()) {
+    	bus->SetATN(false);
+
     	return false;
     }
 
@@ -338,14 +340,6 @@ void ScsiDump::TestUnitReady()
 	vector<uint8_t> cdb(6);
 
     Execute(scsi_command::eCmdTestUnitReady, cdb, 0);
-}
-
-void ScsiDump::RequestSense()
-{
-	vector<uint8_t> cdb(6);
-    cdb[4] = 0xff;
-
-    Execute(scsi_command::eCmdRequestSense, cdb, 256);
 }
 
 bool ScsiDump::Inquiry()
@@ -547,12 +541,6 @@ void ScsiDump::ScanBus()
 
 bool ScsiDump::DisplayInquiry(inquiry_info_t& inq_info, bool check_type)
 {
-    // Assert RST for 1 ms
-    bus->SetRST(true);
-    const timespec ts = {.tv_sec = 0, .tv_nsec = 1000 * 1000};
-    nanosleep(&ts, nullptr);
-    bus->SetRST(false);
-
     cout << DIVIDER << "\nTarget device is " << target_id << ":" << target_lun << "\n" << flush;
 
     inq_info = {};
@@ -716,8 +704,6 @@ bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
     }
 
     TestUnitReady();
-
-    RequestSense();
 
     const auto [capacity, sector_size] = ReadCapacity();
 

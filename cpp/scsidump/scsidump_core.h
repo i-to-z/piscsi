@@ -59,7 +59,6 @@ public:
     bool Execute(scsi_command, span<uint8_t>, int length);
     bool Dispatch(phase_t phase, scsi_command, span<uint8_t>, int);
     void TestUnitReady();
-    void RequestSense();
     bool Inquiry();
     pair<uint64_t, uint32_t> ReadCapacity();
     void ReadWrite(uint32_t, uint32_t, int, bool);
