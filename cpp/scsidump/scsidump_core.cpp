@@ -456,7 +456,7 @@ int ScsiDump::run(span<char *> args)
     		DisplayBoardId();
 
     		inquiry_info_t inq_info;
-    		if (DisplayInquiry(inq_info, false) && properties_file) {
+    		if (DisplayInquiry(inq_info, false) && properties_file && !filename.empty()) {
     			inq_info.GeneratePropertiesFile(filename + ".properties");
     		}
     	}
