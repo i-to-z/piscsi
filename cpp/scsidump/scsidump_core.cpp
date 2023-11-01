@@ -9,7 +9,6 @@
 //---------------------------------------------------------------------------
 
 // TODO Evaluate CHECK CONDITION after sending a command
-// TODO Send IDENTIFY message in order to support LUNS > 7
 
 #include "scsidump/scsidump_core.h"
 #include "hal/gpiobus_factory.h"
@@ -254,6 +253,7 @@ bool ScsiDump::Selection() const
     bus->SetSEL(true);
 
     // Request MESSAGE OUT for IDENTIFY
+    // TODO Check why this does not work, the MESSAGE OUT phase is too long
     //bus->SetATN(true);
 
     if (!WaitForBusy()) {
