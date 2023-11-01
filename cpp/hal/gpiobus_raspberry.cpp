@@ -330,17 +330,15 @@ void GPIOBUS_Raspberry::Reset()
         SetSignal(j, OFF);
     }
 
+    // Set target signal to input for all modes
+    SetControl(PIN_TAD, TAD_IN);
+    SetMode(PIN_BSY, IN);
+    SetMode(PIN_MSG, IN);
+    SetMode(PIN_CD, IN);
+    SetMode(PIN_REQ, IN);
+    SetMode(PIN_IO, IN);
+
     if (actmode == mode_e::TARGET) {
-        // Target mode
-
-        // Set target signal to input
-        SetControl(PIN_TAD, TAD_IN);
-        SetMode(PIN_BSY, IN);
-        SetMode(PIN_MSG, IN);
-        SetMode(PIN_CD, IN);
-        SetMode(PIN_REQ, IN);
-        SetMode(PIN_IO, IN);
-
         // Set the initiator signal to input
         SetControl(PIN_IND, IND_IN);
         SetMode(PIN_SEL, IN);
@@ -360,16 +358,6 @@ void GPIOBUS_Raspberry::Reset()
         SetMode(PIN_DT7, IN);
         SetMode(PIN_DP, IN);
     } else {
-        // Initiator mode
-
-        // Set target signal to input
-        SetControl(PIN_TAD, TAD_IN);
-        SetMode(PIN_BSY, IN);
-        SetMode(PIN_MSG, IN);
-        SetMode(PIN_CD, IN);
-        SetMode(PIN_REQ, IN);
-        SetMode(PIN_IO, IN);
-
         // Set the initiator signal to output
         SetControl(PIN_IND, IND_OUT);
         SetMode(PIN_SEL, OUT);
