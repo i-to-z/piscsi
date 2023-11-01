@@ -64,7 +64,8 @@ bool ScsiDump::Banner(span<char *> args) const
              << " bytes. Default is 1 MiB.\n"
              << " -v Enable verbose logging.\n"
              << " -r Restore instead of dump.\n"
-             << " -p Generate .properties file to be used with the PiSCSI web interface. Only valid for dump mode.\n"
+             << " -p Generate .properties file to be used with the PiSCSI web interface."
+			 << " Only valid for dump and inquiry mode.\n"
 			 << " -I Display INQUIRY data of ID[:LUN].\n"
 			 << " -S Scan SCSI bus for devices.\n"
              << flush;
@@ -461,7 +462,9 @@ int ScsiDump::run(span<char *> args)
     		DisplayBoardId();
 
     		inquiry_info_t inq_info;
-    		DisplayInquiry(inq_info, false);
+    		if (DisplayInquiry(inq_info, false) && properties_file) {
+    			inq_info.GeneratePropertiesFile(filename + ".properties");
+    		}
     	}
     	else {
     		if (const string error = DumpRestore(); !error.empty()) {
