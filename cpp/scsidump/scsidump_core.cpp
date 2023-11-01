@@ -489,7 +489,7 @@ void ScsiDump::ScanBus()
 			continue;
 		}
 
-		for (target_lun = 0; target_lun < 8; target_lun++) {
+		for (target_lun = 0; target_lun < ControllerManager::GetScsiLunMax(); target_lun++) {
 			inquiry_info_t inq_info;
 
 			// Continue with next ID if there is no LUN 0
