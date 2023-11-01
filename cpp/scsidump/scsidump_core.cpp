@@ -200,6 +200,7 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
         			now = SysTimer::GetTimerLow();
         		}
         		else {
+        			bus->Reset();
         			return true;
         		}
         	}
