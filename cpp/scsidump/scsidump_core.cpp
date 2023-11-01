@@ -180,7 +180,7 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
     spdlog::debug("Executing " + command_mapping.find(cmd)->second.second);
 
     if (!Arbitration()) {
-		spdlog::debug("ARBITRATION failed");
+		spdlog::debug("Lost ARBITRATION");
 
 		return false;
     }
