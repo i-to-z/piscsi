@@ -68,7 +68,7 @@ public:
 
 	bool Selection() const;
 	void Command(scsi_command, span<uint8_t>) const;
-	void Status();
+	void Status() const;
 	void DataIn(int);
 	void DataOut(int);
 	void MsgIn() const;

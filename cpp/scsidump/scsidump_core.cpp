@@ -276,7 +276,7 @@ void ScsiDump::Command(scsi_command cmd, span<uint8_t> cdb) const
     }
 }
 
-void ScsiDump::Status()
+void ScsiDump::Status() const
 {
     if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
         throw phase_exception("STATUS failed");
@@ -614,7 +614,7 @@ string ScsiDump::DumpRestore()
     const auto start_time = chrono::high_resolution_clock::now();
 
     while (remaining) {
-    	const int byte_count = static_cast<int>(min(remaining, buffer.size()));
+    	const auto byte_count = static_cast<int>(min(remaining, buffer.size()));
         auto sector_count = byte_count / inq_info.sector_size;
         if (byte_count % inq_info.sector_size) {
         	++sector_count;
