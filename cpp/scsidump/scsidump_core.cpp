@@ -693,7 +693,7 @@ bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
 
 void ScsiDump::inquiry_info::GeneratePropertiesFile(const string& property_file) const
 {
-	ofstream out(property_file);
+	fstream out(property_file);
 
     out << "{" << endl
     		<< "   \"vendor\": \"" << vendor << "\"," << endl
