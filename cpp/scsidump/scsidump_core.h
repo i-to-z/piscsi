@@ -54,7 +54,7 @@ public:
     void DisplayBoardId() const;
     void ScanBus();
     bool DisplayInquiry(inquiry_info&, bool);
-    int DumpRestore();
+    string DumpRestore();
     bool GetDeviceInfo(inquiry_info&);
     bool Execute(scsi_command, span<uint8_t>, int length);
     bool Dispatch(phase_t phase, scsi_command, span<uint8_t>, int);

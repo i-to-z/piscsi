@@ -458,7 +458,9 @@ int ScsiDump::run(span<char *> args)
     		DisplayInquiry(inq_info, false);
     	}
     	else {
-    		DumpRestore();
+    		if (const string error = DumpRestore(); !error.empty()) {
+    			cerr << "Error: " << error << endl;
+    		}
     	}
     }
     catch (const phase_exception& e) {
@@ -552,18 +554,18 @@ bool ScsiDump::DisplayInquiry(inquiry_info_t& inq_info, bool check_type)
     return true;
 }
 
-int ScsiDump::DumpRestore()
+string ScsiDump::DumpRestore()
 {
 	inquiry_info_t inq_info;
 	if (!GetDeviceInfo(inq_info)) {
-		return EXIT_FAILURE;
+		return "Can't get device information";
 	}
 
     fstream fs;
     fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
 
     if (fs.fail()) {
-        throw phase_exception("Can't open image file '" + filename + "'");
+        return "Can't open image file '" + filename + "'";
     }
 
     const off_t disk_size = inq_info.capacity * inq_info.sector_size;
@@ -577,7 +579,7 @@ int ScsiDump::DumpRestore()
         	size = file_size(path(filename));
         }
         catch (const filesystem_error& e) {
-        	throw phase_exception(string("Can't determine file size: ") + e.what());
+        	return string("Can't determine file size: ") + e.what();
         }
 
         effective_size = min(size, disk_size);
@@ -617,7 +619,7 @@ int ScsiDump::DumpRestore()
         }
 
         if (fs.fail()) {
-            throw phase_exception("File I/O failed");
+            return (restore ? "Reading from '" : "Writing to '") + filename + " failed";
         }
 
         cout << ((i + 1) * 100 / dnum) << "%"
@@ -642,7 +644,7 @@ int ScsiDump::DumpRestore()
         }
 
         if (fs.fail()) {
-            throw phase_exception("File I/O failed");
+            return (restore ? "Reading from '" : "Writing to '") + filename + " failed";
         }
 
         cout << "100% (" << inq_info.capacity << "/" << inq_info.capacity << ")\n" << flush;
@@ -665,7 +667,7 @@ int ScsiDump::DumpRestore()
         inq_info.GeneratePropertiesFile(filename + ".properties");
     }
 
-    return EXIT_SUCCESS;
+    return "";
 }
 
 bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
