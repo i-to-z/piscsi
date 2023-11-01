@@ -691,16 +691,19 @@ bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
 
 void ScsiDump::inquiry_info::GeneratePropertiesFile(const string& property_file) const
 {
-	ofstream prop_stream(property_file);
+	ofstream out(property_file);
 
-    prop_stream << "{" << endl;
-    prop_stream << "   \"vendor\": \"" << vendor << "\"," << endl;
-    prop_stream << "   \"product\": \"" << product << "\"," << endl;
-    prop_stream << "   \"revision\": \"" << revision << "\"," << endl;
-    prop_stream << "   \"block_size\": \"" << sector_size << "\"" << endl;
-    prop_stream << "}" << endl;
+    out << "{" << endl
+    		<< "   \"vendor\": \"" << vendor << "\"," << endl
+			<< "   \"product\": \"" << product << "\"," << endl
+			<< "   \"revision\": \"" << revision << "\"," << endl
+			<< "   \"block_size\": \"" << sector_size << "\"" << endl
+			<< "}" << endl;
 
-    if (prop_stream.fail()) {
-        spdlog::warn("Unable to create properties file '" + property_file + "'");
+    if (out.fail()) {
+        cerr << "Error: Can't create properties file '" + property_file + "'" << endl;
+    }
+    else {
+    	cout << "Created properties file '" + property_file + "'\n" << flush;
     }
 }
