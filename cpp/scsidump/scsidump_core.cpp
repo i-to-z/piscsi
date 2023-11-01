@@ -618,9 +618,9 @@ string ScsiDump::DumpRestore()
 
         if (restore) {
             fs.read((char*)buffer.data(), byte_count);
-            ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, false);
-        } else {
             ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, true);
+        } else {
+            ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, false);
             fs.write((const char*)buffer.data(), byte_count);
         }
 
