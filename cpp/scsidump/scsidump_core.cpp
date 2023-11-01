@@ -253,7 +253,7 @@ bool ScsiDump::Selection()
     bus->SetSEL(true);
 
     // Request MESSAGE OUT for IDENTIFY
-    bus->SetATN(true);
+    //bus->SetATN(true);
 
     if (!WaitForBusy()) {
     	return false;
