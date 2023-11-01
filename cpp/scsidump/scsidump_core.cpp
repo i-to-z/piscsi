@@ -658,7 +658,7 @@ string ScsiDump::DumpRestore()
     cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes)\n";
     cout << "Average transfer rate: " << effective_size / duration << " bytes per second ("
     		<< effective_size / 1024 / duration << " KiB per second)\n";
-    cout << DIVIDER << "\n";
+    cout << DIVIDER << "\n" << flush;
 
     if (properties_file && !restore) {
         inq_info.GeneratePropertiesFile(filename + ".properties");
