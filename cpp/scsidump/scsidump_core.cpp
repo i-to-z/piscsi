@@ -299,9 +299,15 @@ void ScsiDump::DataOut(int length)
 
 void ScsiDump::MsgIn()
 {
-    if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
+	array<uint8_t, 256> buf;
+
+	if (bus->ReceiveHandShake(buf.data(), 1) != 1) {
         throw phase_exception("MESSAGE IN failed");
     }
+
+	if (buf[0]) {
+		throw phase_exception("MESSAGE IN did not report COMMAND COMPLETE");
+	}
 }
 
 void ScsiDump::MsgOut()
