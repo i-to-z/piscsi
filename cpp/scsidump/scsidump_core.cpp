@@ -626,6 +626,7 @@ string ScsiDump::DumpRestore()
         spdlog::debug("Next sector: " + to_string(sector_offset));
         spdlog::debug("Sector count: " + to_string(sector_count));
         spdlog::debug("Byte count: " + to_string(bytes));
+        spdlog::debug("File I/O count: " + to_string(length));
 
         if (restore) {
             fs.read((char*)buffer.data(), length);
