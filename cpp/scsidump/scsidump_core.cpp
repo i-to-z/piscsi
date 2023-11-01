@@ -288,7 +288,6 @@ bool ScsiDump::Arbitration() const
 
 bool ScsiDump::Selection() const
 {
-    // Set initiator and target ID
     auto data = static_cast<byte>(1 << initiator_id);
     data |= static_cast<byte>(1 << target_id);
     bus->SetDAT(static_cast<uint8_t>(data));
@@ -306,6 +305,9 @@ bool ScsiDump::Selection() const
     if (!WaitForBusy()) {
     	return false;
     }
+
+    nanosleep(&DESKEW_DELAY, nullptr);
+	nanosleep(&DESKEW_DELAY, nullptr);
 
     bus->SetSEL(false);
 
