@@ -632,7 +632,7 @@ string ScsiDump::DumpRestore()
         }
 
         if (fs.fail()) {
-            return (restore ? "Reading from '" : "Writing to '") + filename + " failed";
+            return (restore ? "Reading from '" : "Writing to '") + filename + "' failed";
         }
 
         sector_offset += sector_count;
