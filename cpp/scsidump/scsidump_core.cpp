@@ -379,33 +379,20 @@ pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
 			(static_cast<uint32_t>(buffer[sector_size_offset + 2]) << 8) |
 			static_cast<uint32_t>(buffer[sector_size_offset + 3]);
 
-    return { capacity - sector_size, sector_size };
+    return { capacity + 1, sector_size };
 }
 
-void ScsiDump::Read(uint32_t bstart, uint32_t blength, int length)
+void ScsiDump::ReadWrite(uint32_t bstart, uint32_t blength, int length, bool isWrite)
 {
 	vector<uint8_t> cdb(10);
-	cdb[2] = (uint8_t)(bstart >> 24);
-    cdb[3] = (uint8_t)(bstart >> 16);
-    cdb[4] = (uint8_t)(bstart >> 8);
-    cdb[5] = (uint8_t)bstart;
-    cdb[7] = (uint8_t)(blength >> 8);
-    cdb[8] = (uint8_t)blength;
+	cdb[2] = static_cast<uint8_t>(bstart >> 24);
+    cdb[3] = static_cast<uint8_t>(bstart >> 16);
+    cdb[4] = static_cast<uint8_t>(bstart >> 8);
+    cdb[5] = static_cast<uint8_t>(bstart);
+    cdb[7] = static_cast<uint8_t>(blength >> 8);
+    cdb[8] = static_cast<uint8_t>(blength);
 
-    Execute(scsi_command::eCmdRead10, cdb, length);
-}
-
-void ScsiDump::Write(uint32_t bstart, uint32_t blength, int length)
-{
-	vector<uint8_t> cdb(10);
-    cdb[2] = (uint8_t)(bstart >> 24);
-    cdb[3] = (uint8_t)(bstart >> 16);
-    cdb[4] = (uint8_t)(bstart >> 8);
-    cdb[5] = (uint8_t)bstart;
-    cdb[7] = (uint8_t)(blength >> 8);
-    cdb[8] = (uint8_t)blength;
-
-    Execute(scsi_command::eCmdWrite10, cdb, length);
+    Execute(isWrite ? scsi_command::eCmdWrite10 : scsi_command::eCmdRead10, cdb, length);
 }
 
 bool ScsiDump::WaitForBusy() const
@@ -631,9 +618,9 @@ string ScsiDump::DumpRestore()
 
         if (restore) {
             fs.read((char*)buffer.data(), byte_count);
-            Write(sector_offset, sector_count, sector_count * inq_info.sector_size);
+            ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, false);
         } else {
-            Read(sector_offset, sector_count, sector_count * inq_info.sector_size);
+            ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, true);
             fs.write((const char*)buffer.data(), byte_count);
         }
 

@@ -62,8 +62,7 @@ public:
     void RequestSense();
     bool Inquiry();
     pair<uint64_t, uint32_t> ReadCapacity();
-    void Read(uint32_t, uint32_t, int);
-    void Write(uint32_t, uint32_t, int);
+    void ReadWrite(uint32_t, uint32_t, int, bool);
     bool WaitForBusy() const;
 
 	bool Selection() const;
