@@ -568,7 +568,7 @@ string ScsiDump::DumpRestore()
     fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
 
     if (fs.fail()) {
-        return "Can't open image file '" + filename + "'";
+        return "Can't open image file '" + filename + "': " + strerror(errno);
     }
 
     const off_t disk_size = inq_info.capacity * inq_info.sector_size;
@@ -632,7 +632,7 @@ string ScsiDump::DumpRestore()
         }
 
         if (fs.fail()) {
-            return (restore ? "Reading from '" : "Writing to '") + filename + "' failed";
+            return (restore ? "Reading from '" : "Writing to '") + filename + "' failed: " + strerror(errno);
         }
 
         sector_offset += sector_count;
@@ -693,7 +693,7 @@ bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
 
 void ScsiDump::inquiry_info::GeneratePropertiesFile(const string& property_file) const
 {
-	fstream out(property_file);
+	ofstream out(property_file);
 
     out << "{" << endl
     		<< "   \"vendor\": \"" << vendor << "\"," << endl
@@ -705,7 +705,7 @@ void ScsiDump::inquiry_info::GeneratePropertiesFile(const string& property_file)
     out << endl << "}" << endl;
 
     if (out.fail()) {
-        cerr << "Error: Can't create properties file '" + property_file + "'" << endl;
+        cerr << "Error: Can't create properties file '" + property_file + "': " << strerror(errno) << endl;
     }
     else {
     	cout << "Created properties file '" + property_file + "'\n" << flush;
