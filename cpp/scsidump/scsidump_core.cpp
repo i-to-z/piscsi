@@ -252,8 +252,7 @@ bool ScsiDump::Selection() const
     bus->SetSEL(true);
 
     // Request MESSAGE OUT for IDENTIFY
-    // TODO Check why this does not work, the MESSAGE OUT phase is too long
-    //bus->SetATN(true);
+    bus->SetATN(true);
 
     if (!WaitForBusy()) {
     	return false;
@@ -320,8 +319,6 @@ void ScsiDump::MsgOut() const
 	if (bus->SendHandShake(buf.data(), buf.size(), BUS::SEND_NO_DELAY) != buf.size()) {
         throw phase_exception("MESSAGE OUT failed");
     }
-
-	bus->SetATN(false);
 }
 
 void ScsiDump::TestUnitReady()

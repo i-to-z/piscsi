@@ -332,6 +332,11 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
                 break;
             }
 
+           	// Signal the last MESSAGE OUT byte
+            if (phase == phase_t::msgout && i == count - 1) {
+            	SetATN(false);
+            }
+
             // Phase error
             Acquire();
             if (GetPhase() != phase) {
