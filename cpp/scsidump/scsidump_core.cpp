@@ -276,6 +276,11 @@ bool ScsiDump::Arbitration() const
 		return false;
 	}
 
+	// TODO Remove this code block, it should be in Selection() only, but then piscsi sometimes does not see the target ID
+	auto data = static_cast<byte>(1 << initiator_id);
+	data |= static_cast<byte>(1 << target_id);
+	bus->SetDAT(static_cast<uint8_t>(data));
+
 	bus->SetSEL(true);
 
 	nanosleep(&BUS_CLEAR_DELAY, nullptr);
