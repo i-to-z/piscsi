@@ -25,10 +25,10 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
 	test_data.GeneratePropertiesFile(cout, filename);
 
     string expected_str = "{\n"
-                          "   \"vendor\": \"PISCSI\",\n"
-                          "   \"product\": \"TEST PRODUCT\",\n"
-                          "   \"revision\": \"REV1\",\n"
-                          "   \"block_size\": \"1000\"\n}"
+                          "    \"vendor\": \"PISCSI\",\n"
+                          "    \"product\": \"TEST PRODUCT\",\n"
+                          "    \"revision\": \"REV1\",\n"
+                          "    \"block_size\": \"1000\"\n}"
                           "\n";
     EXPECT_EQ(expected_str, ReadTempFileToString(filename));
     DeleteTempFile(filename);
@@ -43,10 +43,10 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
     test_data.GeneratePropertiesFile(cout, filename);
 
     expected_str = "{\n"
-                   "   \"vendor\": \"01234567\",\n"
-                   "   \"product\": \"0123456789ABCDEF\",\n"
-                   "   \"revision\": \"0123\",\n"
-                   "   \"block_size\": \"4294967295\"\n"
+                   "    \"vendor\": \"01234567\",\n"
+                   "    \"product\": \"0123456789ABCDEF\",\n"
+                   "    \"revision\": \"0123\",\n"
+                   "    \"block_size\": \"4294967295\"\n"
                    "}\n";
     EXPECT_EQ(expected_str, ReadTempFileToString(filename));
     DeleteTempFile(filename);
@@ -57,9 +57,9 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
     test_data.GeneratePropertiesFile(cout, filename);
 
     expected_str = "{\n"
-                   "   \"vendor\": \"\",\n"
-                   "   \"product\": \"\",\n"
-                   "   \"revision\": \"\"\n"
+                   "    \"vendor\": \"\",\n"
+                   "    \"product\": \"\",\n"
+                   "    \"revision\": \"\"\n"
                    "}\n";
     EXPECT_EQ(expected_str, ReadTempFileToString(filename));
     DeleteTempFile(filename);

@@ -832,11 +832,11 @@ void ScsiDump::inquiry_info::GeneratePropertiesFile(ostream& console, const stri
 	ofstream prop(property_file);
 
 	prop << "{\n"
-    		<< "   \"vendor\": \"" << vendor << "\",\n"
-			<< "   \"product\": \"" << product << "\",\n"
-			<< "   \"revision\": \"" << revision << "\"";
+    		<< "    \"vendor\": \"" << vendor << "\",\n"
+			<< "    \"product\": \"" << product << "\",\n"
+			<< "    \"revision\": \"" << revision << "\"";
     if (sector_size) {
-    	prop << ",\n   \"block_size\": \"" << sector_size << "\"";
+    	prop << ",\n    \"block_size\": \"" << sector_size << "\"";
     }
     prop << "\n}\n";
 
