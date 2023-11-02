@@ -188,8 +188,6 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
     if (!Selection()) {
 		spdlog::debug("SELECTION failed");
 
-		bus->Reset();
-
 		return false;
 	}
 
@@ -288,9 +286,9 @@ bool ScsiDump::Arbitration() const
 
 bool ScsiDump::Selection() const
 {
-    auto data = static_cast<byte>(1 << initiator_id);
-    data |= static_cast<byte>(1 << target_id);
-    bus->SetDAT(static_cast<uint8_t>(data));
+	auto data = static_cast<byte>(1 << initiator_id);
+	data |= static_cast<byte>(1 << target_id);
+	bus->SetDAT(static_cast<uint8_t>(data));
 
     // Request MESSAGE OUT for IDENTIFY
     bus->SetATN(true);
@@ -303,6 +301,9 @@ bool ScsiDump::Selection() const
 	nanosleep(&BUS_SETTLE_DELAY, nullptr);
 
     if (!WaitForBusy()) {
+		bus->SetDAT(0);
+		bus->SetATN(false);
+		bus->SetSEL(false);
     	return false;
     }
 
