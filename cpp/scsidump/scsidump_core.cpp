@@ -451,7 +451,7 @@ void ScsiDump::SynchronizeCache()
 	Execute(scsi_command::eCmdSynchronizeCache10, cdb, 0);
 }
 
-vector<bool> ScsiDump::ReportLuns()
+set<int> ScsiDump::ReportLuns()
 {
 	const int TRANSFER_LENGTH = 512;
 
@@ -463,24 +463,23 @@ vector<bool> ScsiDump::ReportLuns()
 
 	// Assume 8 LUNs in case REPORT LUNS is not available
 	if (status) {
-		return vector<bool>(8, true);
+		return { 0, 1, 2, 3, 4, 5, 6, 7 };
 	}
 
-	vector<bool> luns(ControllerManager::GetScsiLunMax());
 
-	const auto lun_count = static_cast<int>(min(
-			(static_cast<size_t>(buffer[2]) << 8) | static_cast<size_t>(buffer[3]) / 8, luns.size()));
+	const auto lun_count = (static_cast<size_t>(buffer[2]) << 8) | static_cast<size_t>(buffer[3]) / 8;
 	spdlog::debug("Device reported LUN count of " + to_string(lun_count));
 
+	set<int> luns;
 	int offset = 8;
-	for (auto i = 0; i < lun_count && offset < TRANSFER_LENGTH - 8; i++, offset += 8) {
+	for (size_t i = 0; i < lun_count && offset < TRANSFER_LENGTH - 8; i++, offset += 8) {
 		const uint64_t lun =
 				(static_cast<uint64_t>(buffer[offset]) << 56) | (static_cast<uint64_t>(buffer[offset + 1]) << 48) |
     			(static_cast<uint64_t>(buffer[offset + 1]) << 40) | (static_cast<uint64_t>(buffer[offset + 3]) << 32) |
 				(static_cast<uint64_t>(buffer[offset + 4]) << 24) | (static_cast<uint64_t>(buffer[offset + 5]) << 16) |
 				(static_cast<uint64_t>(buffer[offset + 6]) << 8) | static_cast<uint64_t>(buffer[offset + 7]);
-		if (lun < static_cast<uint64_t>(luns.size())) {
-			luns[lun] = true;
+		if (lun < static_cast<uint64_t>(ControllerManager::GetScsiLunMax())) {
+			luns.insert(static_cast<int>(lun));
 		}
 		else {
 			spdlog::debug("Device reported invalid LUN " + to_string(lun));
@@ -605,12 +604,13 @@ void ScsiDump::ScanBus()
 			continue;
 		}
 
-		const auto luns = ReportLuns();
+		auto luns = ReportLuns();
+		// LUN 0 has already been dealt with
+		luns.erase(0);
 
-		for (target_lun = 1; target_lun < static_cast<int>(luns.size()); target_lun++) {
-			if (luns[target_lun]) {
-				DisplayInquiry(inq_info, false);
-			}
+		for (const auto lun : luns) {
+			target_lun = lun;
+			DisplayInquiry(inq_info, false);
 		}
 	}
 }

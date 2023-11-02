@@ -14,6 +14,7 @@
 #include <string>
 #include <span>
 #include <vector>
+#include <set>
 #include <unordered_map>
 #include <stdexcept>
 #include <functional>
@@ -63,7 +64,7 @@ private:
     pair<uint64_t, uint32_t> ReadCapacity();
     void ReadWrite(uint32_t, uint32_t, int, bool);
     void SynchronizeCache();
-    vector<bool> ReportLuns();
+    set<int> ReportLuns();
     bool WaitForFree() const;
     bool WaitForBusy() const;
     void BusFreeDelay() const;
