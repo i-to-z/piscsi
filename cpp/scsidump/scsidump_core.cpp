@@ -263,6 +263,7 @@ void ScsiDump::Reset() const
 bool ScsiDump::Arbitration() const
 {
 	if (!WaitForFree()) {
+		spdlog::debug("Bus is not free");
 		return false;
 	}
 
@@ -276,6 +277,7 @@ bool ScsiDump::Arbitration() const
 
 	bus->Acquire();
 	if (bus->GetDAT() > (1 << initiator_id)) {
+		spdlog::debug("Lost ARBITRATION, competing initiator ID is " + to_string(bus->GetDAT() - (1 << initiator_id)));
 		return false;
 	}
 
