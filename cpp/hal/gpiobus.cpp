@@ -51,7 +51,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
     // Wait for ACK signal
     bool ret = WaitACK(ON);
 
-#ifndef NO_COMMAND_DELAY
+#ifndef NO_DELAY
     // Wait until the signal line stabilizes
     SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
@@ -91,7 +91,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 
         ret = WaitACK(ON);
 
-#ifndef NO_COMMAND_DELAY
+#ifndef NO_DELAY
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
         // Get the actual SCSI command
@@ -131,7 +131,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
         // Wait for ACK signal
         ret = WaitACK(ON);
 
-#ifndef NO_COMMAND_DELAY
+#ifndef NO_DELAY
         // Wait until the signal line stabilizes
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
@@ -181,7 +181,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
             // Wait for ACK
             bool ret = WaitACK(ON);
 
-#ifndef NO_DATA_DELAY
+#ifndef NO_DELAY
             // Wait until the signal line stabilizes
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
@@ -228,7 +228,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
                 break;
             }
 
-#ifndef NO_DATA_DELAY
+#ifndef NO_DELAY
             // Wait until the signal line stabilizes
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
