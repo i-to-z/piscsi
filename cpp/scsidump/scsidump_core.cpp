@@ -201,7 +201,7 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
         		}
         		else {
         			bus->Reset();
-         			return true;
+         			return !status;
         		}
         	}
         	catch (const phase_exception& e) {
@@ -212,7 +212,7 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
         }
     }
 
-    return !status;
+    return false;
 }
 
 bool ScsiDump::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, int length)
