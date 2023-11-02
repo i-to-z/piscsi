@@ -261,13 +261,13 @@ bool ScsiDump::Arbitration() const
 		return false;
 	}
 
-    SysTimer::SleepNsec(BUS_FREE_DELAY_NS);
+	nanosleep(&BUS_FREE_DELAY, nullptr);
 
 	bus->SetDAT(static_cast<uint8_t>(1 << initiator_id));
 
 	bus->SetBSY(true);
 
-    SysTimer::SleepNsec(ARBITRATION_DELAY_NS);
+	nanosleep(&ARBITRATION_DELAY, nullptr);
 
 	bus->Acquire();
 	if (bus->GetDAT() > (1 << initiator_id)) {
@@ -283,7 +283,8 @@ bool ScsiDump::Arbitration() const
 
 	bus->SetSEL(true);
 
-    SysTimer::SleepNsec(BUS_CLEAR_DELAY_NS + BUS_SETTLE_DELAY_NS);
+	nanosleep(&BUS_CLEAR_DELAY, nullptr);
+	nanosleep(&BUS_SETTLE_DELAY, nullptr);
 
 	return true;
 }
@@ -297,11 +298,12 @@ bool ScsiDump::Selection() const
     // Request MESSAGE OUT for IDENTIFY
     bus->SetATN(true);
 
-    SysTimer::SleepNsec(2 * DESKEW_DELAY_NS);
+	nanosleep(&DESKEW_DELAY, nullptr);
+	nanosleep(&DESKEW_DELAY, nullptr);
 
     bus->SetBSY(false);
 
-    SysTimer::SleepNsec(BUS_SETTLE_DELAY_NS);
+	nanosleep(&BUS_SETTLE_DELAY, nullptr);
 
     if (!WaitForBusy()) {
 		bus->SetDAT(0);
@@ -310,7 +312,8 @@ bool ScsiDump::Selection() const
     	return false;
     }
 
-    SysTimer::SleepNsec(2 * DESKEW_DELAY_NS);
+	nanosleep(&DESKEW_DELAY, nullptr);
+	nanosleep(&DESKEW_DELAY, nullptr);
 
     bus->SetSEL(false);
 
