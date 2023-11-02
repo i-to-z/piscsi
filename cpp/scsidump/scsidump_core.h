@@ -10,7 +10,6 @@
 #pragma once
 
 #include "hal/bus.h"
-#include <memory>
 #include <string>
 #include <span>
 #include <vector>
@@ -59,10 +58,10 @@ private:
     bool GetDeviceInfo(inquiry_info&);
     bool Execute(scsi_command, span<uint8_t>, int length);
     bool Dispatch(phase_t phase, scsi_command, span<uint8_t>, int);
-    void TestUnitReady();
+    bool TestUnitReady();
     bool Inquiry();
     pair<uint64_t, uint32_t> ReadCapacity();
-    void ReadWrite(uint32_t, uint32_t, int, bool);
+    bool ReadWrite(uint32_t, uint32_t, int, bool);
     void SynchronizeCache();
     set<int> ReportLuns();
     bool WaitForFree() const;
