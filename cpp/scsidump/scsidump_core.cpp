@@ -181,13 +181,13 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
 
     if (!Arbitration()) {
 		spdlog::debug("Lost ARBITRATION");
-
+		Reset();
 		return false;
     }
 
     if (!Selection()) {
 		spdlog::debug("SELECTION failed");
-
+		Reset();
 		return false;
 	}
 
@@ -205,11 +205,12 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
         		}
         		else {
         			bus->Reset();
-        			return true;
+         			return true;
         		}
         	}
         	catch (const phase_exception& e) {
         		cerr << "Error: " << e.what() << endl;
+        		bus->Reset();
         		return false;
         	}
         }
@@ -255,6 +256,14 @@ bool ScsiDump::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, int 
     return true;
 }
 
+void ScsiDump::Reset() const
+{
+	bus->SetDAT(0);
+	bus->SetBSY(false);
+	bus->SetSEL(false);
+	bus->SetATN(false);
+}
+
 bool ScsiDump::Arbitration() const
 {
 	if (!WaitForFree()) {
@@ -271,8 +280,6 @@ bool ScsiDump::Arbitration() const
 
 	bus->Acquire();
 	if (bus->GetDAT() > (1 << initiator_id)) {
-		bus->SetDAT(0);
-		bus->SetBSY(false);
 		return false;
 	}
 
@@ -306,9 +313,6 @@ bool ScsiDump::Selection() const
 	nanosleep(&BUS_SETTLE_DELAY, nullptr);
 
     if (!WaitForBusy()) {
-		bus->SetDAT(0);
-		bus->SetATN(false);
-		bus->SetSEL(false);
     	return false;
     }
 
@@ -326,7 +330,6 @@ void ScsiDump::Command(scsi_command cmd, span<uint8_t> cdb) const
     cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
     if (static_cast<int>(cdb.size()) !=
         bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
-        bus->Reset();
 
         throw phase_exception(command_mapping.find(cmd)->second.second + string(" failed"));
     }

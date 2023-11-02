@@ -70,6 +70,7 @@ private:
     void BusFreeDelay() const;
     void ArbitrationDelay() const;
 
+    void Reset() const;
     bool Arbitration() const;
 	bool Selection() const;
 	void Command(scsi_command, span<uint8_t>) const;
