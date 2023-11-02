@@ -831,14 +831,14 @@ void ScsiDump::inquiry_info::GeneratePropertiesFile(ostream& console, const stri
 {
 	ofstream prop(property_file);
 
-	prop << "{" << endl
-    		<< "   \"vendor\": \"" << vendor << "\"," << endl
-			<< "   \"product\": \"" << product << "\"," << endl
+	prop << "{\n"
+    		<< "   \"vendor\": \"" << vendor << "\",\n"
+			<< "   \"product\": \"" << product << "\",\n"
 			<< "   \"revision\": \"" << revision << "\"";
     if (sector_size) {
-    	prop << "," << endl << "   \"block_size\": \"" << sector_size << "\"";
+    	prop << ",\n   \"block_size\": \"" << sector_size << "\"";
     }
-    prop << endl << "}" << endl;
+    prop << "\n}\n";
 
     if (prop.fail()) {
         cerr << "Error: Can't create properties file '" + property_file + "': " << strerror(errno) << endl;
