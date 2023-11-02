@@ -16,7 +16,6 @@
 #include <set>
 #include <unordered_map>
 #include <stdexcept>
-#include <functional>
 
 using namespace std;
 
