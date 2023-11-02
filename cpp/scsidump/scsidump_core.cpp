@@ -55,7 +55,8 @@ bool ScsiDump::Banner(ostream& console, span<char *> args) const
 				<< " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
 				<< " Default is 0.\n"
 				<< " BID is the PiSCSI board ID (0-7). Default is 7.\n"
-				<< " FILE is the image file path.\n"
+				<< " FILE is the image file path. Only needed when not dumping to stdout and no property file is"
+				<< " requested.\n"
 				<< " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
 				<< " bytes. Default is 1 MiB.\n"
 				<< " -a Scan all potential LUNs during bus scan, default is LUN 0 only.\n"

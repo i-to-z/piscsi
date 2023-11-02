@@ -38,7 +38,7 @@ SCSI ID and optional LUN of the remote SCSI device. The remote SCSI device will 
 SCSI ID of the PiSCSI device. If not specified, the PiSCSI device will use ID 7. The PiSCSI host will be functioning as the "Initiator" device.
 .TP
 .BR \-f\fI " "\fIFILE
-Path to the dump file.
+Path to the dump file. Not required when dumping to the stdout and no property file is requested.
 .TP
 .BR \-b\fI " "\fIBUFFER_SIZE
 The transfer buffer size, specified in bytes. Default is 1 MiB. This is specified in bytes with a minimum value of 65536 (64 KiB).

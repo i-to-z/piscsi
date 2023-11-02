@@ -42,14 +42,15 @@ OPTIONS
               "Initiator" device.
 
        -f FILE
-              Path to the dump file.
+              Path to the dump file. Not required when dumping to  the  stdout
+              and no property file is requested.
 
        -b BUFFER_SIZE
-              The transfer buffer size, specified in bytes. Default is 1  MiB.
-              This  is  specified  in  bytes with a minimum value of 65536 (64
+              The  transfer buffer size, specified in bytes. Default is 1 MiB.
+              This is specified in bytes with a minimum  value  of  65536  (64
               KiB).
 
-       -a     When scanning the bus scan all potential LUNs. Defaults to  only
+       -a     When  scanning the bus scan all potential LUNs. Defaults to only
               scanning LUN 0.
 
        -r     Run in restore mode. Defaults to dump mode if not specified.
@@ -58,9 +59,9 @@ OPTIONS
 
        -V     Enable even more verbose logging.
 
-       -p     Generate  a  .properties file that is compatible with the PiSCSI
+       -p     Generate a .properties file that is compatible with  the  PiSCSI
               web interface. The output filename will match the image filename
-              with  ".properties" appended. The generated file should be moved
+              with ".properties" appended. The generated file should be  moved
               to ~/.config/piscsi.
 
        -s     Scan SCSI bus for devices.
@@ -69,13 +70,13 @@ OPTIONS
               Display INQUIRY data of ID[:LUN].
 
 EXAMPLES
-       Dump Mode: [SCSI Drive] ---> [PiSCSI host] Launch scsidump to  dump  an
-       all  data  from SCSI ID 3 with block size 64 KiB, store it to the local
+       Dump  Mode:  [SCSI Drive] ---> [PiSCSI host] Launch scsidump to dump an
+       all data from SCSI ID 3 with block size 64 KiB, store it to  the  local
        filesystem as a drive image named outimage.hda, and generate the outim‐
        age.hda.properties file with the drive's INQUIRY information:
           scsidump -t 3 -f ./outimage.hda -s 65536 -p
 
-       Restore  Mode:  [PiSCSI  host] ---> [SCSI Drive] Launch scsidump to re‐
+       Restore Mode: [PiSCSI host] ---> [SCSI Drive] Launch  scsidump  to  re‐
        store/upload a drive image from the local file system to SCSI ID 0 with
        block size 1MiB:
           scsidump -r -t 0 -f ./outimage.hda -s 1048576
