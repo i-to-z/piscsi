@@ -22,7 +22,7 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
 	auto filename = CreateTempFile(0);
 	ScsiDump::inquiry_info_t test_data = {
         .vendor = "PISCSI", .product = "TEST PRODUCT", .revision = "REV1", .sector_size = 1000, .capacity = 100};
-	test_data.GeneratePropertiesFile(filename);
+	test_data.GeneratePropertiesFile(cout, filename);
 
     string expected_str = "{\n"
                           "   \"vendor\": \"PISCSI\",\n"
@@ -31,6 +31,7 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
                           "   \"block_size\": \"1000\"\n}"
                           "\n";
     EXPECT_EQ(expected_str, ReadTempFileToString(filename));
+    DeleteTempFile(filename);
 
     // Long string test
     filename = CreateTempFile(0);
@@ -39,7 +40,7 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
                  .revision    = "0123",
                  .sector_size = UINT32_MAX,
                  .capacity    = UINT64_MAX};
-    test_data.GeneratePropertiesFile(filename);
+    test_data.GeneratePropertiesFile(cout, filename);
 
     expected_str = "{\n"
                    "   \"vendor\": \"01234567\",\n"
@@ -48,12 +49,12 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
                    "   \"block_size\": \"4294967295\"\n"
                    "}\n";
     EXPECT_EQ(expected_str, ReadTempFileToString(filename));
-    remove(filename);
+    DeleteTempFile(filename);
 
     // Empty data test
     filename = CreateTempFile(0);
     test_data = {.vendor = "", .product = "", .revision = "", .sector_size = 0, .capacity = 0};
-    test_data.GeneratePropertiesFile(filename);
+    test_data.GeneratePropertiesFile(cout, filename);
 
     expected_str = "{\n"
                    "   \"vendor\": \"\",\n"
@@ -61,5 +62,5 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
                    "   \"revision\": \"\"\n"
                    "}\n";
     EXPECT_EQ(expected_str, ReadTempFileToString(filename));
-    remove(filename);
+    DeleteTempFile(filename);
 }

@@ -120,7 +120,6 @@ void CreateTempFileWithData(const string& filename, vector<uint8_t>& data)
     fclose(fp);
 }
 
-// TODO Move this code, it is not shared
 void DeleteTempFile(const string& filename)
 {
 	path temp_file = test_data_temp_path;
