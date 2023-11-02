@@ -1,10 +1,11 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
+// Powered by XM6 TypeG Technology.
+// Copyright (C) 2016-2020 GIMONS
+// Copyright (C) 2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -21,3 +22,6 @@
 #if defined(__x86_64__) || defined(__X86__) || !defined(__linux__)
 #undef USE_SEL_EVENT_ENABLE
 #endif
+
+// For testing only: No BUS SETTLE DELAY in DATA IN/DATA OUT handshakes
+#define NO_DELAY

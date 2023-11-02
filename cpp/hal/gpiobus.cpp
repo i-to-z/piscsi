@@ -178,8 +178,10 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
             // Wait for ACK
             bool ret = WaitACK(ON);
 
+#ifndef NO_DELAY
             // Wait until the signal line stabilizes
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+#endif
 
             // Get data
             *buf = GetDAT();
@@ -223,9 +225,10 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
                 break;
             }
 
+#ifndef NO_DELAY
             // Wait until the signal line stabilizes
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
-
+#endif
             // Get data
             *buf = GetDAT();
 
