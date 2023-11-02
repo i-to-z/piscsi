@@ -744,26 +744,25 @@ string ScsiDump::DumpRestore(ostream& console)
         spdlog::debug("Remaining bytes: " + to_string(remaining));
         spdlog::debug("Next sector: " + to_string(sector_offset));
         spdlog::debug("Sector count: " + to_string(sector_count));
-        spdlog::debug("Transfer size: " + to_string(sector_count * inq_info.sector_size));
-        spdlog::debug("File I/O size: " + to_string(byte_count));
+        spdlog::debug("SCSI transfer size: " + to_string(sector_count * inq_info.sector_size));
+        spdlog::debug("File chunk size: " + to_string(byte_count));
 
-        bool status;
         if (restore) {
         	fs.read((char*)buffer.data(), byte_count);
-        	status = !fs.fail();
-        	if (status) {
-        		status = ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, true);
+        	if (fs.fail()) {
+        		return "Error reading from file '" + filename + "'";
+        	}
+        	if (!ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, true)) {
+        		return "Error writing to device";
         	}
         } else {
-            status = ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, false);
-            if (status) {
-            	out.write((const char*)buffer.data(), byte_count);
-            	status = !out.fail();
+            if (!ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, false)) {
+            	return "Error reading from device";
             }
-        }
-
-        if (!status) {
-        	return "Error reading/writing from/to device or file ' " + filename + "'";
+            out.write((const char*)buffer.data(), byte_count);
+            if (out.fail()) {
+            	return "Error writing to file '" + filename + "'";
+            }
         }
 
         sector_offset += sector_count;
