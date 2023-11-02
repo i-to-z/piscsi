@@ -984,8 +984,11 @@ int ScsiController::GetEffectiveLun() const
 
 void ScsiController::Sleep()
 {
+#ifndef NO_DELAY
 	if (const uint32_t time = SysTimer::GetTimerLow() - execstart; time < MIN_EXEC_TIME) {
 		SysTimer::SleepUsec(MIN_EXEC_TIME - time);
 	}
+#endif
+
 	execstart = 0;
 }
