@@ -464,6 +464,7 @@ set<int> ScsiDump::ReportLuns()
 
 	// Assume 8 LUNs in case REPORT LUNS is not available
 	if (!Execute(scsi_command::eCmdReportLuns, cdb, TRANSFER_LENGTH)) {
+		spdlog::debug("Device does not support REPORT LUNS");
 		return { 0, 1, 2, 3, 4, 5, 6, 7 };
 	}
 
