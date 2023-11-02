@@ -67,7 +67,7 @@ bool ScsiDump::Banner(ostream& console, span<char *> args) const
 				<< " Only valid for dump and inquiry mode.\n"
 				<< " -I Display INQUIRY data of ID[:LUN].\n"
 				<< " -s Scan SCSI bus for devices.\n"
-				<< endl;
+				<< flush;
 
         return false;
     }
