@@ -8,6 +8,8 @@
 //
 //---------------------------------------------------------------------------
 
+// TODO Extract SCSI functionality to separate class
+
 #include "scsidump/scsidump_core.h"
 #include "hal/gpiobus_factory.h"
 #include "controllers/controller_manager.h"
@@ -154,16 +156,16 @@ void ScsiDump::ParseArguments(span<char *> args)
         }
     }
 
-    if (!scan_bus && !inquiry && !stdout && properties_file && filename.empty()) {
-        throw parser_exception("Missing filename");
-    }
-
     if (!scan_bus && target_id == -1) {
     	throw parser_exception("Missing target ID");
     }
 
     if (target_id == initiator_id) {
         throw parser_exception("Target ID and PiSCSI board ID must not be identical");
+    }
+
+    if ((filename.empty() && !scan_bus && !inquiry && !to_stdout) || properties_file) {
+        throw parser_exception("Missing filename");
     }
 
     if (target_lun == -1) {
@@ -533,10 +535,10 @@ bool ScsiDump::WaitForBusy() const
 
 int ScsiDump::run(span<char *> args)
 {
-	stdout = isatty(STDOUT_FILENO);
+	to_stdout = !isatty(STDOUT_FILENO);
 
 	// When dumping to stdout use stderr instead of stdout for console output
-	ostream& console = stdout ? cerr : cout;
+	ostream& console = to_stdout ? cerr : cout;
 
 	if (!Banner(console, args)) {
         return EXIT_SUCCESS;
@@ -686,14 +688,14 @@ string ScsiDump::DumpRestore(ostream& console)
 	}
 
 	fstream fs;
-	if (!stdout) {
+	if (!to_stdout) {
 		fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
 		if (fs.fail()) {
 			return "Can't open image file '" + filename + "': " + strerror(errno);
 		}
 	}
 
-	ostream& out = stdout ? fs : cout;
+	ostream& out = to_stdout ? cout : fs;
 
 	const off_t disk_size = inq_info.capacity * inq_info.sector_size;
 

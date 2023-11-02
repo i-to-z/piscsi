@@ -97,7 +97,7 @@ private:
 
     string filename;
 
-    bool stdout = false;
+    bool to_stdout = false;
 
     bool inquiry = false;
 
