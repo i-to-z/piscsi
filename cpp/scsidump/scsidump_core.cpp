@@ -62,7 +62,7 @@ bool ScsiDump::Banner(span<char *> args) const
              << " FILE is the dump file path.\n"
              << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
              << " bytes. Default is 1 MiB.\n"
-			 << " -a Scan all potential LUNs, default is LUN 0 only.\n"
+			 << " -a Scan all potential LUNs during bus scan, default is LUN 0 only.\n"
              << " -v Enable verbose logging.\n"
              << " -r Restore instead of dump.\n"
              << " -p Generate .properties file to be used with the PiSCSI web interface."
@@ -453,25 +453,37 @@ void ScsiDump::SynchronizeCache()
 
 vector<bool> ScsiDump::ReportLuns()
 {
-	const int TRANFER_LENGTH = 255;
+	const int TRANSFER_LENGTH = 512;
 
 	vector<uint8_t> cdb(12);
-	cdb[9] = TRANFER_LENGTH;
+	cdb[8] = static_cast<uint8_t>(TRANSFER_LENGTH >> 8);
+	cdb[9] = static_cast<uint8_t>(TRANSFER_LENGTH);
 
-	Execute(scsi_command::eCmdReportLuns, cdb, TRANFER_LENGTH);
+	Execute(scsi_command::eCmdReportLuns, cdb, TRANSFER_LENGTH);
 
 	// Assume 8 LUNs in case REPORT LUNS is not available
-	vector<bool> luns(8, true);
-	if (!status) {
-		luns.resize(ControllerManager::GetScsiLunMax());
+	if (status) {
+		return vector<bool>(8, true);
+	}
 
-		const auto lun_count = static_cast<int>(min(static_cast<size_t>(buffer[0] / 8), luns.size()));
+	vector<bool> luns(ControllerManager::GetScsiLunMax());
 
-		for (auto i = 0; i < lun_count && i < TRANFER_LENGTH - 8; i++) {
-			const int lun = buffer[2 * i + 3];
-			if (lun < static_cast<int>(luns.size())) {
-				luns[lun] = true;
-			}
+	const auto lun_count = static_cast<int>(min(
+			(static_cast<size_t>(buffer[2]) << 8) | static_cast<size_t>(buffer[3]) / 8, luns.size()));
+	spdlog::debug("Device reported LUN count of " + to_string(lun_count));
+
+	int offset = 8;
+	for (auto i = 0; i < lun_count && offset < TRANSFER_LENGTH - 8; i++, offset += 8) {
+		const uint64_t lun =
+				(static_cast<uint64_t>(buffer[offset]) << 56) | (static_cast<uint64_t>(buffer[offset + 1]) << 48) |
+    			(static_cast<uint64_t>(buffer[offset + 1]) << 40) | (static_cast<uint64_t>(buffer[offset + 3]) << 32) |
+				(static_cast<uint64_t>(buffer[offset + 4]) << 24) | (static_cast<uint64_t>(buffer[offset + 5]) << 16) |
+				(static_cast<uint64_t>(buffer[offset + 6]) << 8) | static_cast<uint64_t>(buffer[offset + 7]);
+		if (lun < static_cast<uint64_t>(luns.size())) {
+			luns[lun] = true;
+		}
+		else {
+			spdlog::debug("Device reported invalid LUN " + to_string(lun));
 		}
 	}
 
