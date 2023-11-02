@@ -24,30 +24,34 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
         .vendor = "PISCSI", .product = "TEST PRODUCT", .revision = "REV1", .sector_size = 1000, .capacity = 100};
 	test_data.GeneratePropertiesFile(cout, filename);
 
-    string expected_str = "{\n"
-                          "    \"vendor\": \"PISCSI\",\n"
-                          "    \"product\": \"TEST PRODUCT\",\n"
-                          "    \"revision\": \"REV1\",\n"
-                          "    \"block_size\": \"1000\"\n}"
-                          "\n";
+    string expected_str =
+R"({
+    "vendor": "PISCSI",
+    "product": "TEST PRODUCT",
+    "revision": "REV1",
+    "block_size": "1000"
+}
+)";
     EXPECT_EQ(expected_str, ReadTempFileToString(filename));
     DeleteTempFile(filename);
 
     // Long string test
     filename = CreateTempFile(0);
-    test_data = {.vendor      = "01234567",
-                 .product     = "0123456789ABCDEF",
-                 .revision    = "0123",
+    test_data = {.vendor = "01234567",
+                 .product = "0123456789ABCDEF",
+                 .revision = "0123",
                  .sector_size = UINT32_MAX,
-                 .capacity    = UINT64_MAX};
+                 .capacity = UINT64_MAX};
     test_data.GeneratePropertiesFile(cout, filename);
 
-    expected_str = "{\n"
-                   "    \"vendor\": \"01234567\",\n"
-                   "    \"product\": \"0123456789ABCDEF\",\n"
-                   "    \"revision\": \"0123\",\n"
-                   "    \"block_size\": \"4294967295\"\n"
-                   "}\n";
+    expected_str =
+R"({
+    "vendor": "01234567",
+    "product": "0123456789ABCDEF",
+    "revision": "0123",
+    "block_size": "4294967295"
+}
+)";
     EXPECT_EQ(expected_str, ReadTempFileToString(filename));
     DeleteTempFile(filename);
 
@@ -56,11 +60,13 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
     test_data = {.vendor = "", .product = "", .revision = "", .sector_size = 0, .capacity = 0};
     test_data.GeneratePropertiesFile(cout, filename);
 
-    expected_str = "{\n"
-                   "    \"vendor\": \"\",\n"
-                   "    \"product\": \"\",\n"
-                   "    \"revision\": \"\"\n"
-                   "}\n";
+    expected_str =
+R"({
+    "vendor": "",
+    "product": "",
+    "revision": ""
+}
+)";
     EXPECT_EQ(expected_str, ReadTempFileToString(filename));
     DeleteTempFile(filename);
 }
