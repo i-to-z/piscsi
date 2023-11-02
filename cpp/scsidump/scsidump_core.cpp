@@ -261,13 +261,13 @@ bool ScsiDump::Arbitration() const
 		return false;
 	}
 
-	nanosleep(&BUS_FREE_DELAY, nullptr);
+    SysTimer::SleepNsec(BUS_FREE_DELAY_NS);
 
 	bus->SetDAT(static_cast<uint8_t>(1 << initiator_id));
 
 	bus->SetBSY(true);
 
-	nanosleep(&ARBITRATION_DELAY, nullptr);
+    SysTimer::SleepNsec(ARBITRATION_DELAY_NS);
 
 	bus->Acquire();
 	if (bus->GetDAT() > (1 << initiator_id)) {
@@ -283,8 +283,7 @@ bool ScsiDump::Arbitration() const
 
 	bus->SetSEL(true);
 
-	nanosleep(&BUS_CLEAR_DELAY, nullptr);
-	nanosleep(&BUS_SETTLE_DELAY, nullptr);
+    SysTimer::SleepNsec(BUS_CLEAR_DELAY_NS + BUS_SETTLE_DELAY_NS);
 
 	return true;
 }
@@ -298,12 +297,11 @@ bool ScsiDump::Selection() const
     // Request MESSAGE OUT for IDENTIFY
     bus->SetATN(true);
 
-	nanosleep(&DESKEW_DELAY, nullptr);
-	nanosleep(&DESKEW_DELAY, nullptr);
+    SysTimer::SleepNsec(2 * DESKEW_DELAY_NS);
 
     bus->SetBSY(false);
 
-	nanosleep(&BUS_SETTLE_DELAY, nullptr);
+    SysTimer::SleepNsec(BUS_SETTLE_DELAY_NS);
 
     if (!WaitForBusy()) {
 		bus->SetDAT(0);
@@ -312,8 +310,7 @@ bool ScsiDump::Selection() const
     	return false;
     }
 
-    nanosleep(&DESKEW_DELAY, nullptr);
-	nanosleep(&DESKEW_DELAY, nullptr);
+    SysTimer::SleepNsec(2 * DESKEW_DELAY_NS);
 
     bus->SetSEL(false);
 
@@ -334,7 +331,7 @@ void ScsiDump::Command(scsi_command cmd, span<uint8_t> cdb) const
 
 void ScsiDump::Status()
 {
-	array<uint8_t, 256> buf;
+	array<uint8_t, 1> buf;
 
 	if (bus->ReceiveHandShake(buf.data(), 1) != 1) {
         throw phase_exception("STATUS failed");
@@ -359,7 +356,7 @@ void ScsiDump::DataOut(int length)
 
 void ScsiDump::MsgIn() const
 {
-	array<uint8_t, 256> buf;
+	array<uint8_t, 1> buf;
 
 	if (bus->ReceiveHandShake(buf.data(), 1) != 1) {
         throw phase_exception("MESSAGE IN failed");
@@ -531,7 +528,7 @@ int ScsiDump::run(span<char *> args)
         return EXIT_FAILURE;
     }
 
-#ifndef USE_SEL_EVENT_ENABLE
+#if defined(__x86_64__) || defined(__X86__) || !defined(__linux__)
     cerr << "Error: No PiSCSI hardware support" << endl;
     return EXIT_FAILURE;
 #endif

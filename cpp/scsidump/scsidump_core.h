@@ -136,20 +136,20 @@ private:
 			{ byte{30}, "Well Known Logical Unit" }
     };
 
-	// 400 nanoseconds
-    inline static const timespec BUS_SETTLE_DELAY = {.tv_sec = 0, .tv_nsec = 400};
+    inline static const long BUS_SETTLE_DELAY_NS = 400;
+    inline static const timespec BUS_SETTLE_DELAY = {.tv_sec = 0, .tv_nsec = BUS_SETTLE_DELAY_NS};
 
-	// 800 nanoseconds
-    inline static const timespec BUS_CLEAR_DELAY = {.tv_sec = 0, .tv_nsec = 800};
+    inline static const long BUS_CLEAR_DELAY_NS = 800;
+    inline static const timespec BUS_CLEAR_DELAY = {.tv_sec = 0, .tv_nsec = BUS_CLEAR_DELAY_NS};
 
-	// 800 nanoseconds
-    inline static const timespec BUS_FREE_DELAY = {.tv_sec = 0, .tv_nsec = 800};
+    inline static const long BUS_FREE_DELAY_NS = 800;
+    inline static const timespec BUS_FREE_DELAY = {.tv_sec = 0, .tv_nsec = BUS_FREE_DELAY_NS};
 
-    // 45 nanoseconds
-    inline static const timespec DESKEW_DELAY = {.tv_sec = 0, .tv_nsec = 45};
+    inline static const long DESKEW_DELAY_NS = 45;
+    inline static const timespec DESKEW_DELAY = {.tv_sec = 0, .tv_nsec = DESKEW_DELAY_NS};
 
-	// 2.4 microseconds
-    inline static const timespec ARBITRATION_DELAY = {.tv_sec = 0, .tv_nsec = 2'400};
+    inline static const long ARBITRATION_DELAY_NS = 2'400;
+    inline static const timespec ARBITRATION_DELAY = {.tv_sec = 0, .tv_nsec = ARBITRATION_DELAY_NS};
 
 //+==============================-===================================+
 //|  Timing description          |      Timing value                 |
