@@ -17,7 +17,6 @@
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <chrono>
-#include <cstdio>
 #include <csignal>
 #include <cstddef>
 #include <cstring>
@@ -96,7 +95,7 @@ void ScsiDump::ParseArguments(span<char *> args)
 
     int opt;
     opterr = 0;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:arvpISV")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:b:t:arsvpIV")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -154,7 +153,7 @@ void ScsiDump::ParseArguments(span<char *> args)
         }
     }
 
-    if (!scan_bus && !inquiry && !isatty(stdout) && filename.empty()) {
+    if (!scan_bus && !inquiry && !stdout && properties_file && filename.empty()) {
         throw parser_exception("Missing filename");
     }
 
@@ -533,10 +532,10 @@ bool ScsiDump::WaitForBusy() const
 
 int ScsiDump::run(span<char *> args)
 {
-	cerr << isatty(stdout) << endl;
-	exit(0);
+	stdout = isatty(STDOUT_FILENO);
+
 	// When dumping to stdout use stderr instead of stdout for console output
-	ostream& console = isatty(stdout) ? cerr : cout;
+	ostream& console = stdout ? cerr : cout;
 
 	if (!Banner(console, args)) {
         return EXIT_SUCCESS;
@@ -548,7 +547,7 @@ int ScsiDump::run(span<char *> args)
     catch (const parser_exception& e) {
         cerr << "Error: " << e.what() << endl;
         return EXIT_FAILURE;
-    }W
+    }
 
     if (getuid()) {
     	cerr << "Error: GPIO bus access requires root permissions. Are you running as root?" << endl;
@@ -686,14 +685,14 @@ string ScsiDump::DumpRestore(ostream& console)
 	}
 
 	fstream fs;
-	if (!isatty(stdout)) {
+	if (!stdout) {
 		fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
 		if (fs.fail()) {
 			return "Can't open image file '" + filename + "': " + strerror(errno);
 		}
 	}
 
-	ostream& out = isatty(stdout) ? fs : cout;
+	ostream& out = stdout ? fs : cout;
 
 	const off_t disk_size = inq_info.capacity * inq_info.sector_size;
 
