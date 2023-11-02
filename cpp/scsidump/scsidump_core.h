@@ -16,6 +16,7 @@
 #include <set>
 #include <unordered_map>
 #include <stdexcept>
+#include <iostream>
 
 using namespace std;
 
@@ -41,20 +42,20 @@ public:
         uint32_t sector_size;
         uint64_t capacity;
 
-        void GeneratePropertiesFile(const string&) const;
+        void GeneratePropertiesFile(ostream&, const string&) const;
     };
     using inquiry_info_t = struct inquiry_info;
 
 private:
 
-    bool Banner(span<char *>) const;
+    bool Banner(ostream&, span<char *>) const;
     bool Init() const;
     void ParseArguments(span<char *>);
-    void DisplayBoardId() const;
-    void ScanBus();
-    bool DisplayInquiry(inquiry_info&, bool);
-    string DumpRestore();
-    bool GetDeviceInfo(inquiry_info&);
+    void DisplayBoardId(ostream&) const;
+    void ScanBus(ostream&);
+    bool DisplayInquiry(ostream&, inquiry_info&, bool);
+    string DumpRestore(ostream&);
+    bool GetDeviceInfo(ostream&, inquiry_info&);
     bool Execute(scsi_command, span<uint8_t>, int length);
     bool Dispatch(phase_t phase, scsi_command, span<uint8_t>, int);
     bool TestUnitReady();
@@ -95,6 +96,8 @@ private:
     int status = 0;
 
     string filename;
+
+    bool stdout = false;
 
     bool inquiry = false;
 

@@ -17,11 +17,11 @@
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <chrono>
+#include <cstdio>
 #include <csignal>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <iomanip>
 #include <array>
 
@@ -45,18 +45,18 @@ void ScsiDump::TerminationHandler(int)
 	// Process will terminate automatically
 }
 
-bool ScsiDump::Banner(span<char *> args) const
+bool ScsiDump::Banner(ostream& console, span<char *> args) const
 {
-    cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
+    console << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] [-f FILE] [-a] [-v] [-V] [-r] [-b BUFFER_SIZE]"
+    	console << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] [-f FILE] [-a] [-v] [-V] [-r] [-b BUFFER_SIZE]"
         		<< " [-p] [-I] [-s]\n"
 				<< " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
 				<< " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
 				<< " Default is 0.\n"
 				<< " BID is the PiSCSI board ID (0-7). Default is 7.\n"
-				<< " FILE is the image file path, '-' for stdin/stdout.\n"
+				<< " FILE is the image file path.\n"
 				<< " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
 				<< " bytes. Default is 1 MiB.\n"
 				<< " -a Scan all potential LUNs during bus scan, default is LUN 0 only.\n"
@@ -67,7 +67,7 @@ bool ScsiDump::Banner(span<char *> args) const
 				<< " Only valid for dump and inquiry mode.\n"
 				<< " -I Display INQUIRY data of ID[:LUN].\n"
 				<< " -s Scan SCSI bus for devices.\n"
-				<< flush;
+				<< endl;
 
         return false;
     }
@@ -154,7 +154,7 @@ void ScsiDump::ParseArguments(span<char *> args)
         }
     }
 
-    if (!scan_bus && !inquiry && filename.empty()) {
+    if (!scan_bus && !inquiry && !isatty(stdout) && filename.empty()) {
         throw parser_exception("Missing filename");
     }
 
@@ -533,7 +533,12 @@ bool ScsiDump::WaitForBusy() const
 
 int ScsiDump::run(span<char *> args)
 {
-    if (!Banner(args)) {
+	cerr << isatty(stdout) << endl;
+	exit(0);
+	// When dumping to stdout use stderr instead of stdout for console output
+	ostream& console = isatty(stdout) ? cerr : cout;
+
+	if (!Banner(console, args)) {
         return EXIT_SUCCESS;
     }
 
@@ -543,7 +548,7 @@ int ScsiDump::run(span<char *> args)
     catch (const parser_exception& e) {
         cerr << "Error: " << e.what() << endl;
         return EXIT_FAILURE;
-    }
+    }W
 
     if (getuid()) {
     	cerr << "Error: GPIO bus access requires root permissions. Are you running as root?" << endl;
@@ -562,18 +567,18 @@ int ScsiDump::run(span<char *> args)
 
     try {
     	if (scan_bus) {
-    		ScanBus();
+    		ScanBus(console);
     	}
     	else if (inquiry) {
-    		DisplayBoardId();
+    		DisplayBoardId(console);
 
     		inquiry_info_t inq_info;
-    		if (DisplayInquiry(inq_info, false) && properties_file && !filename.empty()) {
-    			inq_info.GeneratePropertiesFile(filename + ".properties");
+    		if (DisplayInquiry(console, inq_info, false) && properties_file && !filename.empty()) {
+    			inq_info.GeneratePropertiesFile(console, filename + ".properties");
     		}
     	}
     	else {
-    		if (const string error = DumpRestore(); !error.empty()) {
+    		if (const string error = DumpRestore(console); !error.empty()) {
     			cerr << "Error: " << error << endl;
     		}
     	}
@@ -591,14 +596,14 @@ int ScsiDump::run(span<char *> args)
     return EXIT_SUCCESS;
 }
 
-void ScsiDump::DisplayBoardId() const
+void ScsiDump::DisplayBoardId(ostream& console) const
 {
-    cout << DIVIDER << "\nPiSCSI board ID is " << initiator_id << "\n";
+    console << DIVIDER << "\nPiSCSI board ID is " << initiator_id << "\n";
 }
 
-void ScsiDump::ScanBus()
+void ScsiDump::ScanBus(ostream& console)
 {
-    DisplayBoardId();
+    DisplayBoardId(console);
 
 	for (target_id = 0; target_id < ControllerManager::GetScsiIdMax(); target_id++) {
 		if (initiator_id == target_id) {
@@ -607,7 +612,7 @@ void ScsiDump::ScanBus()
 
 		target_lun = 0;
 		inquiry_info_t inq_info;
-		if (!DisplayInquiry(inq_info, false) || !all_luns) {
+		if (!DisplayInquiry(console, inq_info, false) || !all_luns) {
 			// Continue with next ID if there is no LUN 0 or only LUN 0 should be scanned
 			continue;
 		}
@@ -618,14 +623,14 @@ void ScsiDump::ScanBus()
 
 		for (const auto lun : luns) {
 			target_lun = lun;
-			DisplayInquiry(inq_info, false);
+			DisplayInquiry(console, inq_info, false);
 		}
 	}
 }
 
-bool ScsiDump::DisplayInquiry(inquiry_info_t& inq_info, bool check_type)
+bool ScsiDump::DisplayInquiry(ostream& console, inquiry_info_t& inq_info, bool check_type)
 {
-    cout << DIVIDER << "\nTarget device is " << target_id << ":" << target_lun << "\n" << flush;
+    console << DIVIDER << "\nTarget device is " << target_id << ":" << target_lun << "\n" << flush;
 
     inq_info = {};
 
@@ -642,55 +647,53 @@ bool ScsiDump::DisplayInquiry(inquiry_info_t& inq_info, bool check_type)
     array<char, 17> str = {};
     memcpy(str.data(), &buffer[8], 8);
     inq_info.vendor = string(str.data());
-    cout << "Vendor:      " << inq_info.vendor << "\n";
+    console << "Vendor:      " << inq_info.vendor << "\n";
 
     str.fill(0);
     memcpy(str.data(), &buffer[16], 16);
     inq_info.product = string(str.data());
-    cout << "Product:     " << inq_info.product << "\n";
+    console << "Product:     " << inq_info.product << "\n";
 
     str.fill(0);
     memcpy(str.data(), &buffer[32], 4);
     inq_info.revision = string(str.data());
-    cout << "Revision:    " << inq_info.revision << "\n" << flush;
+    console << "Revision:    " << inq_info.revision << "\n" << flush;
 
     if (const auto& t = DEVICE_TYPES.find(type & byte{0x1f}); t != DEVICE_TYPES.end()) {
-    	cout << "Device Type: " << (*t).second << "\n";
+    	console << "Device Type: " << (*t).second << "\n";
     }
     else {
-    	cout << "Device Type: Unknown\n";
+    	console << "Device Type: Unknown\n";
     }
 
-    cout << "Removable:   " << (((static_cast<byte>(buffer[1]) & byte{0x80}) == byte{0x80}) ? "Yes" : "No") << "\n";
+    console << "Removable:   " << (((static_cast<byte>(buffer[1]) & byte{0x80}) == byte{0x80}) ? "Yes" : "No") << "\n";
 
     if (check_type && type != static_cast<byte>(device_type::direct_access) &&
     		type != static_cast<byte>(device_type::cd_rom) && type != static_cast<byte>(device_type::optical_memory)) {
-    	cerr << "Invalid device type, supported types for dump/restore are DIRECT ACCESS, CD-ROM/DVD/BD and OPTICAL MEMORY" << endl;
+    	cerr << "Error: Invalid device type, supported types for dump/restore are DIRECT ACCESS,"
+    			<< " CD-ROM/DVD/BD and OPTICAL MEMORY" << endl;
     	return false;
     }
 
     return true;
 }
 
-string ScsiDump::DumpRestore()
+string ScsiDump::DumpRestore(ostream& console)
 {
 	inquiry_info_t inq_info;
-	if (!GetDeviceInfo(inq_info)) {
+	if (!GetDeviceInfo(console, inq_info)) {
 		return "Can't get device information";
 	}
 
-	const bool use_file = filename != "-";
-
 	fstream fs;
-	if (use_file) {
+	if (!isatty(stdout)) {
 		fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
 		if (fs.fail()) {
 			return "Can't open image file '" + filename + "': " + strerror(errno);
 		}
 	}
 
-	istream& in = use_file ? fs : cin;
-	ostream& out = use_file ? fs : cout;
+	ostream& out = isatty(stdout) ? fs : cout;
 
 	const off_t disk_size = inq_info.capacity * inq_info.sector_size;
 
@@ -706,12 +709,12 @@ string ScsiDump::DumpRestore()
 
         effective_size = min(size, disk_size);
 
-        cout << "Restore image file size: " << size << " bytes\n" << flush;
+        console << "Restore image file size: " << size << " bytes\n" << flush;
         if (size > disk_size) {
-            cout << "Warning: Image file size of " << size
+            console << "Warning: Image file size of " << size
             		<< " byte(s) is larger than disk size of " << disk_size << " bytes(s)\n" << flush;
         } else if (size < disk_size) {
-            cout << "Warning: Image file size of " << size
+        	console << "Warning: Image file size of " << size
             		<< " byte(s) is smaller than disk size of " << disk_size << " bytes(s)\n" << flush;
         }
     } else {
@@ -719,11 +722,11 @@ string ScsiDump::DumpRestore()
     }
 
     if (!effective_size) {
-    	cout << "Nothing to do, effective size is 0\n" << flush;
+    	console << "Nothing to do, effective size is 0\n" << flush;
     	return "";
     }
 
-    cout << "Starting " << (restore ? "restore" : "dump") << ", buffer size is " << buffer.size()
+    console << "Starting " << (restore ? "restore" : "dump") << ", buffer size is " << buffer.size()
     		<< " bytes\n\n" << flush;
 
     int sector_offset = 0;
@@ -746,8 +749,8 @@ string ScsiDump::DumpRestore()
 
         bool status;
         if (restore) {
-        	in.read((char*)buffer.data(), byte_count);
-        	status = !in.fail();
+        	fs.read((char*)buffer.data(), byte_count);
+        	status = !fs.fail();
         	if (status) {
         		status = ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, true);
         	}
@@ -766,7 +769,7 @@ string ScsiDump::DumpRestore()
         sector_offset += sector_count;
         remaining -= byte_count;
 
-        cout << setw(3) << (effective_size - remaining) * 100 / effective_size << "% ("
+        console << setw(3) << (effective_size - remaining) * 100 / effective_size << "% ("
         		<< effective_size - remaining << "/" << effective_size << ")\n" << flush;
     }
 
@@ -778,25 +781,25 @@ string ScsiDump::DumpRestore()
     const auto stop_time = chrono::high_resolution_clock::now();
     const auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
 
-    cout << DIVIDER << "\n";
-    cout << "Transferred " << effective_size / 1024 / 1024 << " MiB (" << effective_size << " bytes)\n";
-    cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes)\n";
-    cout << "Average transfer rate: " << effective_size / duration << " bytes per second ("
+    console << DIVIDER << "\n";
+    console << "Transferred " << effective_size / 1024 / 1024 << " MiB (" << effective_size << " bytes)\n";
+    console << "Total time: " << duration << " seconds (" << duration / 60 << " minutes)\n";
+    console << "Average transfer rate: " << effective_size / duration << " bytes per second ("
     		<< effective_size / 1024 / duration << " KiB per second)\n";
-    cout << DIVIDER << "\n" << flush;
+    console << DIVIDER << "\n" << flush;
 
     if (properties_file && !restore) {
-        inq_info.GeneratePropertiesFile(filename + ".properties");
+        inq_info.GeneratePropertiesFile(console, filename + ".properties");
     }
 
     return "";
 }
 
-bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
+bool ScsiDump::GetDeviceInfo(ostream& console, inquiry_info_t& inq_info)
 {
-    DisplayBoardId();
+    DisplayBoardId(console);
 
-    if (!DisplayInquiry(inq_info, true)) {
+    if (!DisplayInquiry(console, inq_info, true)) {
     	return false;
     }
 
@@ -814,7 +817,7 @@ bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
     inq_info.capacity = capacity;
     inq_info.sector_size = sector_size;
 
-    cout << "Sectors:     " << capacity << "\n"
+    console << "Sectors:     " << capacity << "\n"
     		<< "Sector size: " << sector_size << " bytes\n"
 			<< "Capacity:    " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
 			<< " bytes)\n"
@@ -824,23 +827,23 @@ bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
     return true;
 }
 
-void ScsiDump::inquiry_info::GeneratePropertiesFile(const string& property_file) const
+void ScsiDump::inquiry_info::GeneratePropertiesFile(ostream& console, const string& property_file) const
 {
-	ofstream out(property_file);
+	ofstream prop(property_file);
 
-    out << "{" << endl
+	prop << "{" << endl
     		<< "   \"vendor\": \"" << vendor << "\"," << endl
 			<< "   \"product\": \"" << product << "\"," << endl
 			<< "   \"revision\": \"" << revision << "\"";
     if (sector_size) {
-    	out << "," << endl << "   \"block_size\": \"" << sector_size << "\"";
+    	prop << "," << endl << "   \"block_size\": \"" << sector_size << "\"";
     }
-    out << endl << "}" << endl;
+    prop << endl << "}" << endl;
 
-    if (out.fail()) {
+    if (prop.fail()) {
         cerr << "Error: Can't create properties file '" + property_file + "': " << strerror(errno) << endl;
     }
     else {
-    	cout << "Created properties file '" + property_file + "'\n" << flush;
+    	console << "Created properties file '" + property_file + "'\n" << flush;
     }
 }
