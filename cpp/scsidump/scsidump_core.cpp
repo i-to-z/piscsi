@@ -50,7 +50,7 @@ bool ScsiDump::Banner(span<char *> args) const
     cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-a] [-v] [-r] [-s BUFFER_SIZE] [-p] [-I] [-S]\n"
+        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-a] [-v] [-V] [-r] [-s BUFFER_SIZE] [-p] [-I] [-S]\n"
              << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
              << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
 			 << " Default is 0.\n"
@@ -60,6 +60,7 @@ bool ScsiDump::Banner(span<char *> args) const
              << " bytes. Default is 1 MiB.\n"
 			 << " -a Scan all potential LUNs during bus scan, default is LUN 0 only.\n"
              << " -v Enable verbose logging.\n"
+             << " -V Enable even more verbose logging.\n"
              << " -r Restore instead of dump.\n"
              << " -p Generate .properties file to be used with the PiSCSI web interface."
 			 << " Only valid for dump and inquiry mode.\n"
@@ -94,7 +95,7 @@ void ScsiDump::ParseArguments(span<char *> args)
 
     int opt;
     opterr = 0;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:arvpIS")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:arvpISV")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -129,6 +130,10 @@ void ScsiDump::ParseArguments(span<char *> args)
 
         case 'v':
             set_level(level::debug);
+            break;
+
+        case 'V':
+            set_level(level::trace);
             break;
 
         case 'a':
@@ -173,10 +178,10 @@ void ScsiDump::ParseArguments(span<char *> args)
 
 bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
 {
-    spdlog::debug("Executing " + command_mapping.find(cmd)->second.second);
+    spdlog::trace("Executing " + command_mapping.find(cmd)->second.second);
 
     if (!Arbitration()) {
-		Reset();
+		bus->Reset();
 		return false;
     }
 
@@ -215,7 +220,7 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
 
 bool ScsiDump::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, int length)
 {
-	spdlog::debug(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
+	spdlog::trace(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
 
 	switch (phase) {
 		case phase_t::command:
@@ -261,7 +266,7 @@ void ScsiDump::Reset() const
 bool ScsiDump::Arbitration() const
 {
 	if (!WaitForFree()) {
-		spdlog::debug("Bus is not free");
+		spdlog::trace("Bus is not free");
 		return false;
 	}
 
@@ -275,7 +280,7 @@ bool ScsiDump::Arbitration() const
 
 	bus->Acquire();
 	if (bus->GetDAT() > (1 << initiator_id)) {
-		spdlog::debug("Lost ARBITRATION, competing initiator ID is " + to_string(bus->GetDAT() - (1 << initiator_id)));
+		spdlog::trace("Lost ARBITRATION, competing initiator ID is " + to_string(bus->GetDAT() - (1 << initiator_id)));
 		return false;
 	}
 
@@ -309,7 +314,7 @@ bool ScsiDump::Selection() const
 	nanosleep(&BUS_SETTLE_DELAY, nullptr);
 
     if (!WaitForBusy()) {
-		spdlog::debug("SELECTION failed");
+		spdlog::trace("SELECTION failed");
     	return false;
     }
 
@@ -465,12 +470,12 @@ set<int> ScsiDump::ReportLuns()
 
 	// Assume 8 LUNs in case REPORT LUNS is not available
 	if (!Execute(scsi_command::eCmdReportLuns, cdb, TRANSFER_LENGTH)) {
-		spdlog::debug("Device does not support REPORT LUNS");
+		spdlog::trace("Device does not support REPORT LUNS");
 		return { 0, 1, 2, 3, 4, 5, 6, 7 };
 	}
 
 	const auto lun_count = (static_cast<size_t>(buffer[2]) << 8) | static_cast<size_t>(buffer[3]) / 8;
-	spdlog::debug("Device reported LUN count of " + to_string(lun_count));
+	spdlog::trace("Device reported LUN count of " + to_string(lun_count));
 
 	set<int> luns;
 	int offset = 8;
@@ -484,7 +489,7 @@ set<int> ScsiDump::ReportLuns()
 			luns.insert(static_cast<int>(lun));
 		}
 		else {
-			spdlog::debug("Device reported invalid LUN " + to_string(lun));
+			spdlog::trace("Device reported invalid LUN " + to_string(lun));
 		}
 	}
 
@@ -787,13 +792,13 @@ bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
     }
 
     if (!TestUnitReady()) {
-    	spdlog::debug("Device is not ready");
+    	spdlog::trace("Device is not ready");
     	return false;
     }
 
     const auto [capacity, sector_size] = ReadCapacity();
     if (!capacity || !sector_size) {
-    	spdlog::debug("Can't get device capacity");
+    	spdlog::trace("Can't get device capacity");
     	return false;
     }
 

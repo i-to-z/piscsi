@@ -7,7 +7,7 @@ NAME
 
 SYNOPSIS
        scsidump  -t  ID[:LUN] [-i BID] -f FILE [-s BUFFER_SIZE] [-a] [-r] [-v]
-       [-p] [-I] ID[:LUN] [-S]
+       [-V] [-p] [-I] ID[:LUN] [-S]
 
 DESCRIPTION
        scsidump has two modes of operation: dump and  restore.  These  can  be
@@ -54,6 +54,8 @@ OPTIONS
        -r     Run in restore mode. Defaults to dump mode if not specified.
 
        -v     Enable verbose logging.
+
+       -V     Enable even more verbose logging.
 
        -p     Generate a .properties file that is compatible with  the  PiSCSI
               web interface. The output filename will match the image filename

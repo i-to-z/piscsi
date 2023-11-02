@@ -10,6 +10,7 @@ scsidump \- SCSI disk dumping tool for PiSCSI
 [\fB\-a\fR]
 [\fB\-r\fR]
 [\fB\-v\fR]
+[\fB\-V\fR]
 [\fB\-p\fR]
 [\fB\-I\fR] ID[:LUN]
 [\fB\-S\fR]
@@ -50,6 +51,9 @@ Run in restore mode. Defaults to dump mode if not specified.
 .TP
 .BR \-v\fI
 Enable verbose logging.
+.TP
+.BR \-V\fI
+Enable even more verbose logging.
 .TP
 .BR \-p\fI
 Generate a .properties file that is compatible with the PiSCSI web interface. The output filename will match the image filename with ".properties" appended. The generated file should be moved to ~/.config/piscsi.
