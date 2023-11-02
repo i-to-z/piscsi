@@ -181,7 +181,6 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
     }
 
     if (!Selection()) {
-		spdlog::debug("SELECTION failed");
 		Reset();
 		return false;
 	}
@@ -310,6 +309,7 @@ bool ScsiDump::Selection() const
 	nanosleep(&BUS_SETTLE_DELAY, nullptr);
 
     if (!WaitForBusy()) {
+		spdlog::debug("SELECTION failed");
     	return false;
     }
 
