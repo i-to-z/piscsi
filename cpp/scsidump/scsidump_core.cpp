@@ -265,7 +265,7 @@ bool ScsiDump::Arbitration() const
 
 	nanosleep(&BUS_FREE_DELAY, nullptr);
 
-	bus->SetDAT(1 << initiator_id);
+	bus->SetDAT(static_cast<uint8_t>(1 << initiator_id));
 
 	bus->SetBSY(true);
 
