@@ -23,5 +23,6 @@
 #undef USE_SEL_EVENT_ENABLE
 #endif
 
-// For testing only: No BUS SETTLE DELAY in DATA IN/DATA OUT handshakes
-#define NO_DELAY
+// For testing only: No BUS SETTLE DELAY in DATA IN/DATA OUT or COMMAND handshakes
+#define NO_DATA_DELAY
+#define NO_COMMAND_DELAY
