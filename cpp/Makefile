@@ -14,10 +14,10 @@ CXX = $(CROSS_COMPILE)g++
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	# Debug compiler flags
-	CXXFLAGS = -Og -g -Wall -Wextra -DDEBUG
+	CXXFLAGS += -Og -g -Wall -Wextra -DDEBUG
 else
 	# Release compiler flags
-	CXXFLAGS = -O3 -Wall -Werror -Wextra -DNDEBUG
+	CXXFLAGS += -O3 -Wall -Werror -Wextra -DNDEBUG
 endif
 ifeq ("$(shell uname -s)","Linux")
 	# -Wno-psabi might not work on non-Linux platforms
