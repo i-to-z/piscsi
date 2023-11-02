@@ -132,11 +132,15 @@ void ScsiDump::ParseArguments(span<char *> args)
             break;
 
         case 'v':
-            set_level(level::debug);
+            if (!to_stdout) {
+            	set_level(level::debug);
+            }
             break;
 
         case 'V':
-            set_level(level::trace);
+            if (!to_stdout) {
+            	set_level(level::trace);
+            }
             break;
 
         case 'a':
@@ -536,6 +540,11 @@ bool ScsiDump::WaitForBusy() const
 int ScsiDump::run(span<char *> args)
 {
 	to_stdout = !isatty(STDOUT_FILENO);
+
+	// Prevent any logging when dumping to stdout
+	if (to_stdout) {
+		spdlog::set_level(level::off);
+	}
 
 	// When dumping to stdout use stderr instead of stdout for console output
 	ostream& console = to_stdout ? cerr : cout;
