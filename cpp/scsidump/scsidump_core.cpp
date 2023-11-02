@@ -50,23 +50,24 @@ bool ScsiDump::Banner(span<char *> args) const
     cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-a] [-v] [-V] [-r] [-s BUFFER_SIZE] [-p] [-I] [-S]\n"
-             << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
-             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
-			 << " Default is 0.\n"
-             << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
-             << " FILE is the dump file path.\n"
-             << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
-             << " bytes. Default is 1 MiB.\n"
-			 << " -a Scan all potential LUNs during bus scan, default is LUN 0 only.\n"
-             << " -v Enable verbose logging.\n"
-             << " -V Enable even more verbose logging.\n"
-             << " -r Restore instead of dump.\n"
-             << " -p Generate .properties file to be used with the PiSCSI web interface."
-			 << " Only valid for dump and inquiry mode.\n"
-			 << " -I Display INQUIRY data of ID[:LUN].\n"
-			 << " -S Scan SCSI bus for devices.\n"
-             << flush;
+        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] [-f FILE] [-a] [-v] [-V] [-r] [-b BUFFER_SIZE]"
+        		<< " [-p] [-I] [-s]\n"
+				<< " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
+				<< " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
+				<< " Default is 0.\n"
+				<< " BID is the PiSCSI board ID (0-7). Default is 7.\n"
+				<< " FILE is the image file path, '-' for stdin/stdout.\n"
+				<< " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
+				<< " bytes. Default is 1 MiB.\n"
+				<< " -a Scan all potential LUNs during bus scan, default is LUN 0 only.\n"
+				<< " -v Enable verbose logging.\n"
+				<< " -V Enable even more verbose logging.\n"
+				<< " -r Restore instead of dump.\n"
+				<< " -p Generate .properties file to be used with the PiSCSI web interface."
+				<< " Only valid for dump and inquiry mode.\n"
+				<< " -I Display INQUIRY data of ID[:LUN].\n"
+				<< " -s Scan SCSI bus for devices.\n"
+				<< flush;
 
         return false;
     }
@@ -111,14 +112,14 @@ void ScsiDump::ParseArguments(span<char *> args)
         	inquiry = true;
         	break;
 
-        case 's':
+        case 'b':
             if (!GetAsUnsignedInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
                 throw parser_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + " KiB");
             }
 
             break;
 
-        case 'S':
+        case 's':
         	scan_bus = true;
         	break;
 
@@ -678,14 +679,20 @@ string ScsiDump::DumpRestore()
 		return "Can't get device information";
 	}
 
-    fstream fs;
-    fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
+	const bool use_file = filename != "-";
 
-    if (fs.fail()) {
-        return "Can't open image file '" + filename + "': " + strerror(errno);
-    }
+	fstream fs;
+	if (use_file) {
+		fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
+		if (fs.fail()) {
+			return "Can't open image file '" + filename + "': " + strerror(errno);
+		}
+	}
 
-    const off_t disk_size = inq_info.capacity * inq_info.sector_size;
+	istream& in = use_file ? fs : cin;
+	ostream& out = use_file ? fs : cout;
+
+	const off_t disk_size = inq_info.capacity * inq_info.sector_size;
 
     size_t effective_size;
     if (restore) {
@@ -739,19 +746,21 @@ string ScsiDump::DumpRestore()
 
         bool status;
         if (restore) {
-            fs.read((char*)buffer.data(), byte_count);
-            status = ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, true);
+        	in.read((char*)buffer.data(), byte_count);
+        	status = !in.fail();
+        	if (status) {
+        		status = ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, true);
+        	}
         } else {
             status = ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, false);
-            fs.write((const char*)buffer.data(), byte_count);
+            if (status) {
+            	out.write((const char*)buffer.data(), byte_count);
+            	status = !out.fail();
+            }
         }
 
         if (!status) {
-        	return "Error reading/writing from/to device";
-        }
-
-        if (fs.fail()) {
-            return (restore ? "Reading from '" : "Writing to '") + filename + "' failed: " + strerror(errno);
+        	return "Error reading/writing from/to device or file ' " + filename + "'";
         }
 
         sector_offset += sector_count;
