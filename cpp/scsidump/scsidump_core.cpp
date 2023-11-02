@@ -12,7 +12,6 @@
 
 #include "scsidump/scsidump_core.h"
 #include "hal/gpiobus_factory.h"
-#include "hal/systimer.h"
 #include "controllers/controller_manager.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_util.h"
@@ -193,15 +192,15 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
 
     status = 0;
 
-    // Timeout (3000 ms)
-	uint32_t now = SysTimer::GetTimerLow();
-    while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
+    // Timeout 3 s
+	auto now = chrono::steady_clock::now();
+    while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3) {
         bus->Acquire();
 
         if (bus->GetREQ()) {
         	try {
         		if (Dispatch(bus->GetPhase(), cmd, cdb, length)) {
-        			now = SysTimer::GetTimerLow();
+        			now = chrono::steady_clock::now();
         		}
         		else {
         			bus->Reset();
