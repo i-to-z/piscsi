@@ -67,9 +67,10 @@ class BUS : public PinControl
   public:
     // Operation modes definition
     enum class mode_e {
-        TARGET    = 0,
+        TARGET = 0,
         INITIATOR = 1,
-        MONITOR   = 2,
+        MONITOR = 2,
+		IN_PROCESS = 3
     };
 
     static int GetCommandByteCount(uint8_t);

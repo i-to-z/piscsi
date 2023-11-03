@@ -8,26 +8,29 @@
 //
 //---------------------------------------------------------------------------
 
-#include <memory>
-
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus_raspberry.h"
 #include "hal/gpiobus_virtual.h"
+#include "hal/in_process_bus.h"
 #include "hal/sbc_version.h"
-#include <unistd.h>
 #include <spdlog/spdlog.h>
+#include <memory>
 
 using namespace std;
 
 unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 {
-	unique_ptr<BUS> bus;
+	// TODO Remove this temporary mode later
+	if (mode == BUS::mode_e::IN_PROCESS) {
+		return make_unique<InProcessBus>();
+	}
 
+	unique_ptr<BUS> bus;
     try {
         SBC_Version::Init();
         if (SBC_Version::IsRaspberryPi()) {
         	if (getuid()) {
-        		spdlog::error("GPIO bus access requires root permissions. Are you running as root?");
+        		spdlog::error("GPIO bus access requires root permissions");
         		return nullptr;
         	}
 
