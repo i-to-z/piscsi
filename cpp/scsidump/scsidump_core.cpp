@@ -159,18 +159,6 @@ void ScsiDump::ParseArguments(span<char *> args)
         }
     }
 
-    if (!run_bus_scan && target_id == -1) {
-    	throw parser_exception("Missing target ID");
-    }
-
-    if (target_id == initiator_id) {
-        throw parser_exception("Target ID and PiSCSI board ID must not be identical");
-    }
-
-    if ((filename.empty() && !run_bus_scan && !run_inquiry && !to_stdout) || create_properties_file) {
-        throw parser_exception("Missing filename");
-    }
-
     if (target_lun == -1) {
     	target_lun = 0;
     }
@@ -206,8 +194,18 @@ int ScsiDump::run(span<char *> args)
         return EXIT_FAILURE;
     }
 
-    if (getuid()) {
-    	cerr << "Error: GPIO bus access requires root permissions" << endl;
+    if (!run_bus_scan && target_id == -1) {
+    	cerr << "Missing target ID" << endl;
+    	return EXIT_FAILURE;
+    }
+
+    if (target_id == initiator_id) {
+        cerr << "Target ID and PiSCSI board ID must not be identical" << endl;
+        return EXIT_FAILURE;
+    }
+
+    if ((filename.empty() && !run_bus_scan && !run_inquiry && !to_stdout) || create_properties_file) {
+        cerr << "Missing filename" << endl;
         return EXIT_FAILURE;
     }
 
@@ -215,6 +213,11 @@ int ScsiDump::run(span<char *> args)
     cerr << "Error: No PiSCSI hardware support" << endl;
     return EXIT_FAILURE;
 #endif
+
+    if (getuid()) {
+    	cerr << "Error: GPIO bus access requires root permissions" << endl;
+        return EXIT_FAILURE;
+    }
 
     if (!Init()) {
 		cerr << "Error: Can't initialize bus" << endl;
@@ -236,9 +239,7 @@ int ScsiDump::run(span<char *> args)
    	else {
    		if (const string error = DumpRestore(console); !error.empty()) {
    			cerr << "Error: " << error << endl;
-
    			CleanUp();
-
    			return EXIT_FAILURE;
    		}
     }
