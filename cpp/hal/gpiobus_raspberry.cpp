@@ -505,7 +505,7 @@ void GPIOBUS_Raspberry::SetCD(bool ast)
 
 bool GPIOBUS_Raspberry::GetIO()
 {
-    bool ast = GetSignal(PIN_IO);
+    const bool ast = GetSignal(PIN_IO);
 
     if (actmode == mode_e::INITIATOR) {
         // Change the data input/output direction by IO signal
@@ -588,7 +588,7 @@ void GPIOBUS_Raspberry::SetREQ(bool ast)
 uint8_t GPIOBUS_Raspberry::GetDAT()
 {
     uint32_t data = Acquire();
-    data          = ((data >> (PIN_DT0 - 0)) & (1 << 0)) | ((data >> (PIN_DT1 - 1)) & (1 << 1)) |
+    data = ((data >> (PIN_DT0 - 0)) & (1 << 0)) | ((data >> (PIN_DT1 - 1)) & (1 << 1)) |
            ((data >> (PIN_DT2 - 2)) & (1 << 2)) | ((data >> (PIN_DT3 - 3)) & (1 << 3)) |
            ((data >> (PIN_DT4 - 4)) & (1 << 4)) | ((data >> (PIN_DT5 - 5)) & (1 << 5)) |
            ((data >> (PIN_DT6 - 6)) & (1 << 6)) | ((data >> (PIN_DT7 - 7)) & (1 << 7));
@@ -650,9 +650,9 @@ bool GPIOBUS_Raspberry::GetDP() const
 //	Signal table
 //
 //---------------------------------------------------------------------------
-const array<int, 19> GPIOBUS_Raspberry::SignalTable = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6,
-                                                       PIN_DT7, PIN_DP,  PIN_SEL, PIN_ATN, PIN_RST, PIN_ACK, PIN_BSY,
-                                                       PIN_MSG, PIN_CD,  PIN_IO,  PIN_REQ, -1};
+const array<int, 19> GPIOBUS_Raspberry::SignalTable = { PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6,
+                                                      	PIN_DT7, PIN_DP,  PIN_SEL, PIN_ATN, PIN_RST, PIN_ACK, PIN_BSY,
+														PIN_MSG, PIN_CD,  PIN_IO,  PIN_REQ, -1 };
 
 //---------------------------------------------------------------------------
 //
@@ -661,7 +661,7 @@ const array<int, 19> GPIOBUS_Raspberry::SignalTable = {PIN_DT0, PIN_DT1, PIN_DT2
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::MakeTable(void)
 {
-    const array<int, 9> pintbl = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP};
+    const array<int, 9> pintbl = { PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP };
 
     array<bool, 256> tblParity;
 
@@ -771,14 +771,14 @@ void GPIOBUS_Raspberry::SetMode(int pin, int mode)
     }
 #endif // SIGNAL_CONTROL_MODE
 
-    int index     = pin / 10;
-    int shift     = (pin % 10) * 3;
+    const int index = pin / 10;
+    const int shift = (pin % 10) * 3;
     uint32_t data = gpfsel[index];
     data &= ~(0x7 << shift);
     if (mode == OUT) {
         data |= (1 << shift);
     }
-    gpio[index]   = data;
+    gpio[index] = data;
     gpfsel[index] = data;
 }
 
@@ -803,15 +803,15 @@ bool GPIOBUS_Raspberry::GetSignal(int pin) const
 void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
 {
 #if SIGNAL_CONTROL_MODE == 0
-    int index     = pin / 10;
-    int shift     = (pin % 10) * 3;
+    const int index = pin / 10;
+    const int shift = (pin % 10) * 3;
     uint32_t data = gpfsel[index];
     if (ast) {
         data |= (1 << shift);
     } else {
         data &= ~(0x7 << shift);
     }
-    gpio[index]   = data;
+    gpio[index] = data;
     gpfsel[index] = data;
 #elif SIGNAL_CONTROL_MODE == 1
     if (ast) {
@@ -833,16 +833,16 @@ void GPIOBUS_Raspberry::DisableIRQ()
 #ifdef __linux__
     if (rpitype == 4) {
         // RPI4 is disabled by GICC
-        giccpmr        = gicc[GICC_PMR];
+        giccpmr = gicc[GICC_PMR];
         gicc[GICC_PMR] = 0;
     } else if (rpitype == 2) {
         // RPI2,3 disable core timer IRQ
-        tintcore          = sched_getcpu() + QA7_CORE0_TINTC;
-        tintctl           = qa7regs[tintcore];
+        tintcore = sched_getcpu() + QA7_CORE0_TINTC;
+        tintctl = qa7regs[tintcore];
         qa7regs[tintcore] = 0;
     } else {
         // Stop system timer interrupt with interrupt controller
-        irptenb                = irpctl[IRPT_ENB_IRQ_1];
+        irptenb = irpctl[IRPT_ENB_IRQ_1];
         irpctl[IRPT_DIS_IRQ_1] = irptenb & 0xf;
     }
 #else
@@ -879,9 +879,9 @@ void GPIOBUS_Raspberry::PinConfig(int pin, int mode)
         return;
     }
 
-    int index     = pin / 10;
-    uint32_t mask = ~(0x7 << ((pin % 10) * 3));
-    gpio[index]   = (gpio[index] & mask) | ((mode & 0x7) << ((pin % 10) * 3));
+    const int index = pin / 10;
+    const uint32_t mask = ~(0x7 << ((pin % 10) * 3));
+    gpio[index] = (gpio[index] & mask) | ((mode & 0x7) << ((pin % 10) * 3));
 }
 
 //---------------------------------------------------------------------------
@@ -891,13 +891,12 @@ void GPIOBUS_Raspberry::PinConfig(int pin, int mode)
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
 {
-    uint32_t pull;
-
     // Check for invalid pin
     if (pin < 0) {
         return;
     }
 
+    uint32_t pull;
     if (rpitype == 4) {
         switch (mode) {
         case GPIO_PULLNONE:
@@ -914,7 +913,7 @@ void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
         }
 
         pin &= 0x1f;
-        int shift     = (pin & 0xf) << 1;
+        const int shift = (pin & 0xf) << 1;
         uint32_t bits = gpio[GPIO_PUPPDN0 + (pin >> 4)];
         bits &= ~(3 << shift);
         bits |= (pull << shift);
@@ -925,7 +924,7 @@ void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
         SysTimer::SleepUsec(2);
         gpio[GPIO_CLK_0] = 0x1 << pin;
         SysTimer::SleepUsec(2);
-        gpio[GPIO_PUD]   = 0;
+        gpio[GPIO_PUD] = 0;
         gpio[GPIO_CLK_0] = 0;
     }
 }
@@ -956,7 +955,7 @@ void GPIOBUS_Raspberry::PinSetSignal(int pin, bool ast)
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::DrvConfig(uint32_t drive)
 {
-    uint32_t data  = pads[PAD_0_27];
+    const uint32_t data = pads[PAD_0_27];
     pads[PAD_0_27] = (0xFFFFFFF8 & data) | drive | 0x5a000000;
 }
 
@@ -972,7 +971,7 @@ uint32_t GPIOBUS_Raspberry::Acquire()
 #if SIGNAL_CONTROL_MODE < 2
     // Invert if negative logic (internal processing is unified to positive logic)
     signals = ~signals;
-#endif // SIGNAL_CONTROL_MODE
+#endif
 
     return signals;
 }

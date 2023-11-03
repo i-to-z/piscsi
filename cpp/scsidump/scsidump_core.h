@@ -53,7 +53,7 @@ private:
 
     void Reset() const;
 
-    void CleanUp();
+    void CleanUp() const;
     static void TerminationHandler(int);
 
     // A static instance is needed because of the signal handler
