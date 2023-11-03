@@ -120,7 +120,6 @@ bool PhaseExecutor::Arbitration() const
 
 	Sleep(ARBITRATION_DELAY);
 
-	bus.Acquire();
 	if (bus.GetDAT() > (1 << initiator_id)) {
 		spdlog::trace("Lost ARBITRATION, competing initiator ID is " + to_string(bus.GetDAT() - (1 << initiator_id)));
 		return false;
