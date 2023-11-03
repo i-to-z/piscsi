@@ -15,6 +15,7 @@
 #include <span>
 
 using namespace std;
+using namespace scsi_defs;
 
 class PhaseExecutor
 {
