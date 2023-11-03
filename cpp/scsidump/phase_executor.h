@@ -15,13 +15,12 @@
 
 using namespace std;
 
-class phase_exception : public runtime_error
-{
-	using runtime_error::runtime_error;
-};
-
 class PhaseExecutor
 {
+	class phase_exception : public runtime_error
+	{
+		using runtime_error::runtime_error;
+	};
 
 public:
 

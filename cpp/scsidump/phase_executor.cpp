@@ -126,10 +126,8 @@ bool PhaseExecutor::Arbitration() const
 		return false;
 	}
 
-	// TODO Remove this code block, it should be in Selection() only, but then piscsi sometimes does not see the target ID
-	auto data = static_cast<byte>(1 << initiator_id);
-	data |= static_cast<byte>(1 << target_id);
-	bus.SetDAT(static_cast<uint8_t>(data));
+	// TODO This should be in Selection() only, but then piscsi sometimes does not see the target ID
+	bus.SetDAT(static_cast<uint8_t>(1 << (initiator_id + target_id)));
 
 	bus.SetSEL(true);
 
@@ -141,9 +139,7 @@ bool PhaseExecutor::Arbitration() const
 
 bool PhaseExecutor::Selection() const
 {
-	auto data = static_cast<byte>(1 << initiator_id);
-	data |= static_cast<byte>(1 << target_id);
-	bus.SetDAT(static_cast<uint8_t>(data));
+	bus.SetDAT(static_cast<uint8_t>(1 << (initiator_id + target_id)));
 
     // Request MESSAGE OUT for IDENTIFY
     bus.SetATN(true);
@@ -171,7 +167,11 @@ bool PhaseExecutor::Selection() const
 void PhaseExecutor::Command(scsi_command cmd, span<uint8_t> cdb) const
 {
     cdb[0] = static_cast<uint8_t>(cmd);
-    cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
+    if (target_lun < 8) {
+    	// Encode LUN in the CDB for backwards compatibility with SCSI-1-CCS
+    	cdb[1] = static_cast<uint8_t>(cdb[1] + (target_lun << 5));
+    }
+
     if (static_cast<int>(cdb.size()) !=
         bus.SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
 

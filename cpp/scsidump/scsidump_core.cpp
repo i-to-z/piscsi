@@ -222,30 +222,25 @@ int ScsiDump::run(span<char *> args)
 
     scsi_executor = make_unique<ScsiExecutor>(*bus, initiator_id);
 
-    try {
-    	if (scan_bus) {
-    		ScanBus(console);
-    	}
-    	else if (inquiry) {
-    		DisplayBoardId(console);
-
-    		inquiry_info_t inq_info;
-    		if (DisplayInquiry(console, inq_info, false) && properties_file && !filename.empty()) {
-    			inq_info.GeneratePropertiesFile(console, filename + ".properties");
-    		}
-    	}
-    	else {
-    		if (const string error = DumpRestore(console); !error.empty()) {
-    			cerr << "Error: " << error << endl;
-    		}
-    	}
+    if (scan_bus) {
+    	ScanBus(console);
     }
-    catch (const phase_exception& e) {
-    	cerr << "Error: " << e.what() << endl;
+   	else if (inquiry) {
+   		DisplayBoardId(console);
 
-    	CleanUp();
+   		inquiry_info_t inq_info;
+    	if (DisplayInquiry(console, inq_info, false) && properties_file && !filename.empty()) {
+    		inq_info.GeneratePropertiesFile(console, filename + ".properties");
+    	}
+   	}
+   	else {
+   		if (const string error = DumpRestore(console); !error.empty()) {
+   			cerr << "Error: " << error << endl;
 
-    	return EXIT_FAILURE;
+   			CleanUp();
+
+   			return EXIT_FAILURE;
+   		}
     }
 
     CleanUp();
