@@ -109,7 +109,7 @@ void ScsiDump::ParseArguments(span<char *> args)
             break;
 
         case 'I':
-        	inquiry = true;
+        	run_inquiry = true;
         	break;
 
         case 'b':
@@ -120,7 +120,7 @@ void ScsiDump::ParseArguments(span<char *> args)
             break;
 
         case 's':
-        	scan_bus = true;
+        	run_bus_scan = true;
         	break;
 
         case 't':
@@ -142,7 +142,7 @@ void ScsiDump::ParseArguments(span<char *> args)
             break;
 
         case 'a':
-        	all_luns = true;
+        	scan_all_luns = true;
         	break;
 
         case 'r':
@@ -150,7 +150,7 @@ void ScsiDump::ParseArguments(span<char *> args)
             break;
 
         case 'p':
-            properties_file = true;
+            create_properties_file = true;
             break;
 
         default:
@@ -158,7 +158,7 @@ void ScsiDump::ParseArguments(span<char *> args)
         }
     }
 
-    if (!scan_bus && target_id == -1) {
+    if (!run_bus_scan && target_id == -1) {
     	throw parser_exception("Missing target ID");
     }
 
@@ -166,7 +166,7 @@ void ScsiDump::ParseArguments(span<char *> args)
         throw parser_exception("Target ID and PiSCSI board ID must not be identical");
     }
 
-    if ((filename.empty() && !scan_bus && !inquiry && !to_stdout) || properties_file) {
+    if ((filename.empty() && !run_bus_scan && !run_inquiry && !to_stdout) || create_properties_file) {
         throw parser_exception("Missing filename");
     }
 
@@ -174,8 +174,8 @@ void ScsiDump::ParseArguments(span<char *> args)
     	target_lun = 0;
     }
 
-    if (scan_bus) {
-    	inquiry = false;
+    if (run_bus_scan) {
+    	run_inquiry = false;
     }
 
     buffer = vector<uint8_t>(buffer_size);
@@ -222,14 +222,14 @@ int ScsiDump::run(span<char *> args)
 
     scsi_executor = make_unique<ScsiExecutor>(*bus, initiator_id);
 
-    if (scan_bus) {
+    if (run_bus_scan) {
     	ScanBus(console);
     }
-   	else if (inquiry) {
+   	else if (run_inquiry) {
    		DisplayBoardId(console);
 
    		inquiry_info_t inq_info;
-    	if (DisplayInquiry(console, inq_info, false) && properties_file && !filename.empty()) {
+    	if (DisplayInquiry(console, inq_info, false) && create_properties_file && !filename.empty()) {
     		inq_info.GeneratePropertiesFile(console, filename + ".properties");
     	}
    	}
@@ -264,7 +264,7 @@ void ScsiDump::ScanBus(ostream& console)
 
 		target_lun = 0;
 		inquiry_info_t inq_info;
-		if (!DisplayInquiry(console, inq_info, false) || !all_luns) {
+		if (!DisplayInquiry(console, inq_info, false) || !scan_all_luns) {
 			// Continue with next ID if there is no LUN 0 or only LUN 0 should be scanned
 			continue;
 		}
@@ -445,7 +445,7 @@ string ScsiDump::DumpRestore(ostream& console)
     		<< effective_size / 1024 / duration << " KiB per second)\n";
     console << DIVIDER << "\n" << flush;
 
-    if (properties_file && !restore) {
+    if (create_properties_file && !restore) {
         inq_info.GeneratePropertiesFile(console, filename + ".properties");
     }
 

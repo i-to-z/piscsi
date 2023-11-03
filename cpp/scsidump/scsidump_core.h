@@ -73,15 +73,15 @@ private:
 
     bool to_stdout = false;
 
-    bool inquiry = false;
+    bool run_inquiry = false;
 
-    bool scan_bus = false;
+    bool run_bus_scan = false;
 
-    bool all_luns = false;
+    bool scan_all_luns = false;
 
     bool restore = false;
 
-    bool properties_file = false;
+    bool create_properties_file = false;
 
     static const int MINIMUM_BUFFER_SIZE = 1024 * 64;
     static const int DEFAULT_BUFFER_SIZE = 1024 * 1024;
