@@ -65,11 +65,9 @@ private:
 
     vector<uint8_t> buffer;
 
-    int target_id = -1;
-
-    int target_lun = 0;
-
     int initiator_id = 7;
+    int target_id = -1;
+    int target_lun = 0;
 
     string filename;
 

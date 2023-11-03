@@ -35,7 +35,7 @@
 #error Invalid connection type or none specified
 #endif
 
-// #define ENABLE_GPIO_TRACE
+#undef ENABLE_GPIO_TRACE
 #ifdef ENABLE_GPIO_TRACE
 #define GPIO_FUNCTION_TRACE LOGTRACE("%s", __PRETTY_FUNCTION__)
 #else
