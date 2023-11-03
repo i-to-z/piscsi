@@ -20,7 +20,6 @@ using namespace std;
 
 unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 {
-	// TODO Remove this temporary mode later
 	if (mode == BUS::mode_e::IN_PROCESS) {
 		return make_unique<InProcessBus>();
 	}

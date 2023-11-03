@@ -27,7 +27,7 @@ public:
     ScsiDump() = default;
     ~ScsiDump() = default;
 
-    int run(const span<char *>);
+    int run(span<char *>, BUS::mode_e);
 
     struct inquiry_info {
         string vendor;
@@ -43,7 +43,7 @@ public:
 private:
 
     bool Banner(ostream&, span<char *>) const;
-    bool Init();
+    bool Init(BUS::mode_e);
     void ParseArguments(span<char *>);
     void DisplayBoardId(ostream&) const;
     long CalculateEffectiveSize(ostream&) const;

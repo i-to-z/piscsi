@@ -13,6 +13,8 @@
 #include <cstdint>
 #include <cassert>
 
+// TODO Make access thread-safe
+
 class InProcessBus : public GPIOBUS
 {
 

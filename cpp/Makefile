@@ -46,8 +46,9 @@ PISCSI = piscsi
 SCSICTL = scsictl
 SCSIDUMP = scsidump
 SCSIMON = scsimon
-PISCSI_TEST = piscsi_test
 SCSILOOP = scsiloop
+PISCSI_TEST = piscsi_test
+IN_PROCESS_TEST = in_process_test
 
 SYSTEMD_CONF = /etc/systemd/system/piscsi.service
 RSYSLOG_CONF = /etc/rsyslog.d/piscsi.conf
@@ -101,12 +102,15 @@ SRC_SCSIDUMP = scsidump/scsidump.cpp
 SRC_SCSIDUMP += $(shell find ./scsidump -name '*.cpp' | grep -v scsidump.cpp)
 SRC_SCSIDUMP += $(shell find ./hal -name '*.cpp')
 
-SRC_PISCSI_TEST = $(shell find ./test -name '*.cpp')
-SRC_PISCSI_TEST += $(shell find ./scsidump -name '*.cpp' | grep -v scsidump.cpp)
-
 SRC_SCSILOOP = scsiloop/scsiloop.cpp
 SRC_SCSILOOP += $(shell find ./scsiloop -name '*.cpp' | grep -v scsiloop.cpp)
 SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
+
+SRC_PISCSI_TEST = $(shell find ./test -name '*.cpp' | grep -v in_process_test.cpp)
+SRC_PISCSI_TEST += $(shell find ./scsidump -name '*.cpp' | grep -v scsidump.cpp)
+
+SRC_IN_PROCESS_TEST = test/in_process_test.cpp
+SRC_IN_PROCESS_TEST += $(shell find ./scsidump -name '*.cpp' | grep -v scsidump.cpp)
 
 vpath %.h ./shared ./controllers ./devices ./scsimon ./hal \
 	./hal/pi_defs ./piscsi ./scsictl ./scsidump ./scsiloop
@@ -122,11 +126,12 @@ OBJ_SCSICTL_CORE := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSICTL_CORE:%.cpp=%.o
 OBJ_SCSICTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSICTL:%.cpp=%.o)))
 OBJ_SCSIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
-OBJ_PISCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PISCSI_TEST:%.cpp=%.o)))
 OBJ_SCSILOOP  := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSILOOP:%.cpp=%.o)))
 OBJ_SHARED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SHARED:%.cpp=%.o)))
 OBJ_PROTOBUF := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PROTOBUF:%.cpp=%.o)))
 OBJ_GENERATED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_GENERATED:%.cpp=%.o)))
+OBJ_PISCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PISCSI_TEST:%.cpp=%.o)))
+OBJ_IN_PROCESS_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_IN_PROCESS_TEST:%.cpp=%.o)))
 
 GENERATED_DIR := generated
 
@@ -137,7 +142,7 @@ TEST_WRAPS = -Wl,--wrap=fopen64
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI) $(OBJ_SCSICTL) $(OBJ_SCSIDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_PISCSI_TEST) $(OBJ_SCSILOOP))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI) $(OBJ_SCSICTL) $(OBJ_SCSIDUMP) $(OBJ_SCSIMON) $(OBJ_SCSILOOP) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_PISCSI_TEST) $(OBJ_IN_PROCESS_TEST))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -173,6 +178,9 @@ all: $(SRC_GENERATED) $(BIN_ALL) docs
 test: $(SRC_GENERATED) $(BINDIR)/$(PISCSI_TEST)
 	$(BINDIR)/$(PISCSI_TEST)
 
+in_process_test: $(SRC_GENERATED) $(BINDIR)/$(IN_PROCESS_TEST)
+	$(BINDIR)/$(IN_PROCESS_TEST)
+
 coverage: CXXFLAGS += --coverage
 coverage: test
 
@@ -200,17 +208,21 @@ $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) $(OBJ_SHARED) | $(BINDIR)
 $(BINDIR)/$(SCSILOOP): $(OBJ_SHARED) $(OBJ_SCSILOOP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@  $(OBJ_SHARED) $(OBJ_SCSILOOP)
 
-$(BINDIR)/$(PISCSI_TEST): $(OBJ_GENERATED) $(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI_TEST) $(OBJ_SCSICTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
+$(BINDIR)/$(PISCSI_TEST): $(OBJ_GENERATED) $(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(TEST_WRAPS) -o $@ $(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf -lgmock -lgtest
 
+$(BINDIR)/$(IN_PROCESS_TEST): $(OBJ_GENERATED) $(OBJ_PISCSI_CORE) $(OBJ_IN_PROCESS_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(OBJ_PISCSI_CORE) $(OBJ_IN_PROCESS_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf
+
 # Phony rules for building individual utilities
-.PHONY: $(PISCSI) $(SCSICTL) $(SCSIDUMP) $(SCSIMON) $(PISCSI_TEST) $(SCSILOOP)
+.PHONY: $(PISCSI) $(SCSICTL) $(SCSIDUMP) $(SCSIMON) $(SCSILOOP) $(PISCSI_TEST) $(IN_PROCESS_TEST)
 $(PISCSI) : $(BINDIR)/$(PISCSI) 
 $(SCSICTL) : $(BINDIR)/$(SCSICTL) 
 $(SCSIDUMP) : $(BINDIR)/$(SCSIDUMP) 
 $(SCSIMON) : $(BINDIR)/$(SCSIMON)
-$(PISCSI_TEST): $(BINDIR)/$(PISCSI_TEST)
 $(SCSILOOP) : $(BINDIR)/$(SCSILOOP)
+$(PISCSI_TEST): $(BINDIR)/$(PISCSI_TEST)
+$(IN_PROCESS_TEST): $(BINDIR)/$(IN_PROCESS_TEST)
 
 ##   clean    : Remove all of the object files, intermediate 
 ##              compiler files and executable files 
