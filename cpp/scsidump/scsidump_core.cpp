@@ -410,8 +410,8 @@ string ScsiDump::DumpRestore(ostream& console)
         		<< effective_size - remaining << "/" << effective_size << ")\n" << flush;
     }
 
-    const auto stop_time = chrono::high_resolution_clock::now();
-    const auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
+    const auto duration = chrono::duration_cast<chrono::seconds>(chrono::high_resolution_clock::now()
+    		- start_time).count();
 
     if (restore) {
     	// Ensure that if the target device is also a PiSCSI instance its image file becomes complete immediately
