@@ -30,7 +30,7 @@ public:
     ~PhaseExecutor() = default;
 
     void SetTarget(int, int);
-    bool Execute(scsi_command, span<uint8_t>, span<uint8_t>, int length);
+    bool Execute(scsi_command, span<uint8_t>, span<uint8_t>, int);
 
 private:
 
