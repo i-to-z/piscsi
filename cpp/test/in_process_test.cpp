@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "hal/gpiobus_factory.h"
 #include "piscsi/piscsi_core.h"
 #include "scsidump/scsidump_core.h"
 #include <thread>
@@ -30,8 +29,6 @@ int main(int, char *[])
 	add_arg(scsidump_args, "-s");
 
 	const auto mode = BUS::mode_e::IN_PROCESS;
-
-	auto bus = GPIOBUS_Factory::Create(mode);
 
 	auto target_thread = jthread([&piscsi_args] () {
 		auto piscsi = make_unique<Piscsi>();
