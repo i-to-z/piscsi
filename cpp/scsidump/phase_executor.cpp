@@ -26,7 +26,7 @@ void PhaseExecutor::Reset() const
 	bus.SetATN(false);
 }
 
-bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length)
+bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, size_t length)
 {
     spdlog::trace("Executing " + command_mapping.find(cmd)->second.second
     		+ " for target " + to_string(target_id) + ":" + to_string(target_lun));
@@ -48,7 +48,7 @@ bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> b
 
         if (bus.GetREQ()) {
         	try {
-        		if (Dispatch(bus.GetPhase(), cmd, cdb, buffer, length)) {
+        		if (Dispatch(bus.GetPhase(), cmd, cdb, buffer, static_cast<int>(length))) {
         			now = chrono::steady_clock::now();
         		}
         		else {
