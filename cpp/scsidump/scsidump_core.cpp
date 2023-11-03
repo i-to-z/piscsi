@@ -8,9 +8,8 @@
 //
 //---------------------------------------------------------------------------
 
-// TODO Extract SCSI functionality to separate class
-
 #include "scsidump/scsidump_core.h"
+#include "scsidump/phase_executor.h"
 #include "hal/gpiobus_factory.h"
 #include "controllers/controller_manager.h"
 #include "shared/piscsi_exceptions.h"
@@ -187,17 +186,17 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
 {
     spdlog::trace("Executing " + command_mapping.find(cmd)->second.second);
 
-    if (!Arbitration()) {
+    phase_executor->Reset(target_id, target_lun);
+
+    if (!phase_executor->Arbitration()) {
 		bus->Reset();
 		return false;
     }
 
-    if (!Selection()) {
+    if (!phase_executor->Selection()) {
 		Reset();
 		return false;
 	}
-
-    status = 0;
 
     // Timeout 3 s
 	auto now = chrono::steady_clock::now();
@@ -211,7 +210,7 @@ bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
         		}
         		else {
         			bus->Reset();
-         			return !status;
+         			return !phase_executor->GetStatus();
         		}
         	}
         	catch (const phase_exception& e) {
@@ -231,27 +230,27 @@ bool ScsiDump::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, int 
 
 	switch (phase) {
 		case phase_t::command:
-			Command(cmd, cdb);
+			phase_executor->Command(cmd, cdb);
 			break;
 
 		case phase_t::status:
-			Status();
+			phase_executor->Status();
 			break;
 
 		case phase_t::datain:
-			DataIn(length);
+			phase_executor->DataIn(buffer, length);
 			break;
 
     	case phase_t::dataout:
-    		DataOut(length);
+    		phase_executor->DataOut(buffer, length);
     		break;
 
     	case phase_t::msgin:
-    		MsgIn();
+    		phase_executor->MsgIn();
     		return false;
 
     	case phase_t::msgout:
-    		MsgOut();
+    		phase_executor->MsgOut();
     		break;
 
     	default:
@@ -268,130 +267,6 @@ void ScsiDump::Reset() const
 	bus->SetBSY(false);
 	bus->SetSEL(false);
 	bus->SetATN(false);
-}
-
-bool ScsiDump::Arbitration() const
-{
-	if (!WaitForFree()) {
-		spdlog::trace("Bus is not free");
-		return false;
-	}
-
-	nanosleep(&BUS_FREE_DELAY, nullptr);
-
-	bus->SetDAT(static_cast<uint8_t>(1 << initiator_id));
-
-	bus->SetBSY(true);
-
-	nanosleep(&ARBITRATION_DELAY, nullptr);
-
-	bus->Acquire();
-	if (bus->GetDAT() > (1 << initiator_id)) {
-		spdlog::trace("Lost ARBITRATION, competing initiator ID is " + to_string(bus->GetDAT() - (1 << initiator_id)));
-		return false;
-	}
-
-	// TODO Remove this code block, it should be in Selection() only, but then piscsi sometimes does not see the target ID
-	auto data = static_cast<byte>(1 << initiator_id);
-	data |= static_cast<byte>(1 << target_id);
-	bus->SetDAT(static_cast<uint8_t>(data));
-
-	bus->SetSEL(true);
-
-	nanosleep(&BUS_CLEAR_DELAY, nullptr);
-	nanosleep(&BUS_SETTLE_DELAY, nullptr);
-
-	return true;
-}
-
-bool ScsiDump::Selection() const
-{
-	auto data = static_cast<byte>(1 << initiator_id);
-	data |= static_cast<byte>(1 << target_id);
-	bus->SetDAT(static_cast<uint8_t>(data));
-
-    // Request MESSAGE OUT for IDENTIFY
-    bus->SetATN(true);
-
-	nanosleep(&DESKEW_DELAY, nullptr);
-	nanosleep(&DESKEW_DELAY, nullptr);
-
-    bus->SetBSY(false);
-
-	nanosleep(&BUS_SETTLE_DELAY, nullptr);
-
-    if (!WaitForBusy()) {
-		spdlog::trace("SELECTION failed");
-    	return false;
-    }
-
-	nanosleep(&DESKEW_DELAY, nullptr);
-	nanosleep(&DESKEW_DELAY, nullptr);
-
-    bus->SetSEL(false);
-
-    return true;
-}
-
-void ScsiDump::Command(scsi_command cmd, span<uint8_t> cdb) const
-{
-    cdb[0] = static_cast<uint8_t>(cmd);
-    cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
-    if (static_cast<int>(cdb.size()) !=
-        bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
-
-        throw phase_exception(command_mapping.find(cmd)->second.second + string(" failed"));
-    }
-}
-
-void ScsiDump::Status()
-{
-	array<uint8_t, 1> buf;
-
-	if (bus->ReceiveHandShake(buf.data(), 1) != 1) {
-        throw phase_exception("STATUS failed");
-    }
-
-	status = buf[0];
-}
-
-void ScsiDump::DataIn(int length)
-{
-    if (!bus->ReceiveHandShake(buffer.data(), length)) {
-        throw phase_exception("DATA IN failed");
-    }
-}
-
-void ScsiDump::DataOut(int length)
-{
-    if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
-        throw phase_exception("DATA OUT failed");
-    }
-}
-
-void ScsiDump::MsgIn() const
-{
-	array<uint8_t, 1> buf;
-
-	if (bus->ReceiveHandShake(buf.data(), 1) != 1) {
-        throw phase_exception("MESSAGE IN failed");
-    }
-
-	if (buf[0]) {
-		throw phase_exception("MESSAGE IN did not report COMMAND COMPLETE");
-	}
-}
-
-void ScsiDump::MsgOut() const
-{
-	array<uint8_t, 1> buf;
-
-	// IDENTIFY
-	buf[0] = static_cast<uint8_t>(target_lun | 0x80);
-
-	if (bus->SendHandShake(buf.data(), buf.size(), BUS::SEND_NO_DELAY) != buf.size()) {
-        throw phase_exception("MESSAGE OUT failed");
-    }
 }
 
 bool ScsiDump::TestUnitReady()
@@ -503,39 +378,6 @@ set<int> ScsiDump::ReportLuns()
 	return luns;
 }
 
-bool ScsiDump::WaitForFree() const
-{
-    // Wait for up to 2 s
-    int count = 10000;
-    do {
-        // Wait 20 ms
-        const timespec ts = {.tv_sec = 0, .tv_nsec = 20 * 1000};
-        nanosleep(&ts, nullptr);
-        bus->Acquire();
-        if (!bus->GetBSY() && !bus->GetSEL()) {
-            return true;
-        }
-    } while (count--);
-
-    return false;
-}
-
-bool ScsiDump::WaitForBusy() const
-{
-    // Wait for up to 2 s
-    int count = 10000;
-    do {
-        // Wait 20 ms
-        const timespec ts = {.tv_sec = 0, .tv_nsec = 20 * 1000};
-        nanosleep(&ts, nullptr);
-        bus->Acquire();
-        if (bus->GetBSY()) {
-            return true;
-        }
-    } while (count--);
-
-    return false;
-}
 
 int ScsiDump::run(span<char *> args)
 {
@@ -575,6 +417,8 @@ int ScsiDump::run(span<char *> args)
 		cerr << "Error: Can't initialize bus" << endl;
         return EXIT_FAILURE;
     }
+
+    phase_executor = make_unique<PhaseExecutor>(*bus, initiator_id);
 
     try {
     	if (scan_bus) {

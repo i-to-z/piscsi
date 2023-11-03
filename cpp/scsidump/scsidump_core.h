@@ -10,20 +10,15 @@
 #pragma once
 
 #include "hal/bus.h"
+#include "scsidump/phase_executor.h"
 #include <string>
 #include <span>
 #include <vector>
 #include <set>
 #include <unordered_map>
-#include <stdexcept>
 #include <iostream>
 
 using namespace std;
-
-class phase_exception : public runtime_error
-{
-	using runtime_error::runtime_error;
-};
 
 class ScsiDump
 {
@@ -64,26 +59,16 @@ private:
     bool ReadWrite(uint32_t, uint32_t, int, bool);
     void SynchronizeCache();
     set<int> ReportLuns();
-    bool WaitForFree() const;
-    bool WaitForBusy() const;
-    void BusFreeDelay() const;
-    void ArbitrationDelay() const;
 
     void Reset() const;
-    bool Arbitration() const;
-	bool Selection() const;
-	void Command(scsi_command, span<uint8_t>) const;
-	void Status();
-	void DataIn(int);
-	void DataOut(int);
-	void MsgIn() const;
-	void MsgOut() const;
 
     static void CleanUp();
     static void TerminationHandler(int);
 
     // A static instance is needed because of the signal handler
     static inline unique_ptr<BUS> bus;
+
+    unique_ptr<PhaseExecutor> phase_executor;
 
     vector<uint8_t> buffer;
 
@@ -92,8 +77,6 @@ private:
     int target_lun = 0;
 
     int initiator_id = 7;
-
-    int status = 0;
 
     string filename;
 
@@ -138,21 +121,4 @@ private:
 			{ byte{20}, "Host Managed Zoned Block" },
 			{ byte{30}, "Well Known Logical Unit" }
     };
-
-    // Timeout values see bus.h
-
-    inline static const long BUS_SETTLE_DELAY_NS = 400;
-    inline static const timespec BUS_SETTLE_DELAY = {.tv_sec = 0, .tv_nsec = BUS_SETTLE_DELAY_NS};
-
-    inline static const long BUS_CLEAR_DELAY_NS = 800;
-    inline static const timespec BUS_CLEAR_DELAY = {.tv_sec = 0, .tv_nsec = BUS_CLEAR_DELAY_NS};
-
-    inline static const long BUS_FREE_DELAY_NS = 800;
-    inline static const timespec BUS_FREE_DELAY = {.tv_sec = 0, .tv_nsec = BUS_FREE_DELAY_NS};
-
-    inline static const long DESKEW_DELAY_NS = 45;
-    inline static const timespec DESKEW_DELAY = {.tv_sec = 0, .tv_nsec = DESKEW_DELAY_NS};
-
-    inline static const long ARBITRATION_DELAY_NS = 2'400;
-    inline static const timespec ARBITRATION_DELAY = {.tv_sec = 0, .tv_nsec = ARBITRATION_DELAY_NS};
 };
