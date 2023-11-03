@@ -458,11 +458,6 @@ bool ScsiDump::GetDeviceInfo(ostream& console)
     	return false;
     }
 
-    if (!scsi_executor->TestUnitReady()) {
-    	spdlog::trace("Device is not ready");
-    	return false;
-    }
-
     const auto [capacity, sector_size] = scsi_executor->ReadCapacity();
     if (!capacity || !sector_size) {
     	spdlog::trace("Can't get device capacity");

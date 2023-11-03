@@ -15,13 +15,6 @@ using namespace std;
 using namespace spdlog;
 using namespace scsi_defs;
 
-bool ScsiExecutor::TestUnitReady()
-{
-	vector<uint8_t> cdb(6);
-
-    return phase_executor->Execute(scsi_command::eCmdTestUnitReady, cdb, {}, 0);
-}
-
 bool ScsiExecutor::Inquiry(span<uint8_t> buffer)
 {
 	vector<uint8_t> cdb(6);
