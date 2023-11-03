@@ -13,8 +13,6 @@
 #include <cstdint>
 #include <cassert>
 
-// TODO Make access thread-safe
-
 class InProcessBus : public GPIOBUS
 {
 
@@ -111,18 +109,18 @@ private:
     // TODO This method should not exist at all, it pollutes the bus interface
     unique_ptr<DataSample> GetSample(uint64_t) override { assert(false); return nullptr; }
 
-    bool enb = false;
-    bool bsy = false;
-    bool sel = false;
-    bool atn = false;
-    bool ack = false;
-    bool act = false;
-    bool rst = false;
-    bool msg = false;
-    bool cd = false;
-    bool io = false;
-    bool req = false;
-    uint8_t dat = 0;
+    volatile bool enb = false; // NOSONAR volatile is fine here
+    volatile bool bsy = false; // NOSONAR volatile is fine here
+    volatile bool sel = false; // NOSONAR volatile is fine here
+    volatile bool atn = false; // NOSONAR volatile is fine here
+    volatile bool ack = false; // NOSONAR volatile is fine here
+    volatile bool act = false; // NOSONAR volatile is fine here
+    volatile bool rst = false; // NOSONAR volatile is fine here
+    volatile bool msg = false; // NOSONAR volatile is fine here
+    volatile bool cd = false; // NOSONAR volatile is fine here
+    volatile bool io = false; // NOSONAR volatile is fine here
+    volatile bool req = false; // NOSONAR volatile is fine here
+    volatile uint8_t dat = 0; // NOSONAR volatile is fine here
 };
 
 // Required in order for the bus instances to be unique even though they must be shared between target and initiator
