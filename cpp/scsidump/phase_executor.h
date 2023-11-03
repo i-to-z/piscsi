@@ -51,7 +51,7 @@ private:
 
     int GetStatus() const { return status; }
 
-    inline void Sleep(const timespec& ms) const { nanosleep(&ms, nullptr); }
+    inline void Sleep(const timespec& ns) const { nanosleep(&ns, nullptr); }
 
     BUS& bus;
 
