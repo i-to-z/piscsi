@@ -101,7 +101,7 @@ set<int> ScsiExecutor::ReportLuns()
 
 	set<int> luns;
 	size_t offset = 8;
-	for (size_t i = 0; i < lun_count && offset < buffer.size() - 8; i++, offset += 8) {
+	for (size_t i = 0; i < lun_count && offset + 8 < buffer.size(); i++, offset += 8) {
 		const uint64_t lun = GetInt64(buffer, offset);
 		if (lun < static_cast<uint64_t>(ControllerManager::GetScsiLunMax())) {
 			luns.insert(static_cast<int>(lun));
