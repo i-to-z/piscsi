@@ -38,6 +38,9 @@ int main(int, char *[])
 		piscsi->run(piscsi_args, mode);
 	});
 
+	// TODO Avoid sleep
+	sleep(1);
+
 	auto initiator_thread = jthread([&scsidump_args] () {
 		auto scsidump = make_unique<ScsiDump>();
 		scsidump->run(scsidump_args, mode);

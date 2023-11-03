@@ -11,7 +11,6 @@
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus_raspberry.h"
 #include "hal/gpiobus_virtual.h"
-#include "hal/in_process_bus.h"
 #include "hal/sbc_version.h"
 #include <spdlog/spdlog.h>
 #include <memory>
@@ -21,7 +20,7 @@ using namespace std;
 unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 {
 	if (mode == BUS::mode_e::IN_PROCESS) {
-		return make_unique<InProcessBus>();
+		return make_unique<DelegatingInProcessBus>(bus);
 	}
 
 	unique_ptr<BUS> bus;
