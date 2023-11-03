@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "controllers/controller_manager.h"
 #include "scsidump/scsi_executor.h"
 #include <spdlog/spdlog.h>
 #include <vector>
@@ -103,7 +102,7 @@ set<int> ScsiExecutor::ReportLuns()
 	size_t offset = 8;
 	for (size_t i = 0; i < lun_count && offset + 8 < buffer.size(); i++, offset += 8) {
 		const uint64_t lun = GetInt64(buffer, offset);
-		if (lun < static_cast<uint64_t>(ControllerManager::GetScsiLunMax())) {
+		if (lun < 32) {
 			luns.insert(static_cast<int>(lun));
 		}
 		else {
