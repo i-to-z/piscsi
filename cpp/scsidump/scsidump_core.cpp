@@ -99,8 +99,9 @@ void ScsiDump::ParseArguments(span<char *> args)
 {
     int buffer_size = DEFAULT_BUFFER_SIZE;
 
-    int opt;
+    optind = 1;
     opterr = 0;
+    int opt;
     while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:b:t:arsvpIV")) != -1) {
         switch (opt) {
         case 'i':

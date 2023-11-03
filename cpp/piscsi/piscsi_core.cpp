@@ -154,8 +154,9 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 	// Avoid duplicate messages while parsing
 	set_level(level::off);
 
-	opterr = 1;
-	int opt;
+    optind = 1;
+    opterr = 0;
+    int opt;
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:t:z:D:F:L:P:R:C:v")) != -1) {
 		switch (opt) {
 			// The two options below are kind of a compound option with two letters
