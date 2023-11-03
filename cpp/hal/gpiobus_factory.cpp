@@ -20,7 +20,7 @@ using namespace std;
 unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 {
 	if (mode == BUS::mode_e::IN_PROCESS) {
-		return make_unique<DelegatingInProcessBus>(bus);
+		return make_unique<DelegatingInProcessBus>(in_process_busbus);
 	}
 
 	unique_ptr<BUS> bus;

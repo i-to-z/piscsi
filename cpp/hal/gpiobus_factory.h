@@ -26,5 +26,5 @@ public:
 
 private:
 
-	inline static InProcessBus bus;
+	inline static InProcessBus in_process_busbus;
 };

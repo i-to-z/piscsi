@@ -130,7 +130,7 @@ class DelegatingInProcessBus : public InProcessBus
 public:
 
 	explicit DelegatingInProcessBus(InProcessBus& b) : bus(b) {}
-    ~DelegatingInProcessBus() = default;
+    ~DelegatingInProcessBus() override = default;
 
     bool Init(mode_e mode) override { return bus.Init(mode); }
 
