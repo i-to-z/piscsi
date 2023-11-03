@@ -10,6 +10,7 @@
 #pragma once
 
 #include "hal/bus.h"
+#include <ctime>
 #include <stdexcept>
 #include <span>
 
@@ -49,6 +50,8 @@ private:
     bool WaitForBusy() const;
 
     int GetStatus() const { return status; }
+
+    inline void Sleep(const timespec& ms) const { nanosleep(&ms, nullptr); }
 
     BUS& bus;
 

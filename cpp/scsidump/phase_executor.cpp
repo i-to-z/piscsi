@@ -10,7 +10,6 @@
 #include "hal/bus.h"
 #include "phase_executor.h"
 #include <spdlog/spdlog.h>
-#include <ctime>
 #include <iostream>
 #include <array>
 #include <string>
@@ -113,13 +112,13 @@ bool PhaseExecutor::Arbitration() const
 		return false;
 	}
 
-	nanosleep(&BUS_FREE_DELAY, nullptr);
+	Sleep(BUS_FREE_DELAY);
 
 	bus.SetDAT(static_cast<uint8_t>(1 << initiator_id));
 
 	bus.SetBSY(true);
 
-	nanosleep(&ARBITRATION_DELAY, nullptr);
+	Sleep(ARBITRATION_DELAY);
 
 	bus.Acquire();
 	if (bus.GetDAT() > (1 << initiator_id)) {
@@ -132,8 +131,8 @@ bool PhaseExecutor::Arbitration() const
 
 	bus.SetSEL(true);
 
-	nanosleep(&BUS_CLEAR_DELAY, nullptr);
-	nanosleep(&BUS_SETTLE_DELAY, nullptr);
+	Sleep(BUS_CLEAR_DELAY);
+	Sleep(BUS_SETTLE_DELAY);
 
 	return true;
 }
@@ -145,20 +144,20 @@ bool PhaseExecutor::Selection() const
     // Request MESSAGE OUT for IDENTIFY
     bus.SetATN(true);
 
-	nanosleep(&DESKEW_DELAY, nullptr);
-	nanosleep(&DESKEW_DELAY, nullptr);
+	Sleep(DESKEW_DELAY);
+	Sleep(DESKEW_DELAY);
 
     bus.SetBSY(false);
 
-	nanosleep(&BUS_SETTLE_DELAY, nullptr);
+	Sleep(BUS_SETTLE_DELAY);
 
     if (!WaitForBusy()) {
 		spdlog::trace("SELECTION failed");
     	return false;
     }
 
-	nanosleep(&DESKEW_DELAY, nullptr);
-	nanosleep(&DESKEW_DELAY, nullptr);
+	Sleep(DESKEW_DELAY);
+	Sleep(DESKEW_DELAY);
 
     bus.SetSEL(false);
 
@@ -236,8 +235,7 @@ bool PhaseExecutor::WaitForFree() const
     int count = 10000;
     do {
         // Wait 20 ms
-        const timespec ts = {.tv_sec = 0, .tv_nsec = 20 * 1000};
-        nanosleep(&ts, nullptr);
+        Sleep({.tv_sec = 0, .tv_nsec = 20'000});
         bus.Acquire();
         if (!bus.GetBSY() && !bus.GetSEL()) {
             return true;
@@ -253,8 +251,7 @@ bool PhaseExecutor::WaitForBusy() const
     int count = 10000;
     do {
         // Wait 20 ms
-        const timespec ts = {.tv_sec = 0, .tv_nsec = 20 * 1000};
-        nanosleep(&ts, nullptr);
+        Sleep({.tv_sec = 0, .tv_nsec = 20'000});
         bus.Acquire();
         if (bus.GetBSY()) {
             return true;
