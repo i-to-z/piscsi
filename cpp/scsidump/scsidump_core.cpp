@@ -9,7 +9,6 @@
 //---------------------------------------------------------------------------
 
 #include "scsidump/scsidump_core.h"
-#include "scsidump/phase_executor.h"
 #include "hal/gpiobus_factory.h"
 #include "controllers/controller_manager.h"
 #include "shared/piscsi_exceptions.h"
@@ -182,116 +181,6 @@ void ScsiDump::ParseArguments(span<char *> args)
     buffer = vector<uint8_t>(buffer_size);
 }
 
-bool ScsiDump::TestUnitReady()
-{
-	vector<uint8_t> cdb(6);
-
-    return phase_executor->Execute(scsi_command::eCmdTestUnitReady, cdb, buffer, 0);
-}
-
-bool ScsiDump::Inquiry()
-{
-	vector<uint8_t> cdb(6);
-	cdb[4] = 0xff;
-
-    return phase_executor->Execute(scsi_command::eCmdInquiry, cdb, buffer, 256);
-}
-
-pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
-{
-	vector<uint8_t> cdb(10);
-
-    if (!phase_executor->Execute(scsi_command::eCmdReadCapacity10, cdb, buffer, 8)) {
-    	return { 0, 0 };
-    }
-
-    uint64_t capacity = (static_cast<uint32_t>(buffer[0]) << 24) | (static_cast<uint32_t>(buffer[1]) << 16) |
-    		(static_cast<uint32_t>(buffer[2]) << 8) | static_cast<uint32_t>(buffer[3]);
-
-    int sector_size_offset = 4;
-
-    if (static_cast<int32_t>(capacity) == -1) {
-    	cdb.resize(16);
-       	// READ CAPACITY(16), not READ LONG(16)
-    	cdb[1] = 0x10;
-
-    	if (!phase_executor->Execute(scsi_command::eCmdReadCapacity16_ReadLong16, cdb, buffer, 14)) {
-        	return { 0, 0 };
-    	}
-
-    	capacity = (static_cast<uint64_t>(buffer[0]) << 56) | (static_cast<uint64_t>(buffer[1]) << 48) |
-    			(static_cast<uint64_t>(buffer[2]) << 40) | (static_cast<uint64_t>(buffer[3]) << 32) |
-				(static_cast<uint64_t>(buffer[4]) << 24) | (static_cast<uint64_t>(buffer[5]) << 16) |
-				(static_cast<uint64_t>(buffer[6]) << 8) | static_cast<uint64_t>(buffer[7]);
-
-    	sector_size_offset = 8;
-    }
-
-    const uint32_t sector_size = (static_cast<uint32_t>(buffer[sector_size_offset]) << 24) |
-    		(static_cast<uint32_t>(buffer[sector_size_offset + 1]) << 16) |
-			(static_cast<uint32_t>(buffer[sector_size_offset + 2]) << 8) |
-			static_cast<uint32_t>(buffer[sector_size_offset + 3]);
-
-    return { capacity + 1, sector_size };
-}
-
-bool ScsiDump::ReadWrite(uint32_t bstart, uint32_t blength, int length, bool isWrite)
-{
-	vector<uint8_t> cdb(10);
-	cdb[2] = static_cast<uint8_t>(bstart >> 24);
-    cdb[3] = static_cast<uint8_t>(bstart >> 16);
-    cdb[4] = static_cast<uint8_t>(bstart >> 8);
-    cdb[5] = static_cast<uint8_t>(bstart);
-    cdb[7] = static_cast<uint8_t>(blength >> 8);
-    cdb[8] = static_cast<uint8_t>(blength);
-
-    return phase_executor->Execute(isWrite ? scsi_command::eCmdWrite10 : scsi_command::eCmdRead10, cdb, buffer, length);
-}
-
-void ScsiDump::SynchronizeCache()
-{
-	vector<uint8_t> cdb(10);
-
-	phase_executor->Execute(scsi_command::eCmdSynchronizeCache10, cdb, buffer,  0);
-}
-
-set<int> ScsiDump::ReportLuns()
-{
-	const int TRANSFER_LENGTH = 512;
-
-	vector<uint8_t> cdb(12);
-	cdb[8] = static_cast<uint8_t>(TRANSFER_LENGTH >> 8);
-	cdb[9] = static_cast<uint8_t>(TRANSFER_LENGTH);
-
-	// Assume 8 LUNs in case REPORT LUNS is not available
-	if (!phase_executor->Execute(scsi_command::eCmdReportLuns, cdb, buffer, TRANSFER_LENGTH)) {
-		spdlog::trace("Device does not support REPORT LUNS");
-		return { 0, 1, 2, 3, 4, 5, 6, 7 };
-	}
-
-	const auto lun_count = (static_cast<size_t>(buffer[2]) << 8) | static_cast<size_t>(buffer[3]) / 8;
-	spdlog::trace("Device reported LUN count of " + to_string(lun_count));
-
-	set<int> luns;
-	int offset = 8;
-	for (size_t i = 0; i < lun_count && offset < TRANSFER_LENGTH - 8; i++, offset += 8) {
-		const uint64_t lun =
-				(static_cast<uint64_t>(buffer[offset]) << 56) | (static_cast<uint64_t>(buffer[offset + 1]) << 48) |
-    			(static_cast<uint64_t>(buffer[offset + 1]) << 40) | (static_cast<uint64_t>(buffer[offset + 3]) << 32) |
-				(static_cast<uint64_t>(buffer[offset + 4]) << 24) | (static_cast<uint64_t>(buffer[offset + 5]) << 16) |
-				(static_cast<uint64_t>(buffer[offset + 6]) << 8) | static_cast<uint64_t>(buffer[offset + 7]);
-		if (lun < static_cast<uint64_t>(ControllerManager::GetScsiLunMax())) {
-			luns.insert(static_cast<int>(lun));
-		}
-		else {
-			spdlog::trace("Device reported invalid LUN " + to_string(lun));
-		}
-	}
-
-	return luns;
-}
-
-
 int ScsiDump::run(span<char *> args)
 {
 	to_stdout = !isatty(STDOUT_FILENO);
@@ -331,7 +220,7 @@ int ScsiDump::run(span<char *> args)
         return EXIT_FAILURE;
     }
 
-    phase_executor = make_unique<PhaseExecutor>(*bus, initiator_id);
+    scsi_executor = make_unique<ScsiExecutor>(*bus, initiator_id);
 
     try {
     	if (scan_bus) {
@@ -385,7 +274,7 @@ void ScsiDump::ScanBus(ostream& console)
 			continue;
 		}
 
-		auto luns = ReportLuns();
+		auto luns = scsi_executor->ReportLuns();
 		// LUN 0 has already been dealt with
 		luns.erase(0);
 
@@ -402,9 +291,9 @@ bool ScsiDump::DisplayInquiry(ostream& console, inquiry_info_t& inq_info, bool c
 
     inq_info = {};
 
-    phase_executor->SetTarget(target_id, target_lun);
+    scsi_executor->SetTarget(target_id, target_lun);
 
-    if (!Inquiry()) {
+    if (!scsi_executor->Inquiry(buffer)) {
     	return false;
     }
 
@@ -502,7 +391,7 @@ string ScsiDump::DumpRestore(ostream& console)
     int sector_offset = 0;
     auto remaining = effective_size;
 
-    phase_executor->SetTarget(target_id, target_lun);
+    scsi_executor->SetTarget(target_id, target_lun);
 
     const auto start_time = chrono::high_resolution_clock::now();
 
@@ -524,11 +413,13 @@ string ScsiDump::DumpRestore(ostream& console)
         	if (fs.fail()) {
         		return "Error reading from file '" + filename + "'";
         	}
-        	if (!ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, true)) {
+        	if (!scsi_executor->ReadWrite(buffer, sector_offset, sector_count,
+        			sector_count * inq_info.sector_size, true)) {
         		return "Error writing to device";
         	}
         } else {
-            if (!ReadWrite(sector_offset, sector_count, sector_count * inq_info.sector_size, false)) {
+            if (!scsi_executor->ReadWrite(buffer, sector_offset,
+            		sector_count, sector_count * inq_info.sector_size, false)) {
             	return "Error reading from device";
             }
             out.write((const char*)buffer.data(), byte_count);
@@ -546,7 +437,7 @@ string ScsiDump::DumpRestore(ostream& console)
 
     if (restore) {
     	// Ensure that if the target device is also a PiSCSI instance its image file becomes complete immediately
-    	SynchronizeCache();
+    	scsi_executor->SynchronizeCache();
     }
 
     const auto stop_time = chrono::high_resolution_clock::now();
@@ -574,12 +465,12 @@ bool ScsiDump::GetDeviceInfo(ostream& console, inquiry_info_t& inq_info)
     	return false;
     }
 
-    if (!TestUnitReady()) {
+    if (!scsi_executor->TestUnitReady()) {
     	spdlog::trace("Device is not ready");
     	return false;
     }
 
-    const auto [capacity, sector_size] = ReadCapacity();
+    const auto [capacity, sector_size] = scsi_executor->ReadCapacity();
     if (!capacity || !sector_size) {
     	spdlog::trace("Can't get device capacity");
     	return false;

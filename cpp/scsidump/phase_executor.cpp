@@ -17,6 +17,7 @@
 #include <chrono>
 
 using namespace std;
+using namespace spdlog;
 
 void PhaseExecutor::Reset() const
 {

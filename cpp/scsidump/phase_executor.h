@@ -25,7 +25,7 @@ class PhaseExecutor
 
 public:
 
-	explicit PhaseExecutor(BUS& b, int id) : bus(b), initiator_id(id) {}
+	PhaseExecutor(BUS& b, int id) : bus(b), initiator_id(id) {}
     ~PhaseExecutor() = default;
 
     void SetTarget(int, int);

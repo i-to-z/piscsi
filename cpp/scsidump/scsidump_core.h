@@ -10,11 +10,10 @@
 #pragma once
 
 #include "hal/bus.h"
-#include "scsidump/phase_executor.h"
+#include "scsidump/scsi_executor.h"
 #include <string>
 #include <span>
 #include <vector>
-#include <set>
 #include <unordered_map>
 #include <iostream>
 
@@ -51,12 +50,6 @@ private:
     bool DisplayInquiry(ostream&, inquiry_info&, bool);
     string DumpRestore(ostream&);
     bool GetDeviceInfo(ostream&, inquiry_info&);
-    bool TestUnitReady();
-    bool Inquiry();
-    pair<uint64_t, uint32_t> ReadCapacity();
-    bool ReadWrite(uint32_t, uint32_t, int, bool);
-    void SynchronizeCache();
-    set<int> ReportLuns();
 
     void Reset() const;
 
@@ -66,7 +59,7 @@ private:
     // A static instance is needed because of the signal handler
     static inline unique_ptr<BUS> bus;
 
-    unique_ptr<PhaseExecutor> phase_executor;
+    unique_ptr<ScsiExecutor> scsi_executor;
 
     vector<uint8_t> buffer;
 
