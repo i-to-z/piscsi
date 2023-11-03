@@ -76,8 +76,7 @@ class DataSample_Raspberry final : public DataSample
     }
     uint8_t GetDAT() const override
     {
-        uint8_t ret_val = 0;
-        ret_val |= (data >> (PIN_DT0 - 0)) & 0x01;
+        uint8_t ret_val = (data >> (PIN_DT0 - 0)) & 0x01;
         ret_val |= (data >> (PIN_DT1 - 1)) & 0x02;
         ret_val |= (data >> (PIN_DT2 - 2)) & 0x04;
         ret_val |= (data >> (PIN_DT3 - 3)) & 0x08;

@@ -86,7 +86,6 @@ class BUS : public PinControl
 
     // Get the string phase name, based upon the raw data
     static const char *GetPhaseStrRaw(phase_t current_phase);
-    virtual int GetMode(int pin) = 0;
 
     virtual uint32_t Acquire()                                                = 0;
     virtual unique_ptr<DataSample> GetSample(uint64_t timestamp = 0)          = 0;
