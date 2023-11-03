@@ -39,7 +39,7 @@ void ScsiDump::CleanUp()
 
 void ScsiDump::TerminationHandler(int)
 {
-    CleanUp();
+    instance->CleanUp();
 
 	// Process will terminate automatically
 }
@@ -75,8 +75,9 @@ bool ScsiDump::Banner(ostream& console, span<char *> args) const
     return true;
 }
 
-bool ScsiDump::Init() const
+bool ScsiDump::Init()
 {
+	instance = this;
 	// Signal handler for cleaning up
 	struct sigaction termination_handler;
 	termination_handler.sa_handler = TerminationHandler;

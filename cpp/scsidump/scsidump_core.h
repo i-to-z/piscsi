@@ -43,7 +43,7 @@ public:
 private:
 
     bool Banner(ostream&, span<char *>) const;
-    bool Init() const;
+    bool Init();
     void ParseArguments(span<char *>);
     void DisplayBoardId(ostream&) const;
     void ScanBus(ostream&);
@@ -53,7 +53,7 @@ private:
 
     void Reset() const;
 
-    static void CleanUp();
+    void CleanUp();
     static void TerminationHandler(int);
 
     // A static instance is needed because of the signal handler
@@ -83,7 +83,10 @@ private:
 
     bool create_properties_file = false;
 
-    static const int MINIMUM_BUFFER_SIZE = 1024 * 64;
+    // Required for the termination handler
+	static inline ScsiDump *instance;
+
+	static const int MINIMUM_BUFFER_SIZE = 1024 * 64;
     static const int DEFAULT_BUFFER_SIZE = 1024 * 1024;
 
     static inline const string DIVIDER = "----------------------------------------";
