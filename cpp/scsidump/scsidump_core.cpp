@@ -371,7 +371,7 @@ string ScsiDump::DumpRestore(ostream& console)
     const auto start_time = chrono::high_resolution_clock::now();
 
     while (remaining) {
-    	const auto byte_count = static_cast<int>(min(remaining, buffer.size()));
+    	const auto byte_count = static_cast<int>(min(static_cast<size_t>(remaining), buffer.size()));
         auto sector_count = byte_count / inq_info.sector_size;
         if (byte_count % inq_info.sector_size) {
         	++sector_count;
@@ -432,7 +432,7 @@ string ScsiDump::DumpRestore(ostream& console)
     return "";
 }
 
-size_t ScsiDump::CalculateEffectiveSize(ostream& console) const
+long ScsiDump::CalculateEffectiveSize(ostream& console) const
 {
 	const off_t disk_size = inq_info.capacity * inq_info.sector_size;
 
@@ -461,7 +461,7 @@ size_t ScsiDump::CalculateEffectiveSize(ostream& console) const
     	effective_size = disk_size;
     }
 
-    return effective_size;
+    return static_cast<long>(effective_size);
 }
 
 bool ScsiDump::GetDeviceInfo(ostream& console)

@@ -46,7 +46,7 @@ private:
     bool Init();
     void ParseArguments(span<char *>);
     void DisplayBoardId(ostream&) const;
-    size_t CalculateEffectiveSize(ostream&) const;
+    long CalculateEffectiveSize(ostream&) const;
     void ScanBus(ostream&);
     bool DisplayInquiry(ostream&, bool);
     string DumpRestore(ostream&);
