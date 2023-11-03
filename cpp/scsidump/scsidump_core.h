@@ -47,9 +47,9 @@ private:
     void ParseArguments(span<char *>);
     void DisplayBoardId(ostream&) const;
     void ScanBus(ostream&);
-    bool DisplayInquiry(ostream&, inquiry_info&, bool);
+    bool DisplayInquiry(ostream&, bool);
     string DumpRestore(ostream&);
-    bool GetDeviceInfo(ostream&, inquiry_info&);
+    bool GetDeviceInfo(ostream&);
 
     void Reset() const;
 
@@ -60,6 +60,8 @@ private:
     static inline unique_ptr<BUS> bus;
 
     unique_ptr<ScsiExecutor> scsi_executor;
+
+    inquiry_info_t inq_info;
 
     vector<uint8_t> buffer;
 

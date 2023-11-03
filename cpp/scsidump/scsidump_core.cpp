@@ -228,8 +228,7 @@ int ScsiDump::run(span<char *> args)
    	else if (run_inquiry) {
    		DisplayBoardId(console);
 
-   		inquiry_info_t inq_info;
-    	if (DisplayInquiry(console, inq_info, false) && create_properties_file && !filename.empty()) {
+    	if (DisplayInquiry(console, false) && create_properties_file && !filename.empty()) {
     		inq_info.GeneratePropertiesFile(console, filename + ".properties");
     	}
    	}
@@ -263,8 +262,7 @@ void ScsiDump::ScanBus(ostream& console)
 		}
 
 		target_lun = 0;
-		inquiry_info_t inq_info;
-		if (!DisplayInquiry(console, inq_info, false) || !scan_all_luns) {
+		if (!DisplayInquiry(console, false) || !scan_all_luns) {
 			// Continue with next ID if there is no LUN 0 or only LUN 0 should be scanned
 			continue;
 		}
@@ -275,12 +273,12 @@ void ScsiDump::ScanBus(ostream& console)
 
 		for (const auto lun : luns) {
 			target_lun = lun;
-			DisplayInquiry(console, inq_info, false);
+			DisplayInquiry(console, false);
 		}
 	}
 }
 
-bool ScsiDump::DisplayInquiry(ostream& console, inquiry_info_t& inq_info, bool check_type)
+bool ScsiDump::DisplayInquiry(ostream& console, bool check_type)
 {
     console << DIVIDER << "\nTarget device is " << target_id << ":" << target_lun << "\n" << flush;
 
@@ -334,8 +332,7 @@ bool ScsiDump::DisplayInquiry(ostream& console, inquiry_info_t& inq_info, bool c
 
 string ScsiDump::DumpRestore(ostream& console)
 {
-	inquiry_info_t inq_info;
-	if (!GetDeviceInfo(console, inq_info)) {
+	if (!GetDeviceInfo(console)) {
 		return "Can't get device information";
 	}
 
@@ -452,11 +449,11 @@ string ScsiDump::DumpRestore(ostream& console)
     return "";
 }
 
-bool ScsiDump::GetDeviceInfo(ostream& console, inquiry_info_t& inq_info)
+bool ScsiDump::GetDeviceInfo(ostream& console)
 {
     DisplayBoardId(console);
 
-    if (!DisplayInquiry(console, inq_info, true)) {
+    if (!DisplayInquiry(console, true)) {
     	return false;
     }
 
