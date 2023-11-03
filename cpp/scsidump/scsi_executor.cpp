@@ -114,16 +114,16 @@ set<int> ScsiExecutor::ReportLuns()
 	return luns;
 }
 
-uint32_t ScsiExecutor::GetInt32(span<uint8_t> buffer, int offset)
+uint32_t ScsiExecutor::GetInt32(span<uint8_t> buf, int offset)
 {
-	return (static_cast<uint32_t>(buffer[offset]) << 24) | (static_cast<uint32_t>(buffer[offset + 1]) << 16) |
-			(static_cast<uint32_t>(buffer[offset + 2]) << 8) | static_cast<uint32_t>(buffer[offset + 3]);
+	return (static_cast<uint32_t>(buf[offset]) << 24) | (static_cast<uint32_t>(buf[offset + 1]) << 16) |
+			(static_cast<uint32_t>(buf[offset + 2]) << 8) | static_cast<uint32_t>(buf[offset + 3]);
 }
 
-uint64_t ScsiExecutor::GetInt64(span<uint8_t> buffer, int offset)
+uint64_t ScsiExecutor::GetInt64(span<uint8_t> buf, int offset)
 {
-	return (static_cast<uint64_t>(buffer[offset]) << 56) | (static_cast<uint64_t>(buffer[offset + 1]) << 48) |
-			(static_cast<uint64_t>(buffer[offset + 2]) << 40) | (static_cast<uint64_t>(buffer[offset + 3]) << 32) |
-			(static_cast<uint64_t>(buffer[offset + 4]) << 24) | (static_cast<uint64_t>(buffer[offset + 5]) << 16) |
-			(static_cast<uint64_t>(buffer[offset + 6]) << 8) | static_cast<uint64_t>(buffer[offset + 7]);
+	return (static_cast<uint64_t>(buf[offset]) << 56) | (static_cast<uint64_t>(buf[offset + 1]) << 48) |
+			(static_cast<uint64_t>(buf[offset + 2]) << 40) | (static_cast<uint64_t>(buf[offset + 3]) << 32) |
+			(static_cast<uint64_t>(buf[offset + 4]) << 24) | (static_cast<uint64_t>(buf[offset + 5]) << 16) |
+			(static_cast<uint64_t>(buf[offset + 6]) << 8) | static_cast<uint64_t>(buf[offset + 7]);
 }
