@@ -139,6 +139,8 @@ private:
 			{ byte{30}, "Well Known Logical Unit" }
     };
 
+    // Timeout values see bus.h
+
     inline static const long BUS_SETTLE_DELAY_NS = 400;
     inline static const timespec BUS_SETTLE_DELAY = {.tv_sec = 0, .tv_nsec = BUS_SETTLE_DELAY_NS};
 
