@@ -99,8 +99,8 @@ set<int> ScsiExecutor::ReportLuns()
 	spdlog::trace("Target reported LUN count of " + to_string(lun_count));
 
 	set<int> luns;
-	size_t offset = 8;
-	for (size_t i = 0; i < lun_count && offset + 8 < buffer.size(); i++, offset += 8) {
+	int offset = 8;
+	for (size_t i = 0; i < lun_count && static_cast<size_t>(offset) + 8 < buffer.size(); i++, offset += 8) {
 		const uint64_t lun = GetInt64(buffer, offset);
 		if (lun < 32) {
 			luns.insert(static_cast<int>(lun));
