@@ -35,5 +35,8 @@ public:
 
 private:
 
+    static uint32_t GetInt32(span<uint8_t>, int = 0);
+    static uint64_t GetInt64(span<uint8_t>, int = 0);
+
     unique_ptr<PhaseExecutor> phase_executor;
 };

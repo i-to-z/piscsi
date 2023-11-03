@@ -40,8 +40,7 @@ pair<uint64_t, uint32_t> ScsiExecutor::ReadCapacity()
     	return { 0, 0 };
     }
 
-    uint64_t capacity = (static_cast<uint32_t>(buffer[0]) << 24) | (static_cast<uint32_t>(buffer[1]) << 16) |
-    		(static_cast<uint32_t>(buffer[2]) << 8) | static_cast<uint32_t>(buffer[3]);
+    uint64_t capacity = GetInt32(buffer);
 
     int sector_size_offset = 4;
 
@@ -54,18 +53,12 @@ pair<uint64_t, uint32_t> ScsiExecutor::ReadCapacity()
         	return { 0, 0 };
     	}
 
-    	capacity = (static_cast<uint64_t>(buffer[0]) << 56) | (static_cast<uint64_t>(buffer[1]) << 48) |
-    			(static_cast<uint64_t>(buffer[2]) << 40) | (static_cast<uint64_t>(buffer[3]) << 32) |
-				(static_cast<uint64_t>(buffer[4]) << 24) | (static_cast<uint64_t>(buffer[5]) << 16) |
-				(static_cast<uint64_t>(buffer[6]) << 8) | static_cast<uint64_t>(buffer[7]);
+    	capacity = GetInt64(buffer);
 
     	sector_size_offset = 8;
     }
 
-    const uint32_t sector_size = (static_cast<uint32_t>(buffer[sector_size_offset]) << 24) |
-    		(static_cast<uint32_t>(buffer[sector_size_offset + 1]) << 16) |
-			(static_cast<uint32_t>(buffer[sector_size_offset + 2]) << 8) |
-			static_cast<uint32_t>(buffer[sector_size_offset + 3]);
+    const uint32_t sector_size = GetInt32(buffer, sector_size_offset);
 
     return { capacity + 1, sector_size };
 }
@@ -109,11 +102,7 @@ set<int> ScsiExecutor::ReportLuns()
 	set<int> luns;
 	size_t offset = 8;
 	for (size_t i = 0; i < lun_count && offset < buffer.size() - 8; i++, offset += 8) {
-		const uint64_t lun =
-				(static_cast<uint64_t>(buffer[offset]) << 56) | (static_cast<uint64_t>(buffer[offset + 1]) << 48) |
-    			(static_cast<uint64_t>(buffer[offset + 1]) << 40) | (static_cast<uint64_t>(buffer[offset + 3]) << 32) |
-				(static_cast<uint64_t>(buffer[offset + 4]) << 24) | (static_cast<uint64_t>(buffer[offset + 5]) << 16) |
-				(static_cast<uint64_t>(buffer[offset + 6]) << 8) | static_cast<uint64_t>(buffer[offset + 7]);
+		const uint64_t lun = GetInt64(buffer, offset);
 		if (lun < static_cast<uint64_t>(ControllerManager::GetScsiLunMax())) {
 			luns.insert(static_cast<int>(lun));
 		}
@@ -123,4 +112,18 @@ set<int> ScsiExecutor::ReportLuns()
 	}
 
 	return luns;
+}
+
+uint32_t ScsiExecutor::GetInt32(span<uint8_t> buffer, int offset)
+{
+	return (static_cast<uint32_t>(buffer[offset]) << 24) | (static_cast<uint32_t>(buffer[offset + 1]) << 16) |
+			(static_cast<uint32_t>(buffer[offset + 2]) << 8) | static_cast<uint32_t>(buffer[offset + 3]);
+}
+
+uint64_t ScsiExecutor::GetInt64(span<uint8_t> buffer, int offset)
+{
+	return (static_cast<uint64_t>(buffer[offset]) << 56) | (static_cast<uint64_t>(buffer[offset + 1]) << 48) |
+			(static_cast<uint64_t>(buffer[offset + 2]) << 40) | (static_cast<uint64_t>(buffer[offset + 3]) << 32) |
+			(static_cast<uint64_t>(buffer[offset + 4]) << 24) | (static_cast<uint64_t>(buffer[offset + 5]) << 16) |
+			(static_cast<uint64_t>(buffer[offset + 6]) << 8) | static_cast<uint64_t>(buffer[offset + 7]);
 }
