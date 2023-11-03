@@ -207,7 +207,7 @@ int ScsiDump::run(span<char *> args)
     }
 
     if (getuid()) {
-    	cerr << "Error: GPIO bus access requires root permissions. Are you running as root?" << endl;
+    	cerr << "Error: GPIO bus access requires root permissions" << endl;
         return EXIT_FAILURE;
     }
 
