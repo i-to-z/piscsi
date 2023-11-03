@@ -128,7 +128,7 @@ bool PhaseExecutor::Arbitration() const
 	}
 
 	// TODO This should be in Selection() only, but then piscsi sometimes does not see the target ID
-	bus.SetDAT(static_cast<uint8_t>(1 << (initiator_id + target_id)));
+	bus.SetDAT(static_cast<uint8_t>((1 << initiator_id) + (1 << target_id)));
 
 	bus.SetSEL(true);
 
@@ -140,7 +140,7 @@ bool PhaseExecutor::Arbitration() const
 
 bool PhaseExecutor::Selection() const
 {
-	bus.SetDAT(static_cast<uint8_t>(1 << (initiator_id + target_id)));
+	bus.SetDAT(static_cast<uint8_t>((1 << initiator_id) + (1 << target_id)));
 
     // Request MESSAGE OUT for IDENTIFY
     bus.SetATN(true);
