@@ -16,11 +16,6 @@ using namespace std;
 using namespace spdlog;
 using namespace scsi_defs;
 
-ScsiExecutor::ScsiExecutor(BUS& bus, int id)
-{
-	phase_executor = make_unique<PhaseExecutor>(bus, id);
-}
-
 bool ScsiExecutor::TestUnitReady()
 {
 	vector<uint8_t> cdb(6);

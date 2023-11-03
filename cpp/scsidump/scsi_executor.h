@@ -21,7 +21,7 @@ class ScsiExecutor
 
 public:
 
-	ScsiExecutor(BUS&, int);
+	ScsiExecutor(BUS& bus, int id) { phase_executor = make_unique<PhaseExecutor>(bus, id); }
     ~ScsiExecutor() = default;
 
     bool TestUnitReady();
