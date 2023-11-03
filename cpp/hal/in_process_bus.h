@@ -12,29 +12,35 @@
 #include "hal/gpiobus.h"
 #include <cstdint>
 #include <cassert>
+#include <unordered_map>
+#include <atomic>
+#include <mutex>
 
 class InProcessBus : public GPIOBUS
 {
 
 public:
 
-	InProcessBus() = default;
-    ~InProcessBus() override = default;
+	InProcessBus() {
+	    // By initializing with all possible pins the map itself becomes thread safe
+		signals[PIN_BSY] = false;
+		signals[PIN_SEL] = false;
+		signals[PIN_ATN] = false;
+		signals[PIN_ACK] = false;
+		signals[PIN_ACT] = false;
+		signals[PIN_RST] = false;
+		signals[PIN_MSG] = false;
+		signals[PIN_CD] = false;
+		signals[PIN_IO] = false;
+		signals[PIN_REQ] = false;
+	}
+
+	~InProcessBus() override = default;
 
     bool Init(mode_e) override { return true; }
 
     void Reset() override {
-    	enb = false;
-    	bsy = false;
-    	sel = false;
-    	atn = false;
-    	ack = false;
-    	act = false;
-    	rst = false;
-    	msg = false;
-    	cd = false;
-    	io = false;
-    	req = false;
+    	signals.clear();
     	dat = 0;
     }
 
@@ -45,26 +51,26 @@ public:
     uint32_t Acquire() override { return dat; }
 
     void SetENB(bool) override { assert(false); }
-    bool GetBSY() const override { return bsy; }
-    void SetBSY(bool ast) override { bsy = ast; }
-    bool GetSEL() const override { return sel; }
-    void SetSEL(bool ast) override { sel = ast; }
-    bool GetATN() const override { return atn; }
-    void SetATN(bool ast) override { atn = ast; }
-    bool GetACK() const override { return ack; }
-    void SetACK(bool ast) override { act = ast; }
-    bool GetACT() const override { return act; }
-    void SetACT(bool ast) override { act = ast; }
-    bool GetRST() const override { return rst; }
-    void SetRST(bool ast) override { rst = ast; };
-    bool GetMSG() const override { return msg; };
-    void SetMSG(bool ast) override { msg = ast; };
-    bool GetCD() const override { return cd; }
-    void SetCD(bool ast) override { cd = ast; }
-    bool GetIO() override { return io; }
-    void SetIO(bool ast) override { io = ast; }
-    bool GetREQ() const override { return req; }
-    void SetREQ(bool ast) override { req = ast; }
+    bool GetBSY() const override { return GetSignal(PIN_BSY); }
+    void SetBSY(bool ast) override { SetSignal(PIN_BSY, ast); }
+    bool GetSEL() const override { return GetSignal(PIN_SEL); }
+    void SetSEL(bool ast) override { SetSignal(PIN_SEL, ast);}
+    bool GetATN() const override { return GetSignal(PIN_ATN); }
+    void SetATN(bool ast) override { SetSignal(PIN_ATN, ast); }
+    bool GetACK() const override { return GetSignal(PIN_ACK); }
+    void SetACK(bool ast) override { SetSignal(PIN_ACK, ast); }
+    bool GetACT() const override { return GetSignal(PIN_ACT); }
+    void SetACT(bool ast) override {SetSignal(PIN_ACT, ast); }
+    bool GetRST() const override { return GetSignal(PIN_RST); }
+    void SetRST(bool ast) override {SetSignal(PIN_RST, ast); };
+    bool GetMSG() const override { return GetSignal(PIN_MSG); };
+    void SetMSG(bool ast) override { SetSignal(PIN_MSG, ast);};
+    bool GetCD() const override { return GetSignal(PIN_CD); }
+    void SetCD(bool ast) override { SetSignal(PIN_CD, ast);}
+    bool GetIO() override { return GetSignal(PIN_IO); }
+    void SetIO(bool ast) override {SetSignal(PIN_IO, ast); }
+    bool GetREQ() const override { return GetSignal(PIN_REQ); }
+    void SetREQ(bool ast) override {SetSignal(PIN_REQ, ast); }
     bool GetDP() const override {
     	assert(false);
     	return false;
@@ -82,11 +88,14 @@ private:
     void MakeTable() override { assert(false); }
     void SetControl(int, bool) override { assert(false); }
     void SetMode(int, int) override{ assert(false); }
-    bool GetSignal(int) const override {
-    	assert(false);
-    	return false;
+    bool GetSignal(int pin) const override {
+    	const auto& it = signals.find(pin);
+    	assert(it != signals.end());
+    	return it->second ? true : false;
     }
-    void SetSignal(int, bool) override { assert(false); };
+    void SetSignal(int pin, bool ast) override {
+    	signals[pin] = ast;
+    }
 
     void DisableIRQ() override {
     	// Nothing to do
@@ -109,18 +118,9 @@ private:
     // TODO This method should not exist at all, it pollutes the bus interface
     unique_ptr<DataSample> GetSample(uint64_t) override { assert(false); return nullptr; }
 
-    volatile bool enb = false; // NOSONAR volatile is fine here
-    volatile bool bsy = false; // NOSONAR volatile is fine here
-    volatile bool sel = false; // NOSONAR volatile is fine here
-    volatile bool atn = false; // NOSONAR volatile is fine here
-    volatile bool ack = false; // NOSONAR volatile is fine here
-    volatile bool act = false; // NOSONAR volatile is fine here
-    volatile bool rst = false; // NOSONAR volatile is fine here
-    volatile bool msg = false; // NOSONAR volatile is fine here
-    volatile bool cd = false; // NOSONAR volatile is fine here
-    volatile bool io = false; // NOSONAR volatile is fine here
-    volatile bool req = false; // NOSONAR volatile is fine here
-    volatile uint8_t dat = 0; // NOSONAR volatile is fine here
+    unordered_map<int, atomic_bool> signals;
+
+    atomic<uint8_t> dat = 0;
 };
 
 // Required in order for the bus instances to be unique even though they must be shared between target and initiator

@@ -26,7 +26,10 @@ int main(int, char *[])
 
 	vector<char *> scsidump_args;
 	add_arg(scsidump_args, "scsidump");
-	add_arg(scsidump_args, "-s");
+	add_arg(scsidump_args, "-I");
+	add_arg(scsidump_args, "-t");
+	add_arg(scsidump_args, "0");
+	add_arg(scsidump_args, "-V");
 
 	const auto mode = BUS::mode_e::IN_PROCESS;
 
