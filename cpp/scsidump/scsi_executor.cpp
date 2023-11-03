@@ -92,12 +92,12 @@ set<int> ScsiExecutor::ReportLuns()
 
 	// Assume 8 LUNs in case REPORT LUNS is not available
 	if (!phase_executor->Execute(scsi_command::eCmdReportLuns, cdb, buffer, buffer.size())) {
-		spdlog::trace("Device does not support REPORT LUNS");
+		spdlog::trace("Target does not support REPORT LUNS");
 		return { 0, 1, 2, 3, 4, 5, 6, 7 };
 	}
 
 	const auto lun_count = (static_cast<size_t>(buffer[2]) << 8) | static_cast<size_t>(buffer[3]) / 8;
-	spdlog::trace("Device reported LUN count of " + to_string(lun_count));
+	spdlog::trace("Target reported LUN count of " + to_string(lun_count));
 
 	set<int> luns;
 	size_t offset = 8;
@@ -107,7 +107,7 @@ set<int> ScsiExecutor::ReportLuns()
 			luns.insert(static_cast<int>(lun));
 		}
 		else {
-			spdlog::trace("Device reported invalid LUN " + to_string(lun));
+			spdlog::trace("Target reported invalid LUN " + to_string(lun));
 		}
 	}
 
