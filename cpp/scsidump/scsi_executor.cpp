@@ -33,7 +33,7 @@ bool ScsiExecutor::Inquiry(span<uint8_t> buffer)
 	vector<uint8_t> cdb(6);
 	cdb[4] = 0xff;
 
-    return phase_executor->Execute(scsi_command::eCmdInquiry, cdb, buffer, 256);
+    return phase_executor->Execute(scsi_command::eCmdInquiry, cdb, buffer, buffer.size());
 }
 
 pair<uint64_t, uint32_t> ScsiExecutor::ReadCapacity()
@@ -55,7 +55,7 @@ pair<uint64_t, uint32_t> ScsiExecutor::ReadCapacity()
        	// READ CAPACITY(16), not READ LONG(16)
     	cdb[1] = 0x10;
 
-    	if (!phase_executor->Execute(scsi_command::eCmdReadCapacity16_ReadLong16, cdb, buffer, 14)) {
+    	if (!phase_executor->Execute(scsi_command::eCmdReadCapacity16_ReadLong16, cdb, buffer, buffer.size())) {
         	return { 0, 0 };
     	}
 
