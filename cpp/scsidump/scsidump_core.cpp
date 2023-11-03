@@ -477,9 +477,9 @@ bool ScsiDump::GetDeviceInfo(ostream& console)
     return true;
 }
 
-void ScsiDump::inquiry_info::GeneratePropertiesFile(ostream& console, const string& property_file) const
+void ScsiDump::inquiry_info::GeneratePropertiesFile(ostream& console, const string& properties_file) const
 {
-	ofstream prop(property_file);
+	ofstream prop(properties_file);
 
 	prop << "{\n"
     		<< "    \"vendor\": \"" << vendor << "\",\n"
@@ -491,9 +491,9 @@ void ScsiDump::inquiry_info::GeneratePropertiesFile(ostream& console, const stri
     prop << "\n}\n";
 
     if (prop.fail()) {
-        cerr << "Error: Can't create properties file '" + property_file + "': " << strerror(errno) << endl;
+        cerr << "Error: Can't create properties file '" + properties_file + "': " << strerror(errno) << endl;
     }
     else {
-    	console << "Created properties file '" + property_file + "'\n" << flush;
+    	console << "Created properties file '" + properties_file + "'\n" << flush;
     }
 }
