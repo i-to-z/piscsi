@@ -11,17 +11,97 @@
 #include "phase_executor.h"
 #include <spdlog/spdlog.h>
 #include <ctime>
+#include <iostream>
 #include <array>
 #include <string>
+#include <chrono>
 
 using namespace std;
 
-void PhaseExecutor::Reset(int id, int lun)
+void PhaseExecutor::Reset() const
 {
-	target_id = id;
-	target_lun = lun;
+	bus.SetDAT(0);
+	bus.SetBSY(false);
+	bus.SetSEL(false);
+	bus.SetATN(false);
+}
 
-	status = -1;
+bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length)
+{
+    spdlog::trace("Executing " + command_mapping.find(cmd)->second.second);
+
+    if (!Arbitration()) {
+		bus.Reset();
+		return false;
+    }
+
+    if (!Selection()) {
+		Reset();
+		return false;
+	}
+
+    // Timeout 3 s
+	auto now = chrono::steady_clock::now();
+    while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3) {
+        bus.Acquire();
+
+        if (bus.GetREQ()) {
+        	try {
+        		if (Dispatch(bus.GetPhase(), cmd, cdb, buffer, length)) {
+        			now = chrono::steady_clock::now();
+        		}
+        		else {
+        			bus.Reset();
+         			return !GetStatus();
+        		}
+        	}
+        	catch (const phase_exception& e) {
+        		cerr << "Error: " << e.what() << endl;
+        		bus.Reset();
+        		return false;
+        	}
+        }
+    }
+
+    return false;
+}
+
+bool PhaseExecutor::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length)
+{
+	spdlog::trace(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
+
+	switch (phase) {
+		case phase_t::command:
+			Command(cmd, cdb);
+			break;
+
+		case phase_t::status:
+			Status();
+			break;
+
+		case phase_t::datain:
+			DataIn(buffer, length);
+			break;
+
+    	case phase_t::dataout:
+    		DataOut(buffer, length);
+    		break;
+
+    	case phase_t::msgin:
+    		MsgIn();
+    		// Done with this command cycle
+    		return false;
+
+    	case phase_t::msgout:
+    		MsgOut();
+    		break;
+
+    	default:
+    		throw phase_exception(string("Ignoring ") + BUS::GetPhaseStrRaw(phase) + " phase");
+    		break;
+	}
+
+    return true;
 }
 
 bool PhaseExecutor::Arbitration() const
@@ -180,4 +260,10 @@ bool PhaseExecutor::WaitForBusy() const
     } while (count--);
 
     return false;
+}
+
+void PhaseExecutor::SetTarget(int id, int lun)
+{
+	target_id = id;
+	target_lun = lun;
 }

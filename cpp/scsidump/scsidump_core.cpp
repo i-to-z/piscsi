@@ -182,98 +182,11 @@ void ScsiDump::ParseArguments(span<char *> args)
     buffer = vector<uint8_t>(buffer_size);
 }
 
-bool ScsiDump::Execute(scsi_command cmd, span<uint8_t> cdb, int length)
-{
-    spdlog::trace("Executing " + command_mapping.find(cmd)->second.second);
-
-    phase_executor->Reset(target_id, target_lun);
-
-    if (!phase_executor->Arbitration()) {
-		bus->Reset();
-		return false;
-    }
-
-    if (!phase_executor->Selection()) {
-		Reset();
-		return false;
-	}
-
-    // Timeout 3 s
-	auto now = chrono::steady_clock::now();
-    while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3) {
-        bus->Acquire();
-
-        if (bus->GetREQ()) {
-        	try {
-        		if (Dispatch(bus->GetPhase(), cmd, cdb, length)) {
-        			now = chrono::steady_clock::now();
-        		}
-        		else {
-        			bus->Reset();
-         			return !phase_executor->GetStatus();
-        		}
-        	}
-        	catch (const phase_exception& e) {
-        		cerr << "Error: " << e.what() << endl;
-        		bus->Reset();
-        		return false;
-        	}
-        }
-    }
-
-    return false;
-}
-
-bool ScsiDump::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, int length)
-{
-	spdlog::trace(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
-
-	switch (phase) {
-		case phase_t::command:
-			phase_executor->Command(cmd, cdb);
-			break;
-
-		case phase_t::status:
-			phase_executor->Status();
-			break;
-
-		case phase_t::datain:
-			phase_executor->DataIn(buffer, length);
-			break;
-
-    	case phase_t::dataout:
-    		phase_executor->DataOut(buffer, length);
-    		break;
-
-    	case phase_t::msgin:
-    		phase_executor->MsgIn();
-    		return false;
-
-    	case phase_t::msgout:
-    		phase_executor->MsgOut();
-    		break;
-
-    	default:
-    		throw phase_exception(string("Ignoring ") + BUS::GetPhaseStrRaw(phase) + " phase");
-    		break;
-	}
-
-    return true;
-}
-
-void ScsiDump::Reset() const
-{
-	bus->SetDAT(0);
-	bus->SetBSY(false);
-	bus->SetSEL(false);
-	bus->SetATN(false);
-}
-
 bool ScsiDump::TestUnitReady()
 {
 	vector<uint8_t> cdb(6);
 
-    return Execute(scsi_command::eCmdTestUnitReady, cdb, 0);
+    return phase_executor->Execute(scsi_command::eCmdTestUnitReady, cdb, buffer, 0);
 }
 
 bool ScsiDump::Inquiry()
@@ -281,14 +194,14 @@ bool ScsiDump::Inquiry()
 	vector<uint8_t> cdb(6);
 	cdb[4] = 0xff;
 
-    return Execute(scsi_command::eCmdInquiry, cdb, 256);
+    return phase_executor->Execute(scsi_command::eCmdInquiry, cdb, buffer, 256);
 }
 
 pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
 {
 	vector<uint8_t> cdb(10);
 
-    if (!Execute(scsi_command::eCmdReadCapacity10, cdb, 8)) {
+    if (!phase_executor->Execute(scsi_command::eCmdReadCapacity10, cdb, buffer, 8)) {
     	return { 0, 0 };
     }
 
@@ -302,7 +215,7 @@ pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
        	// READ CAPACITY(16), not READ LONG(16)
     	cdb[1] = 0x10;
 
-    	if (!Execute(scsi_command::eCmdReadCapacity16_ReadLong16, cdb, 14)) {
+    	if (!phase_executor->Execute(scsi_command::eCmdReadCapacity16_ReadLong16, cdb, buffer, 14)) {
         	return { 0, 0 };
     	}
 
@@ -332,14 +245,14 @@ bool ScsiDump::ReadWrite(uint32_t bstart, uint32_t blength, int length, bool isW
     cdb[7] = static_cast<uint8_t>(blength >> 8);
     cdb[8] = static_cast<uint8_t>(blength);
 
-    return Execute(isWrite ? scsi_command::eCmdWrite10 : scsi_command::eCmdRead10, cdb, length);
+    return phase_executor->Execute(isWrite ? scsi_command::eCmdWrite10 : scsi_command::eCmdRead10, cdb, buffer, length);
 }
 
 void ScsiDump::SynchronizeCache()
 {
 	vector<uint8_t> cdb(10);
 
-	Execute(scsi_command::eCmdSynchronizeCache10, cdb, 0);
+	phase_executor->Execute(scsi_command::eCmdSynchronizeCache10, cdb, buffer,  0);
 }
 
 set<int> ScsiDump::ReportLuns()
@@ -351,7 +264,7 @@ set<int> ScsiDump::ReportLuns()
 	cdb[9] = static_cast<uint8_t>(TRANSFER_LENGTH);
 
 	// Assume 8 LUNs in case REPORT LUNS is not available
-	if (!Execute(scsi_command::eCmdReportLuns, cdb, TRANSFER_LENGTH)) {
+	if (!phase_executor->Execute(scsi_command::eCmdReportLuns, cdb, buffer, TRANSFER_LENGTH)) {
 		spdlog::trace("Device does not support REPORT LUNS");
 		return { 0, 1, 2, 3, 4, 5, 6, 7 };
 	}
@@ -489,6 +402,8 @@ bool ScsiDump::DisplayInquiry(ostream& console, inquiry_info_t& inq_info, bool c
 
     inq_info = {};
 
+    phase_executor->SetTarget(target_id, target_lun);
+
     if (!Inquiry()) {
     	return false;
     }
@@ -586,6 +501,8 @@ string ScsiDump::DumpRestore(ostream& console)
 
     int sector_offset = 0;
     auto remaining = effective_size;
+
+    phase_executor->SetTarget(target_id, target_lun);
 
     const auto start_time = chrono::high_resolution_clock::now();
 

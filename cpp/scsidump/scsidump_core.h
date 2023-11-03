@@ -51,8 +51,6 @@ private:
     bool DisplayInquiry(ostream&, inquiry_info&, bool);
     string DumpRestore(ostream&);
     bool GetDeviceInfo(ostream&, inquiry_info&);
-    bool Execute(scsi_command, span<uint8_t>, int length);
-    bool Dispatch(phase_t phase, scsi_command, span<uint8_t>, int);
     bool TestUnitReady();
     bool Inquiry();
     pair<uint64_t, uint32_t> ReadCapacity();

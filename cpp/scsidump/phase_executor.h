@@ -28,7 +28,14 @@ public:
 	explicit PhaseExecutor(BUS& b, int id) : bus(b), initiator_id(id) {}
     ~PhaseExecutor() = default;
 
-    void Reset(int, int);
+    void SetTarget(int, int);
+    bool Execute(scsi_command, span<uint8_t>, span<uint8_t>, int length);
+
+private:
+
+    bool Dispatch(phase_t phase, scsi_command, span<uint8_t>, span<uint8_t>, int);
+
+    void Reset() const;
 
     bool Arbitration() const;
 	bool Selection() const;
@@ -43,10 +50,6 @@ public:
     bool WaitForBusy() const;
 
     int GetStatus() const { return status; }
-
-    void SetTarget(int, int);
-
-private:
 
     BUS& bus;
 
