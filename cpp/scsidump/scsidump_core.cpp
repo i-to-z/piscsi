@@ -350,32 +350,10 @@ string ScsiDump::DumpRestore(ostream& console)
 
 	ostream& out = to_stdout ? cout : fs;
 
-	const off_t disk_size = inq_info.capacity * inq_info.sector_size;
-
-    size_t effective_size;
-    if (restore) {
-        off_t size;
-        try {
-        	size = file_size(path(filename));
-        }
-        catch (const filesystem_error& e) {
-        	return string("Can't determine image file size: ") + e.what();
-        }
-
-        effective_size = min(size, disk_size);
-
-        console << "Restore image file size: " << size << " bytes\n" << flush;
-        if (size > disk_size) {
-            console << "Warning: Image file size of " << size
-            		<< " byte(s) is larger than disk size of " << disk_size << " bytes(s)\n" << flush;
-        } else if (size < disk_size) {
-        	console << "Warning: Image file size of " << size
-            		<< " byte(s) is smaller than disk size of " << disk_size << " bytes(s)\n" << flush;
-        }
-    } else {
-    	effective_size = disk_size;
+    const auto effective_size = CalculateEffectiveSize(console);
+    if (effective_size < 0) {
+    	return "";
     }
-
     if (!effective_size) {
     	console << "Nothing to do, effective size is 0\n" << flush;
     	return "";
@@ -385,6 +363,7 @@ string ScsiDump::DumpRestore(ostream& console)
     		<< " bytes\n\n" << flush;
 
     int sector_offset = 0;
+
     auto remaining = effective_size;
 
     scsi_executor->SetTarget(target_id, target_lun);
@@ -451,6 +430,38 @@ string ScsiDump::DumpRestore(ostream& console)
     }
 
     return "";
+}
+
+size_t ScsiDump::CalculateEffectiveSize(ostream& console) const
+{
+	const off_t disk_size = inq_info.capacity * inq_info.sector_size;
+
+    size_t effective_size;
+    if (restore) {
+        off_t size;
+        try {
+        	size = file_size(path(filename));
+        }
+        catch (const filesystem_error& e) {
+        	cerr << "Can't determine image file size: " << e.what() << endl;
+        	return -1;
+        }
+
+        effective_size = min(size, disk_size);
+
+        console << "Restore image file size: " << size << " bytes\n" << flush;
+        if (size > disk_size) {
+            console << "Warning: Image file size of " << size
+            		<< " byte(s) is larger than disk size of " << disk_size << " bytes(s)\n" << flush;
+        } else if (size < disk_size) {
+        	console << "Warning: Image file size of " << size
+            		<< " byte(s) is smaller than disk size of " << disk_size << " bytes(s)\n" << flush;
+        }
+    } else {
+    	effective_size = disk_size;
+    }
+
+    return effective_size;
 }
 
 bool ScsiDump::GetDeviceInfo(ostream& console)
