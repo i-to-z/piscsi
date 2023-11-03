@@ -153,32 +153,4 @@ private:
 
     inline static const long ARBITRATION_DELAY_NS = 2'400;
     inline static const timespec ARBITRATION_DELAY = {.tv_sec = 0, .tv_nsec = ARBITRATION_DELAY_NS};
-
-//+==============================-===================================+
-//|  Timing description          |      Timing value                 |
-//|------------------------------+-----------------------------------|
-//|  Arbitration delay           |     2,4 us                        |
-//|  Assertion period            |      90 ns                        |
-//|  Bus clear delay             |     800 ns                        |
-//|  Bus free delay              |     800 ns                        |
-//|  Bus set delay               |     1,8 us                        |
-//|  Bus settle delay            |     400 ns                        |
-//|  Cable skew delay            |      10 ns                        |
-//|  Data release delay          |     400 ns                        |
-//|  Deskew delay                |      45 ns                        |
-//|  Disconnection delay         |     200 us                        |
-//|  Hold time                   |      45 ns                        |
-//|  Negation period             |      90 ns                        |
-//|  Power-on to selection time  |      10 s recommended             |
-//|  Reset to selection time     |     250 ms recommended            |
-//|  Reset hold time             |      25 us                        |
-//|  Selection abort time        |     200 us                        |
-//|  Selection time-out delay    |     250 ms recommended            |
-//|  Transfer period             |     set during an SDTR message    |
-//|  Fast assertion period       |      30 ns                        |
-//|  Fast cable skew delay       |       5 ns                        |
-//|  Fast deskew delay           |      20 ns                        |
-//|  Fast hold time              |      10 ns                        |
-//|  Fast negation period        |      30 ns                        |
-//+==================================================================+
 };
