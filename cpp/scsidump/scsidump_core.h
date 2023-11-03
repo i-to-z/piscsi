@@ -56,8 +56,7 @@ private:
     void CleanUp() const;
     static void TerminationHandler(int);
 
-    // A static instance is needed because of the signal handler
-    static inline unique_ptr<BUS> bus;
+    unique_ptr<BUS> bus;
 
     unique_ptr<ScsiExecutor> scsi_executor;
 
