@@ -88,6 +88,10 @@ bool ScsiDump::Init()
 
     bus = GPIOBUS_Factory::Create(BUS::mode_e::INITIATOR);
 
+    if (bus != nullptr) {
+        scsi_executor = make_unique<ScsiExecutor>(*bus, initiator_id);
+    }
+
     return bus != nullptr;
 }
 
@@ -223,8 +227,6 @@ int ScsiDump::run(span<char *> args)
 		cerr << "Error: Can't initialize bus" << endl;
         return EXIT_FAILURE;
     }
-
-    scsi_executor = make_unique<ScsiExecutor>(*bus, initiator_id);
 
     if (run_bus_scan) {
     	ScanBus(console);
