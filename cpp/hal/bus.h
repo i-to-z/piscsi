@@ -70,7 +70,8 @@ class BUS : public PinControl
         TARGET = 0,
         INITIATOR = 1,
         MONITOR = 2,
-		IN_PROCESS = 3
+		IN_PROCESS_TARGET = 3,
+		IN_PROCESS_INITIATOR =4
     };
 
     static int GetCommandByteCount(uint8_t);

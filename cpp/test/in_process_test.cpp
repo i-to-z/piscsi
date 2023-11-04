@@ -33,11 +33,9 @@ int main(int, char *[])
 	add_arg(scsidump_args, "-t");
 	add_arg(scsidump_args, "0");
 
-	const auto mode = BUS::mode_e::IN_PROCESS;
-
 	auto target_thread = jthread([&piscsi_args] () {
 		auto piscsi = make_unique<Piscsi>();
-		piscsi->run(piscsi_args, mode);
+		piscsi->run(piscsi_args, BUS::mode_e::IN_PROCESS_TARGET);
 	});
 
 	// TODO Avoid sleep
@@ -45,6 +43,6 @@ int main(int, char *[])
 
 	auto initiator_thread = jthread([&scsidump_args] () {
 		auto scsidump = make_unique<ScsiDump>();
-		scsidump->run(scsidump_args, mode);
+		scsidump->run(scsidump_args, BUS::mode_e::IN_PROCESS_INITIATOR);
 	});
 }

@@ -21,8 +21,9 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 {
 	unique_ptr<BUS> bus;
 
-	if (mode == BUS::mode_e::IN_PROCESS) {
-		bus = make_unique<DelegatingInProcessBus>(in_process_busbus);
+	if (mode == BUS::mode_e::IN_PROCESS_TARGET || mode == BUS::mode_e::IN_PROCESS_INITIATOR) {
+		bus = make_unique<DelegatingInProcessBus>(in_process_bus);
+		bus->Init(mode);
 		bus->Reset();
 		return bus;
 	}

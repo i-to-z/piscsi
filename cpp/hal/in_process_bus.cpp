@@ -10,6 +10,17 @@
 #include "hal/in_process_bus.h"
 #include <spdlog/spdlog.h>
 
+bool InProcessBus::Init(mode_e mode)
+{
+	assert(mode == mode_e::IN_PROCESS_TARGET || mode == mode_e::IN_PROCESS_INITIATOR);
+
+	in_process_mode = mode;
+
+	spdlog::trace("Initializing bus for " + GetMode() + " mode");
+
+	return GPIOBUS::Init(mode);
+}
+
 void InProcessBus::Reset()
 {
 	// By initializing with all possible values the map becomes thread safe
@@ -33,7 +44,7 @@ bool InProcessBus::GetSignal(int pin) const
 
 	// Prevent excessive logging
 	if (pin != PIN_SEL) {
-		spdlog::trace("Getting " + signal.second);
+//		spdlog::trace(GetMode() + ": Getting " + signal.second);
 	}
 
 	return signal.first;
@@ -43,14 +54,14 @@ void InProcessBus::SetSignal(int pin, bool ast)
 {
 	const auto signal = FindSignal(pin);
 
-	spdlog::trace("Setting " + signal.second + " to " + (ast ? "true" : "false"));
+	spdlog::trace(GetMode() + ": Setting " + signal.second + " to " + (ast ? "true" : "false"));
 
 	signals[pin].first = ast;
 }
 
 bool InProcessBus::WaitSignal(int pin, bool ast)
 {
-	spdlog::trace("Waiting for " + FindSignal(pin).second + " to become " + (ast ? "true" : "false"));
+	spdlog::trace(GetMode() + ": Waiting for " + FindSignal(pin).second + " to become " + (ast ? "true" : "false"));
 
 	return GPIOBUS::WaitSignal(pin, ast);
 }
@@ -59,7 +70,7 @@ pair<bool, string> InProcessBus::FindSignal(int pin) const
 {
 	const auto& it = signals.find(pin);
 	if (it == signals.end()) {
-		spdlog::critical("Unhandled signal pin " + to_string(pin));
+		spdlog::critical(GetMode() + ": Unhandled signal pin " + to_string(pin));
 		assert(false);
 	}
 

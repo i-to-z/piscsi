@@ -24,7 +24,7 @@ public:
 	InProcessBus() = default;
 	~InProcessBus() override = default;
 
-    bool Init(mode_e) override { return true; }
+    bool Init(mode_e) override;
 
     void Reset() override;
 
@@ -100,6 +100,10 @@ private:
     // TODO This method should not exist at all, it pollutes the bus interface
     unique_ptr<DataSample> GetSample(uint64_t) override { assert(false); return nullptr; }
 
+    string GetMode() const { return in_process_mode == mode_e::IN_PROCESS_TARGET ? "target" :"initiator"; }
+
+    mode_e in_process_mode = mode_e::IN_PROCESS_TARGET;
+
     unordered_map<int, pair<atomic_bool, string>> signals;
 
     atomic<uint8_t> dat = 0;
@@ -113,8 +117,6 @@ public:
 
 	explicit DelegatingInProcessBus(InProcessBus& b) : bus(b) {}
     ~DelegatingInProcessBus() override = default;
-
-    bool Init(mode_e mode) override { return bus.Init(mode); }
 
     void Reset() override { bus.Reset(); }
 
