@@ -40,18 +40,18 @@ void InProcessBus::Reset()
 
 bool InProcessBus::GetSignal(int pin) const
 {
-	const auto& signal = FindSignal(pin);
+	const auto& [state, signal] = FindSignal(pin);
 
-	//spdlog::trace(GetMode() + ": Getting " + signal.second);
+	//spdlog::trace(GetMode() + ": Getting " + signal);
 
-	return signal.first;
+	return state;
 }
 
 void InProcessBus::SetSignal(int pin, bool state)
 {
-	const auto signal = FindSignal(pin);
+	const auto& [_, signal] = FindSignal(pin);
 
-	spdlog::trace(GetMode() + ": Setting " + signal.second + " to " + (state ? "true" : "false"));
+	spdlog::trace(GetMode() + ": Setting " + signal + " to " + (state ? "true" : "false"));
 
 	signals[pin].first = state;
 }
