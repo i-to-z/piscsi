@@ -68,7 +68,9 @@ public:
     void SetDAT(uint8_t d) override { dat = d; }
 
     bool GetSignal(int pin) const override;
+    bool GetSignal1(int pin) const;
     void SetSignal(int, bool) override;
+    void SetSignal1(int, bool);
 
 private:
 
