@@ -27,25 +27,10 @@ void InProcessBus::Reset()
 
 bool InProcessBus::GetSignal(int pin) const
 {
-	assert(false);
-	return signals.find(pin)->second;
-}
-
-// TODO Remove
-bool InProcessBus::GetSignal1(int pin) const
-{
 	return signals.find(pin)->second;
 }
 
 void InProcessBus::SetSignal(int pin, bool state)
-{
-	assert(false);
-	scoped_lock<mutex> lock(write_locker);
-	signals[pin] = state;
-}
-
-// TODO Remove
-void InProcessBus::SetSignal1(int pin, bool state)
 {
 	scoped_lock<mutex> lock(write_locker);
 	signals[pin] = state;
@@ -79,7 +64,7 @@ bool DelegatingInProcessBus::Init(mode_e mode)
 
 bool DelegatingInProcessBus::GetSignal(int pin) const
 {
-	const bool state = bus.GetSignal1(pin);
+	const bool state = bus.GetSignal(pin);
 
 	spdlog::trace(GetMode() + ": Getting " + GetSignalName(pin) + (state ? ": true" : ": false"));
 
@@ -90,7 +75,7 @@ void DelegatingInProcessBus::SetSignal(int pin, bool state)
 {
 	spdlog::trace(GetMode() + ": Setting " + GetSignalName(pin) + " to " + (state ? "true" : "false"));
 
-	bus.SetSignal1(pin, state);
+	bus.SetSignal(pin, state);
 }
 
 bool DelegatingInProcessBus::WaitSignal(int pin, bool state)

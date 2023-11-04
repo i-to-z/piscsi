@@ -68,9 +68,7 @@ public:
     void SetDAT(uint8_t d) override { dat = d; }
 
     bool GetSignal(int pin) const override;
-    bool GetSignal1(int pin) const;
     void SetSignal(int, bool) override;
-    void SetSignal1(int, bool);
 
 private:
 
@@ -123,9 +121,9 @@ public:
 
     uint32_t Acquire() override { return bus.Acquire(); }
 
-    bool WaitREQ(bool state) override { return bus.WaitREQ(state); }
+    bool WaitREQ(bool state) override { return bus.WaitSignal(PIN_REQ, state); }
 
-    bool WaitACK(bool state) override { return bus.WaitACK(state); }
+    bool WaitACK(bool state) override { return bus.WaitSignal(PIN_ACK, state); }
 
     uint8_t GetDAT() override { return bus.GetDAT(); }
     void SetDAT(uint8_t dat) override { bus.SetDAT(dat); }
