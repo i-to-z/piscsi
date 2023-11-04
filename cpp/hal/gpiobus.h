@@ -148,14 +148,9 @@ const static int GPIO_PULLUP   = 2;
 //---------------------------------------------------------------------------
 #define IN GPIO_INPUT
 #define OUT GPIO_OUTPUT
-const static int ON  = 1;
+const static int ON = 1;
 const static int OFF = 0;
 
-//---------------------------------------------------------------------------
-//
-//	Class definition
-//
-//---------------------------------------------------------------------------
 class GPIOBUS : public BUS
 {
   public:
@@ -181,22 +176,20 @@ class GPIOBUS : public BUS
   protected:
     virtual void MakeTable() = 0;
 
-    bool GetSignal(int pin) const override     = 0;
-    void SetSignal(int pin, bool ast) override = 0;
-    virtual bool WaitSignal(int pin, bool ast);
+    virtual bool WaitSignal(int, bool);
 
     // Wait for a signal to change
-    virtual bool WaitREQ(bool ast) = 0;
-    virtual bool WaitACK(bool ast) = 0;
+    virtual bool WaitREQ(bool) = 0;
+    virtual bool WaitACK(bool) = 0;
 
     // Interrupt control
-    virtual void EnableIRQ()  = 0;
+    virtual void EnableIRQ() = 0;
     virtual void DisableIRQ() = 0;
 
     // Set GPIO output signal
-    virtual void PinSetSignal(int pin, bool ast) = 0;
+    virtual void PinSetSignal(int, bool) = 0;
     // Set GPIO drive strength
-    virtual void DrvConfig(uint32_t drive) = 0;
+    virtual void DrvConfig(uint32_t) = 0;
 
     virtual bool IsTarget() const { return actmode == mode_e::TARGET; }
 
@@ -208,6 +201,5 @@ class GPIOBUS : public BUS
     struct gpioevent_request selevreq = {};
     // epoll file descriptor
     int epfd = 0;
-
 #endif
 };
