@@ -27,19 +27,11 @@ void InProcessBus::Reset()
 
 bool InProcessBus::GetSignal(int pin) const
 {
-	const auto& it = signals.find(pin);
-	if (it == signals.end()) {
-		throw invalid_argument("Unhandled signal pin " + to_string(pin));
-	}
-
-	return it->second;
+	return signals.find(pin)->second;
 }
 
 void InProcessBus::SetSignal(int pin, bool state)
 {
-	// Required for error handling (without logging)
-	InProcessBus::GetSignal(pin);
-
 	scoped_lock<mutex> lock(write_locker);
 	signals[pin] = state;
 }
