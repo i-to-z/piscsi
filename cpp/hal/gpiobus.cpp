@@ -216,13 +216,13 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
                 break;
             }
 
+#ifndef NO_DELAY
             // Phase error
             Acquire();
             if (GetPhase() != phase) {
                 break;
             }
 
-#ifndef NO_DELAY
             // Wait until the signal line stabilizes
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
