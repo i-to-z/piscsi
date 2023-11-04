@@ -11,6 +11,7 @@
 
 #include "hal/bus.h"
 #include "scsidump/scsi_executor.h"
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <string>
 #include <span>
 #include <vector>
@@ -58,6 +59,8 @@ private:
 
     void CleanUp() const;
     static void TerminationHandler(int);
+
+    const shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("scsidump stdout logger");
 
     unique_ptr<BUS> bus;
 
