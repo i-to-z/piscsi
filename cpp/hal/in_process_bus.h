@@ -69,7 +69,7 @@ public:
     bool GetSignal(int pin) const override;
     void SetSignal(int, bool) override;
 
-    virtual pair<bool, string> FindSignal(int) const;
+    pair<bool, string> FindSignal(int) const;
 
 private:
 
@@ -130,8 +130,6 @@ public:
     bool GetSignal(int) const override;
     void SetSignal(int, bool) override;
     bool WaitSignal(int, bool) override;
-
-    pair<bool, string> FindSignal(int) const override;
 
     bool IsTarget() const override { return in_process_mode == mode_e::IN_PROCESS_TARGET; }
 
