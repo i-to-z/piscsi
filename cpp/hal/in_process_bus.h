@@ -115,7 +115,7 @@ public:
 
     bool Init(mode_e) override;
 
-    void Reset() override { bus.Reset(); }
+    void Reset() override;
 
     void Cleanup() override { bus.Cleanup(); }
 

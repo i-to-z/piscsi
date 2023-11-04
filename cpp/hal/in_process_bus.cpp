@@ -12,8 +12,6 @@
 
 void InProcessBus::Reset()
 {
-	spdlog::trace("Resetting bus");
-
 	signals = {};
 
 	dat = 0;
@@ -54,6 +52,13 @@ bool DelegatingInProcessBus::Init(mode_e mode)
 	in_process_mode = mode;
 
 	return bus.Init(mode);
+}
+
+void DelegatingInProcessBus::Reset()
+{
+	spdlog::trace(GetMode() + ": Resetting bus");
+
+	bus.Reset();
 }
 
 bool DelegatingInProcessBus::GetSignal(int pin) const
