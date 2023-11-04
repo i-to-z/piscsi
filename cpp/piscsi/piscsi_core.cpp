@@ -691,7 +691,7 @@ bool Piscsi::WaitForSelection() const
 		if (!bus->PollSelectEvent()) {
 			// Stop on interrupt
 			if (errno == EINTR) {
-				break;
+				service->Stop();
 			}
 
 			return false;
