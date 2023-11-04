@@ -37,8 +37,8 @@ bool InProcessBus::GetSignal(int pin) const
 
 void InProcessBus::SetSignal(int pin, bool state)
 {
-	// Required for error handling
-	GetSignal(pin);
+	// Required for error handling (without logging)
+	InProcessBus::GetSignal(pin);
 
 	scoped_lock<mutex> lock(write_locker);
 	signals[pin] = state;
@@ -55,6 +55,8 @@ bool DelegatingInProcessBus::Init(mode_e mode)
 
 bool DelegatingInProcessBus::GetSignal(int pin) const
 {
+	spdlog::trace(GetMode() + ": Getting " + GetSignalName(pin));
+
 	return bus.GetSignal(pin);
 }
 
