@@ -216,13 +216,16 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
                 break;
             }
 
+// Assumption: Phase does not change here, but only below
 #ifndef NO_DELAY
             // Phase error
             Acquire();
             if (GetPhase() != phase) {
                 break;
             }
+#endif
 
+#ifndef NO_DELAY
             // Wait until the signal line stabilizes
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
@@ -335,11 +338,14 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
             	SetATN(false);
             }
 
+// Assumption: Phase does not change here, but only below
+#ifndef NO_DELAY
             // Phase error
             Acquire();
             if (GetPhase() != phase) {
                 break;
             }
+#endif
 
             // Already waiting for REQ assertion
 
