@@ -14,7 +14,6 @@
 #include <cassert>
 #include <unordered_map>
 #include <atomic>
-#include <mutex>
 
 class InProcessBus : public GPIOBUS
 {
