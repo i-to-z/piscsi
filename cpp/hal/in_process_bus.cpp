@@ -12,37 +12,33 @@
 
 void InProcessBus::Reset()
 {
-	// By initializing with all possible values the map becomes thread safe
-	signals[PIN_BSY] = make_pair(false, "BSY");
-	signals[PIN_SEL] = make_pair(false, "SEL");
-	signals[PIN_ATN] = make_pair(false, "ATN");
-	signals[PIN_ACK] = make_pair(false, "ACK");
-	signals[PIN_ACT] = make_pair(false, "ACT");
-	signals[PIN_RST] = make_pair(false, "RST");
-	signals[PIN_MSG] = make_pair(false, "MSG");
-	signals[PIN_CD] = make_pair(false, "CD");
-	signals[PIN_IO] = make_pair(false, "IO");
-	signals[PIN_REQ] = make_pair(false, "REQ");
+	signals[PIN_BSY] = false;
+	signals[PIN_SEL] = false;
+	signals[PIN_ATN] = false;
+	signals[PIN_ACK] = false;
+	signals[PIN_RST] = false;
+	signals[PIN_MSG] = false;
+	signals[PIN_CD] = false;
+	signals[PIN_IO] = false;
+	signals[PIN_REQ] = false;
 
 	dat = 0;
 }
 
 bool InProcessBus::GetSignal(int pin) const
 {
-	const auto& [state, _] = FindSignal(pin);
-
-	return state;
+	return FindSignal(pin);
 }
 
 void InProcessBus::SetSignal(int pin, bool state)
 {
-	const auto& [_, signal] = FindSignal(pin);
+	FindSignal(pin);
 
 	scoped_lock<mutex> lock(write_locker);
-	signals[pin].first = state;
+	signals[pin] = state;
 }
 
-pair<bool, string> InProcessBus::FindSignal(int pin) const
+bool InProcessBus::FindSignal(int pin) const
 {
 	const auto& it = signals.find(pin);
 	if (it == signals.end()) {
@@ -63,23 +59,25 @@ bool DelegatingInProcessBus::Init(mode_e mode)
 
 bool DelegatingInProcessBus::GetSignal(int pin) const
 {
-	const auto [state, _] = bus.FindSignal(pin);
-
 	return bus.GetSignal(pin);
 }
 
 void DelegatingInProcessBus::SetSignal(int pin, bool state)
 {
-	const auto [_, signal] = bus.FindSignal(pin);
-
-	spdlog::trace(GetMode() + ": Setting " + signal + " to " + (state ? "true" : "false"));
+	spdlog::trace(GetMode() + ": Setting " + GetSignalName(pin) + " to " + (state ? "true" : "false"));
 
 	bus.SetSignal(pin, state);
 }
 
 bool DelegatingInProcessBus::WaitSignal(int pin, bool state)
 {
-	spdlog::trace(GetMode() + ": Waiting for " + bus.FindSignal(pin).second + " to become " + (state ? "true" : "false"));
+	spdlog::trace(GetMode() + ": Waiting for " + GetSignalName(pin) + " to become " + (state ? "true" : "false"));
 
 	return bus.WaitSignal(pin, state);
+}
+
+string DelegatingInProcessBus::GetSignalName(int pin) const
+{
+	const auto& it = SIGNALS.find(pin);
+	return it != SIGNALS.end() ? it->second : "????";
 }

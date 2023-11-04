@@ -41,8 +41,8 @@ public:
     void SetATN(bool state) override { SetSignal(PIN_ATN, state); }
     bool GetACK() const override { return GetSignal(PIN_ACK); }
     void SetACK(bool state) override { SetSignal(PIN_ACK, state); }
-    bool GetACT() const override { return GetSignal(PIN_ACT); }
-    void SetACT(bool state) override { SetSignal(PIN_ACT, state); }
+    bool GetACT() const override { assert(false); return GetSignal(PIN_ACT); }
+    void SetACT(bool state) override { assert(false); SetSignal(PIN_ACT, state); }
     bool GetRST() const override { return GetSignal(PIN_RST); }
     void SetRST(bool state) override { SetSignal(PIN_RST, state); };
     bool GetMSG() const override { return GetSignal(PIN_MSG); };
@@ -70,7 +70,7 @@ public:
     bool GetSignal(int pin) const override;
     void SetSignal(int, bool) override;
 
-    pair<bool, string> FindSignal(int) const;
+    bool FindSignal(int) const;
 
 private:
 
@@ -99,11 +99,11 @@ private:
     // TODO This method should not exist at all, it pollutes the bus interface
     unique_ptr<DataSample> GetSample(uint64_t) override { assert(false); return nullptr; }
 
-    unordered_map<int, pair<bool, string>> signals;
+    mutex write_locker;
 
     atomic<uint8_t> dat = 0;
 
-    mutex write_locker;
+    unordered_map<int, bool> signals;
 };
 
 // Required in order for the bus instances to be unique even though they must be shared between target and initiator
@@ -140,8 +140,21 @@ private:
 
     string GetMode() const { return in_process_mode == mode_e::IN_PROCESS_TARGET ? "target" :"initiator"; }
 
+    string GetSignalName(int) const;
+
     InProcessBus& bus;
 
     mode_e in_process_mode = mode_e::IN_PROCESS_TARGET;
-};
 
+    inline static const unordered_map<int, string> SIGNALS {
+       	{ PIN_BSY, "BSY" },
+       	{ PIN_SEL, "SEL" },
+       	{ PIN_ATN, "ATN" },
+       	{ PIN_ACK, "ACK" },
+       	{ PIN_RST, "RST" },
+       	{ PIN_MSG, "MSG" },
+       	{ PIN_CD, "CD" },
+       	{ PIN_IO, "IO" },
+    	{ PIN_REQ, "REQ" }
+    };
+};
