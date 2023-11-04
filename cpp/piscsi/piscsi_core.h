@@ -34,12 +34,12 @@ public:
 	Piscsi() = default;
 	~Piscsi() = default;
 
-	int run(span<char *>, BUS::mode_e);
+	int run(span<char *>, BUS::mode_e = BUS::mode_e::TARGET);
 
 private:
 
 	void Banner(span<char *>) const;
-	bool InitBus(BUS::mode_e);
+	bool InitBus();
 	void CleanUp();
 	void ReadAccessToken(const path&);
 	void LogDevices(string_view) const;
@@ -47,6 +47,7 @@ private:
 	string ParseArguments(span<char *>, PbCommand&, int&, string&);
 	void Process();
 	bool IsNotBusy() const;
+	bool WaitForSelection() const;
 
 	bool ShutDown(AbstractController::piscsi_shutdown_mode);
 	bool ShutDown(const CommandContext&, const string&);
@@ -60,6 +61,8 @@ private:
 	const shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("piscsi stdout logger");
 
 	static PbDeviceType ParseDeviceType(const string&);
+
+	BUS::mode_e mode = BUS::mode_e::TARGET;
 
 	mutex execution_locker;
 

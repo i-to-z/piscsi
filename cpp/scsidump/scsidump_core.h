@@ -27,7 +27,7 @@ public:
     ScsiDump() = default;
     ~ScsiDump() = default;
 
-    int run(span<char *>, BUS::mode_e);
+    int run(span<char *>, BUS::mode_e = BUS::mode_e::INITIATOR);
 
     struct inquiry_info {
         string vendor;

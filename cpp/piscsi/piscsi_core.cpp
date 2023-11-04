@@ -65,7 +65,7 @@ void Piscsi::Banner(span<char *> args) const
 	}
 }
 
-bool Piscsi::InitBus(BUS::mode_e mode)
+bool Piscsi::InitBus()
 {
 	bus = GPIOBUS_Factory::Create(mode);
 	if (bus == nullptr) {
@@ -478,7 +478,7 @@ bool Piscsi::HandleDeviceListChange(const CommandContext& context, PbOperation o
 	return true;
 }
 
-int Piscsi::run(span<char *> args, BUS::mode_e mode)
+int Piscsi::run(span<char *> args, BUS::mode_e m)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -503,7 +503,8 @@ int Piscsi::run(span<char *> args, BUS::mode_e mode)
 		return EXIT_FAILURE;
 	}
 
-	if (!InitBus(mode)) {
+	mode = m;
+	if (!InitBus()) {
 		cerr << "Error: Can't initialize bus" << endl;
 
 		return EXIT_FAILURE;
@@ -583,29 +584,8 @@ void Piscsi::Process()
 
 	// Main Loop
 	while (service.IsRunning()) {
-#ifdef USE_SEL_EVENT_ENABLE
-		// SEL signal polling
-		if (!bus->PollSelectEvent()) {
-			// Stop on interrupt
-			if (errno == EINTR) {
-				break;
-			}
-			continue;
-		}
-
-		// Get the bus
-		bus->Acquire();
-#else
-		bus->Acquire();
-		if (!bus->GetSEL()) {
-			const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
-			nanosleep(&ts, nullptr);
-			continue;
-		}
-#endif
-
 		// Only process the SCSI command if the bus is not busy and no other device responded
-		if (IsNotBusy() && bus->GetSEL()) {
+		if (WaitForSelection() && IsNotBusy() && bus->GetSEL()) {
 			scoped_lock<mutex> lock(execution_locker);
 
 			// Process command on the responsible controller based on the current initiator and target ID
@@ -697,6 +677,37 @@ bool Piscsi::IsNotBusy() const
 			}
 		}
 
+		return false;
+	}
+
+	return true;
+}
+
+bool Piscsi::WaitForSelection() const
+{
+#ifdef USE_SEL_EVENT_ENABLE
+	if (mode == BUS::mode_e::TARGET) {
+		// SEL signal polling
+		if (!bus->PollSelectEvent()) {
+			// Stop on interrupt
+			if (errno == EINTR) {
+				break;
+			}
+
+			return false;
+		}
+
+		// Get the bus
+		bus->Acquire();
+
+		return true;
+	}
+#endif
+
+	bus->Acquire();
+	if (!bus->GetSEL()) {
+		const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
+		nanosleep(&ts, nullptr);
 		return false;
 	}
 
