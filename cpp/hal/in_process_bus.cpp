@@ -70,8 +70,6 @@ bool DelegatingInProcessBus::GetSignal(int pin) const
 {
 	const auto& [state, signal] = bus.FindSignal(pin);
 
-	//spdlog::trace(GetMode() + ": Getting " + signal);
-
 	return bus.GetSignal(pin);
 }
 
