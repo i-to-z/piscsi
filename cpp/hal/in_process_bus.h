@@ -59,8 +59,6 @@ public:
 
     bool WaitSignal(int, bool) override;
 
-    pair<bool, string> FindSignal(int) const;
-
     bool WaitREQ(bool state) override { return WaitSignal(PIN_REQ, state); }
 
     bool WaitACK(bool state) override { return WaitSignal(PIN_ACK, state); }
@@ -71,7 +69,7 @@ public:
     bool GetSignal(int pin) const override;
     void SetSignal(int, bool) override;
 
-    string GetMode() const { return IsTarget() ? "target" :"initiator"; }
+    pair<bool, string> FindSignal(int) const;
 
 private:
 
@@ -129,10 +127,15 @@ public:
     uint8_t GetDAT() override { return bus.GetDAT(); }
     void SetDAT(uint8_t dat) override { bus.SetDAT(dat); }
 
-    bool GetSignal(int pin) const override { return bus.GetSignal(pin); }
-    void SetSignal(int pin, bool state) override { bus.SetSignal(pin, state); }
+    bool GetSignal(int) const override;
+    void SetSignal(int, bool) override;
+    bool WaitSignal(int, bool) override;
 
     bool IsTarget() const override { return in_process_mode == mode_e::IN_PROCESS_TARGET; }
+
+private:
+
+    string GetMode() const { return in_process_mode == mode_e::IN_PROCESS_TARGET ? "target" :"initiator"; }
 
     InProcessBus& bus;
 
