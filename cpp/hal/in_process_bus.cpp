@@ -12,6 +12,8 @@
 
 void InProcessBus::Reset()
 {
+	spdlog::trace("Resetting bus");
+
 	signals = {};
 
 	dat = 0;
