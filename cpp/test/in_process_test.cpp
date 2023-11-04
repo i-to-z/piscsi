@@ -16,13 +16,10 @@ void add_arg(vector<char *>& args, const string& arg)
 	args.push_back(strdup(arg.c_str()));
 }
 
-int main(int, char *[])
+int main(int argc, char *argv[])
 {
 	vector<char *> piscsi_args;
 	add_arg(piscsi_args, "piscsi");
-	// Setting the log level is also effective for the in-process scsidump
-	add_arg(piscsi_args, "-L");
-	add_arg(piscsi_args, "trace");
 	add_arg(piscsi_args, "-id");
 	add_arg(piscsi_args, "0");
 	add_arg(piscsi_args, "services");
@@ -32,6 +29,22 @@ int main(int, char *[])
 	add_arg(scsidump_args, "-I");
 	add_arg(scsidump_args, "-t");
 	add_arg(scsidump_args, "0");
+
+    int opt;
+	while ((opt = getopt(argc, argv, "-v")) != -1) {
+		switch (opt) {
+			case 'v':
+				// Setting the log level is also effective for the in-process scsidump
+				add_arg(piscsi_args, "-L");
+				add_arg(piscsi_args, "trace");
+				break;
+
+			default:
+				cerr << "Parser error" << endl;
+				exit(EXIT_FAILURE);
+				break;
+		}
+	}
 
 	auto target_thread = jthread([&piscsi_args] () {
 		auto piscsi = make_unique<Piscsi>();
