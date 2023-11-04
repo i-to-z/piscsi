@@ -50,8 +50,7 @@ pair<bool, string> InProcessBus::FindSignal(int pin) const
 {
 	const auto& it = signals.find(pin);
 	if (it == signals.end()) {
-		spdlog::critical("Unhandled signal pin " + to_string(pin));
-		assert(false);
+		return { false, "" };
 	}
 
 	return it->second;
@@ -87,4 +86,16 @@ bool DelegatingInProcessBus::WaitSignal(int pin, bool state)
 	spdlog::trace(GetMode() + ": Waiting for " + bus.FindSignal(pin).second + " to become " + (state ? "true" : "false"));
 
 	return bus.WaitSignal(pin, state);
+}
+
+pair<bool, string> DelegatingInProcessBus::FindSignal(int pin) const
+{
+	const auto& result = bus.FindSignal(pin);
+
+	if (result.second.empty()) {
+		spdlog::critical(GetMode() + ": Unhandled signal pin " + to_string(pin));
+		assert(false);
+	}
+
+	return result;
 }
