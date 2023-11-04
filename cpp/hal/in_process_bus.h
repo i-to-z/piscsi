@@ -58,7 +58,7 @@ public:
     	return false;
     }
 
-    bool WaitSignal(int pin, bool state) override { return GPIOBUS::WaitSignal(pin, state); }
+    bool WaitSignal(int, bool) override;
 
     bool WaitREQ(bool state) override { return WaitSignal(PIN_REQ, state); }
 

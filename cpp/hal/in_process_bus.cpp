@@ -27,6 +27,7 @@ void InProcessBus::Reset()
 
 bool InProcessBus::GetSignal(int pin) const
 {
+	assert(false);
 	return signals.find(pin)->second;
 }
 
@@ -34,6 +35,23 @@ void InProcessBus::SetSignal(int pin, bool state)
 {
 	scoped_lock<mutex> lock(write_locker);
 	signals[pin] = state;
+}
+
+bool InProcessBus::WaitSignal(int pin, bool state)
+{
+	const auto now = chrono::steady_clock::now();
+
+    do {
+        if (signals.find(PIN_RST)->second) {
+            return false;
+        }
+
+        if (signals.find(pin)->second == state) {
+            return true;
+        }
+    } while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);
+
+    return false;
 }
 
 bool DelegatingInProcessBus::Init(mode_e mode)
