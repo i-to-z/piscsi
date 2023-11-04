@@ -25,15 +25,9 @@ int main(int argc, char *argv[])
 	string t_args;
 	string i_args;
 
-	bool verbose = false;
-
 	int opt;
-	while ((opt = getopt(argc, argv, "-vi:t:")) != -1) {
+	while ((opt = getopt(argc, argv, "-i:t:")) != -1) {
 		switch (opt) {
-			case 'v':
-				verbose = true;
-				break;
-
 			case 'i':
 				i_args = optarg;
 				break;
@@ -59,12 +53,6 @@ int main(int argc, char *argv[])
 	add_arg(target_args, "target");
 	for (const auto& arg : Split(t_args, ' ')) {
 		add_arg(target_args, arg);
-	}
-
-	if (verbose) {
-		// Setting the log level is also effective for the in-process scsidump
-		add_arg(target_args, "-L");
-		add_arg(target_args, "trace");
 	}
 
 	auto target_thread = jthread([&target_args] () {
