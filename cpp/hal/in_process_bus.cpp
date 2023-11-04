@@ -18,7 +18,7 @@ bool DelegatingInProcessBus::Init(mode_e mode)
 
 	spdlog::trace("Initializing bus for " + GetMode() + " mode");
 
-	return InProcessBus::Init(mode);
+	return bus.Init(mode);
 }
 
 void InProcessBus::Reset()
