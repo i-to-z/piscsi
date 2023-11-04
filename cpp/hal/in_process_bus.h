@@ -57,7 +57,7 @@ public:
     	return false;
     }
 
-    bool WaitSignal(int, bool);
+    bool WaitSignal(int, bool) override;
 
     pair<bool, string> FindSignal(int) const;
 
@@ -87,7 +87,7 @@ private:
     	// Nothing to do }
     }
 
-    void PinConfig(int , int) override {
+    void PinConfig(int, int) override {
     	// Nothing to do
     }
     void PullConfig(int, int) override {
