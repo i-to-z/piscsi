@@ -41,16 +41,11 @@ void InProcessBus::SetSignal(int pin, bool state)
 	signals[pin].first = state;
 }
 
-bool InProcessBus::WaitSignal(int pin, bool state)
-{
-	return GPIOBUS::WaitSignal(pin, state);
-}
-
 pair<bool, string> InProcessBus::FindSignal(int pin) const
 {
 	const auto& it = signals.find(pin);
 	if (it == signals.end()) {
-		return { false, "????" };
+		throw invalid_argument("Unhandled signal pin " + to_string(pin));
 	}
 
 	return it->second;
