@@ -12,22 +12,14 @@
 
 void InProcessBus::Reset()
 {
-	signals[PIN_BSY] = false;
-	signals[PIN_SEL] = false;
-	signals[PIN_ATN] = false;
-	signals[PIN_ACK] = false;
-	signals[PIN_RST] = false;
-	signals[PIN_MSG] = false;
-	signals[PIN_CD] = false;
-	signals[PIN_IO] = false;
-	signals[PIN_REQ] = false;
+	signals = {};
 
 	dat = 0;
 }
 
 bool InProcessBus::GetSignal(int pin) const
 {
-	return signals.find(pin)->second;
+	return signals[pin];
 }
 
 void InProcessBus::SetSignal(int pin, bool state)
@@ -41,11 +33,11 @@ bool InProcessBus::WaitSignal(int pin, bool state)
 	const auto now = chrono::steady_clock::now();
 
     do {
-        if (signals.find(PIN_RST)->second) {
+        if (signals[PIN_RST]) {
             return false;
         }
 
-        if (signals.find(pin)->second == state) {
+        if (signals[pin] == state) {
             return true;
         }
     } while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);

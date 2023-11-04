@@ -101,7 +101,7 @@ private:
 
     atomic<uint8_t> dat = 0;
 
-    unordered_map<int, bool> signals;
+    array<bool, 28> signals;
 };
 
 // Required in order for the bus instances to be unique even though they must be shared between target and initiator
