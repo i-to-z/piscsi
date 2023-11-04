@@ -47,20 +47,20 @@ bool InProcessBus::GetSignal(int pin) const
 	return signal.first;
 }
 
-void InProcessBus::SetSignal(int pin, bool ast)
+void InProcessBus::SetSignal(int pin, bool state)
 {
 	const auto signal = FindSignal(pin);
 
-	spdlog::trace(GetMode() + ": Setting " + signal.second + " to " + (ast ? "true" : "false"));
+	spdlog::trace(GetMode() + ": Setting " + signal.second + " to " + (state ? "true" : "false"));
 
-	signals[pin].first = ast;
+	signals[pin].first = state;
 }
 
-bool InProcessBus::WaitSignal(int pin, bool ast)
+bool InProcessBus::WaitSignal(int pin, bool state)
 {
-	spdlog::trace(GetMode() + ": Waiting for " + FindSignal(pin).second + " to become " + (ast ? "true" : "false"));
+	spdlog::trace(GetMode() + ": Waiting for " + FindSignal(pin).second + " to become " + (state ? "true" : "false"));
 
-	return GPIOBUS::WaitSignal(pin, ast);
+	return GPIOBUS::WaitSignal(pin, state);
 }
 
 pair<bool, string> InProcessBus::FindSignal(int pin) const

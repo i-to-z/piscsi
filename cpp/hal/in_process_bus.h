@@ -33,25 +33,25 @@ public:
 
     void SetENB(bool) override { assert(false); }
     bool GetBSY() const override { return GetSignal(PIN_BSY); }
-    void SetBSY(bool ast) override { SetSignal(PIN_BSY, ast); }
+    void SetBSY(bool state) override { SetSignal(PIN_BSY, state); }
     bool GetSEL() const override { return GetSignal(PIN_SEL); }
-    void SetSEL(bool ast) override { SetSignal(PIN_SEL, ast);}
+    void SetSEL(bool state) override { SetSignal(PIN_SEL, state);}
     bool GetATN() const override { return GetSignal(PIN_ATN); }
-    void SetATN(bool ast) override { SetSignal(PIN_ATN, ast); }
+    void SetATN(bool state) override { SetSignal(PIN_ATN, state); }
     bool GetACK() const override { return GetSignal(PIN_ACK); }
-    void SetACK(bool ast) override { SetSignal(PIN_ACK, ast); }
+    void SetACK(bool state) override { SetSignal(PIN_ACK, state); }
     bool GetACT() const override { return GetSignal(PIN_ACT); }
-    void SetACT(bool ast) override {SetSignal(PIN_ACT, ast); }
+    void SetACT(bool state) override {SetSignal(PIN_ACT, state); }
     bool GetRST() const override { return GetSignal(PIN_RST); }
-    void SetRST(bool ast) override {SetSignal(PIN_RST, ast); };
+    void SetRST(bool state) override {SetSignal(PIN_RST, state); };
     bool GetMSG() const override { return GetSignal(PIN_MSG); };
-    void SetMSG(bool ast) override { SetSignal(PIN_MSG, ast);};
+    void SetMSG(bool state) override { SetSignal(PIN_MSG, state);};
     bool GetCD() const override { return GetSignal(PIN_CD); }
-    void SetCD(bool ast) override { SetSignal(PIN_CD, ast);}
+    void SetCD(bool state) override { SetSignal(PIN_CD, state);}
     bool GetIO() override { return GetSignal(PIN_IO); }
-    void SetIO(bool ast) override {SetSignal(PIN_IO, ast); }
+    void SetIO(bool state) override {SetSignal(PIN_IO, state); }
     bool GetREQ() const override { return GetSignal(PIN_REQ); }
-    void SetREQ(bool ast) override {SetSignal(PIN_REQ, ast); }
+    void SetREQ(bool state) override {SetSignal(PIN_REQ, state); }
     bool GetDP() const override {
     	assert(false);
     	return false;
@@ -61,9 +61,9 @@ public:
 
     pair<bool, string> FindSignal(int) const;
 
-    bool WaitREQ(bool ast) override { return WaitSignal(PIN_REQ, ast); }
+    bool WaitREQ(bool state) override { return WaitSignal(PIN_REQ, state); }
 
-    bool WaitACK(bool ast) override { return WaitSignal(PIN_ACK, ast); }
+    bool WaitACK(bool state) override { return WaitSignal(PIN_ACK, state); }
 
     uint8_t GetDAT() override { return dat; }
     void SetDAT(uint8_t d) override { dat = d; }
@@ -123,32 +123,32 @@ public:
 
     uint32_t Acquire() override { return bus.Acquire(); }
 
-    void SetENB(bool ast) override { bus.SetENB(ast); }
+    void SetENB(bool state) override { bus.SetENB(state); }
     bool GetBSY() const override { return bus.GetBSY(); }
-    void SetBSY(bool ast) override { bus.SetBSY(ast); }
+    void SetBSY(bool state) override { bus.SetBSY(state); }
     bool GetSEL() const override { return bus.GetSEL(); }
-    void SetSEL(bool ast) override { bus.SetSEL(ast); }
+    void SetSEL(bool state) override { bus.SetSEL(state); }
     bool GetATN() const override { return bus.GetATN(); }
-    void SetATN(bool ast) override { bus.SetATN(ast); }
+    void SetATN(bool state) override { bus.SetATN(state); }
     bool GetACK() const override { return bus.GetACK(); }
-    void SetACK(bool ast) override { bus.SetACK(ast); }
+    void SetACK(bool state) override { bus.SetACK(state); }
     bool GetACT() const override { return bus.GetACT(); }
-    void SetACT(bool ast) override { bus.SetACT(ast); }
+    void SetACT(bool state) override { bus.SetACT(state); }
     bool GetRST() const override { return bus.GetRST(); }
-    void SetRST(bool ast) override { bus.SetRST(ast); }
+    void SetRST(bool state) override { bus.SetRST(state); }
     bool GetMSG() const override { return bus.GetMSG(); }
-    void SetMSG(bool ast) override { bus.SetMSG(ast); }
+    void SetMSG(bool state) override { bus.SetMSG(state); }
     bool GetCD() const override { return bus.GetCD(); }
-    void SetCD(bool ast) override { bus.SetCD(ast); }
+    void SetCD(bool state) override { bus.SetCD(state); }
     bool GetIO() override { return bus.GetIO(); }
-    void SetIO(bool ast) override { bus.SetIO(ast); }
+    void SetIO(bool state) override { bus.SetIO(state); }
     bool GetREQ() const override { return bus.GetREQ(); }
-    void SetREQ(bool ast) override { bus.SetREQ(ast); }
+    void SetREQ(bool state) override { bus.SetREQ(state); }
     bool GetDP() const override { return bus.GetDP(); }
 
-    bool WaitREQ(bool ast) override { return bus.WaitREQ(ast); }
+    bool WaitREQ(bool state) override { return bus.WaitREQ(state); }
 
-    bool WaitACK(bool ast) override { return bus.WaitACK(ast); }
+    bool WaitACK(bool state) override { return bus.WaitACK(state); }
 
     uint8_t GetDAT() override { return bus.GetDAT(); }
     void SetDAT(uint8_t dat) override { bus.SetDAT(dat); }
