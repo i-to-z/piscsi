@@ -42,10 +42,7 @@ bool InProcessBus::GetSignal(int pin) const
 {
 	const auto& signal = FindSignal(pin);
 
-	// Prevent excessive logging
-	if (pin != PIN_SEL) {
-//		spdlog::trace(GetMode() + ": Getting " + signal.second);
-	}
+	//spdlog::trace(GetMode() + ": Getting " + signal.second);
 
 	return signal.first;
 }
