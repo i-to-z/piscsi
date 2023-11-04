@@ -47,7 +47,7 @@ private:
 	string ParseArguments(span<char *>, PbCommand&, int&, string&);
 	void Process();
 	bool IsNotBusy() const;
-	bool WaitForSelection() const;
+	bool WaitForSelection();
 
 	bool ShutDown(AbstractController::piscsi_shutdown_mode);
 	bool ShutDown(const CommandContext&, const string&);

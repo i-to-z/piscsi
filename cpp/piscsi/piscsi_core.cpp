@@ -683,7 +683,7 @@ bool Piscsi::IsNotBusy() const
 	return true;
 }
 
-bool Piscsi::WaitForSelection() const
+bool Piscsi::WaitForSelection()
 {
 #ifdef USE_SEL_EVENT_ENABLE
 	if (mode == BUS::mode_e::TARGET) {
