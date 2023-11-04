@@ -60,6 +60,10 @@ public:
     	return false;
     }
 
+    bool WaitSignal(int, bool);
+
+    pair<bool, string> FindSignal(int) const;
+
     bool WaitREQ(bool ast) override { return WaitSignal(PIN_REQ, ast); }
 
     bool WaitACK(bool ast) override { return WaitSignal(PIN_ACK, ast); }
@@ -73,9 +77,7 @@ private:
     void SetControl(int, bool) override { assert(false); }
     void SetMode(int, int) override{ assert(false); }
     bool GetSignal(int pin) const override;
-    void SetSignal(int pin, bool ast) override {
-    	signals[pin] = ast;
-    }
+    void SetSignal(int, bool) override;
 
     void DisableIRQ() override {
     	// Nothing to do
@@ -98,7 +100,7 @@ private:
     // TODO This method should not exist at all, it pollutes the bus interface
     unique_ptr<DataSample> GetSample(uint64_t) override { assert(false); return nullptr; }
 
-    unordered_map<int, atomic_bool> signals;
+    unordered_map<int, pair<atomic_bool, string>> signals;
 
     atomic<uint8_t> dat = 0;
 };

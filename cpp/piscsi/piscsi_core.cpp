@@ -604,22 +604,22 @@ bool Piscsi::ShutDown(const CommandContext& context, const string& m) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
 	}
 
-	AbstractController::piscsi_shutdown_mode mode = AbstractController::piscsi_shutdown_mode::NONE;
+	AbstractController::piscsi_shutdown_mode shutdown_mode = AbstractController::piscsi_shutdown_mode::NONE;
 	if (m == "rascsi") {
-		mode = AbstractController::piscsi_shutdown_mode::STOP_PISCSI;
+		shutdown_mode = AbstractController::piscsi_shutdown_mode::STOP_PISCSI;
 	}
 	else if (m == "system") {
-		mode = AbstractController::piscsi_shutdown_mode::STOP_PI;
+		shutdown_mode = AbstractController::piscsi_shutdown_mode::STOP_PI;
 	}
 	else if (m == "reboot") {
-		mode = AbstractController::piscsi_shutdown_mode::RESTART_PI;
+		shutdown_mode = AbstractController::piscsi_shutdown_mode::RESTART_PI;
 	}
 	else {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID, m);
 	}
 
 	// Shutdown modes other than rascsi require root permissions
-	if (mode != AbstractController::piscsi_shutdown_mode::STOP_PISCSI && getuid()) {
+	if (shutdown_mode != AbstractController::piscsi_shutdown_mode::STOP_PISCSI && getuid()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_PERMISSION);
 	}
 
@@ -627,7 +627,7 @@ bool Piscsi::ShutDown(const CommandContext& context, const string& m) {
 	PbResult result;
 	context.WriteSuccessResult(result);
 
-	return ShutDown(mode);
+	return ShutDown(shutdown_mode);
 }
 
 // Shutdown on a SCSI command
