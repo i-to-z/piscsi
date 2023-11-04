@@ -68,7 +68,7 @@ bool DelegatingInProcessBus::Init(mode_e mode)
 
 bool DelegatingInProcessBus::GetSignal(int pin) const
 {
-	const auto& [state, signal] = bus.FindSignal(pin);
+	const auto& [state, _] = bus.FindSignal(pin);
 
 	return bus.GetSignal(pin);
 }
