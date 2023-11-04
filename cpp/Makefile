@@ -106,16 +106,16 @@ SRC_SCSILOOP = scsiloop/scsiloop.cpp
 SRC_SCSILOOP += $(shell find ./scsiloop -name '*.cpp' | grep -v scsiloop.cpp)
 SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
 
-SRC_PISCSI_TEST = $(shell find ./test -name '*.cpp' | grep -v in_process_test.cpp)
+SRC_PISCSI_TEST = $(shell find ./test -name '*.cpp' | grep -v in_process_)
 SRC_PISCSI_TEST += $(shell find ./scsidump -name '*.cpp' | grep -v scsidump.cpp)
 
 SRC_IN_PROCESS_TEST = test/in_process_test.cpp
 SRC_IN_PROCESS_TEST += $(shell find ./scsidump -name '*.cpp' | grep -v scsidump.cpp)
 
 vpath %.h ./shared ./controllers ./devices ./scsimon ./hal \
-	./hal/pi_defs ./piscsi ./scsictl ./scsidump ./scsiloop
+	./piscsi ./scsictl ./scsidump ./scsiloop
 vpath %.cpp ./shared ./controllers ./devices ./scsimon ./hal \
-	./hal/pi_defs ./piscsi ./scsictl ./scsidump ./scsiloop ./test
+	./piscsi ./scsictl ./scsidump ./scsiloop ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -142,7 +142,7 @@ TEST_WRAPS = -Wl,--wrap=fopen64
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI) $(OBJ_SCSICTL) $(OBJ_SCSIDUMP) $(OBJ_SCSIMON) $(OBJ_SCSILOOP) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_PISCSI_TEST) $(OBJ_IN_PROCESS_TEST))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI) $(OBJ_SCSICTL) $(OBJ_SCSIDUMP) $(OBJ_SCSIMON) $(OBJ_SCSILOOP) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_IN_PROCESS_TEST))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):

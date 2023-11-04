@@ -21,28 +21,12 @@ class InProcessBus : public GPIOBUS
 
 public:
 
-	InProcessBus() {
-	    // By initializing with all possible pins the map itself becomes thread safe
-		signals[PIN_BSY] = false;
-		signals[PIN_SEL] = false;
-		signals[PIN_ATN] = false;
-		signals[PIN_ACK] = false;
-		signals[PIN_ACT] = false;
-		signals[PIN_RST] = false;
-		signals[PIN_MSG] = false;
-		signals[PIN_CD] = false;
-		signals[PIN_IO] = false;
-		signals[PIN_REQ] = false;
-	}
-
+	InProcessBus();
 	~InProcessBus() override = default;
 
     bool Init(mode_e) override { return true; }
 
-    void Reset() override {
-    	signals.clear();
-    	dat = 0;
-    }
+    void Reset() override;
 
     void Cleanup() override {
     	// Nothing to do
@@ -88,11 +72,7 @@ private:
     void MakeTable() override { assert(false); }
     void SetControl(int, bool) override { assert(false); }
     void SetMode(int, int) override{ assert(false); }
-    bool GetSignal(int pin) const override {
-    	const auto& it = signals.find(pin);
-    	assert(it != signals.end());
-    	return it->second ? true : false;
-    }
+    bool GetSignal(int pin) const override;
     void SetSignal(int pin, bool ast) override {
     	signals[pin] = ast;
     }

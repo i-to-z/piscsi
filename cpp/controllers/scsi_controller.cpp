@@ -22,6 +22,7 @@
 #include "devices/mode_page_device.h"
 #include "devices/disk.h"
 #include "scsi_controller.h"
+#include <ctime>
 #include <sstream>
 #include <iomanip>
 #ifdef __linux__
@@ -250,7 +251,8 @@ void ScsiController::Status()
 		if (execstart > 0) {
 			Sleep();
 		} else {
-			SysTimer::SleepUsec(5);
+			const timespec ts = {.tv_sec = 0, .tv_nsec = 5'000};
+	        nanosleep(&ts, nullptr);
 		}
 
 		stringstream s;
