@@ -41,12 +41,8 @@ int main(int, char *[])
 	// TODO Avoid sleep
 	sleep(1);
 
-	auto initiator_thread = jthread([&scsidump_args] () {
-		auto scsidump = make_unique<ScsiDump>();
-		scsidump->run(scsidump_args, BUS::mode_e::IN_PROCESS_INITIATOR);
-	});
-
-	initiator_thread.join();
+	auto scsidump = make_unique<ScsiDump>();
+	scsidump->run(scsidump_args, BUS::mode_e::IN_PROCESS_INITIATOR);
 
 	exit(EXIT_SUCCESS);
 }
