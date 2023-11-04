@@ -67,14 +67,14 @@ bool DelegatingInProcessBus::Init(mode_e mode)
 
 bool DelegatingInProcessBus::GetSignal(int pin) const
 {
-	const auto& [state, _] = bus.FindSignal(pin);
+	const auto& [state, _] = FindSignal(pin);
 
 	return bus.GetSignal(pin);
 }
 
 void DelegatingInProcessBus::SetSignal(int pin, bool state)
 {
-	const auto& [_, signal] = bus.FindSignal(pin);
+	const auto& [_, signal] = FindSignal(pin);
 
 	spdlog::trace(GetMode() + ": Setting " + signal + " to " + (state ? "true" : "false"));
 
