@@ -7,9 +7,13 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/piscsi_util.h"
 #include "piscsi/piscsi_core.h"
 #include "scsidump/scsidump_core.h"
 #include <thread>
+
+using namespace std;
+using namespace piscsi_util;
 
 void add_arg(vector<char *>& args, const string& arg)
 {
@@ -18,31 +22,24 @@ void add_arg(vector<char *>& args, const string& arg)
 
 int main(int argc, char *argv[])
 {
-	vector<char *> piscsi_args;
-	add_arg(piscsi_args, "piscsi");
-	add_arg(piscsi_args, "-id");
-	add_arg(piscsi_args, "0");
-	add_arg(piscsi_args, "-t");
-	add_arg(piscsi_args, "scrm");
-	add_arg(piscsi_args, "/home/us/hatari/zip.hds");
-	add_arg(piscsi_args, "-id");
-	add_arg(piscsi_args, "6");
-	add_arg(piscsi_args, "services");
+	string t_args;
+	string i_args;
 
-	vector<char *> scsidump_args;
-	add_arg(scsidump_args, "scsidump");
-	add_arg(scsidump_args, "-f");
-	add_arg(scsidump_args, "/tmp/a");
-	add_arg(scsidump_args, "-t");
-	add_arg(scsidump_args, "0");
+	bool verbose = false;
 
-    int opt;
-	while ((opt = getopt(argc, argv, "-v")) != -1) {
+	int opt;
+	while ((opt = getopt(argc, argv, "-vi:t:")) != -1) {
 		switch (opt) {
 			case 'v':
-				// Setting the log level is also effective for the in-process scsidump
-				add_arg(piscsi_args, "-L");
-				add_arg(piscsi_args, "trace");
+				verbose = true;
+				break;
+
+			case 'i':
+				i_args = optarg;
+				break;
+
+			case 't':
+				t_args = optarg;
 				break;
 
 			default:
@@ -52,16 +49,34 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	auto target_thread = jthread([&piscsi_args] () {
+	vector<char *> initiator_args;
+	add_arg(initiator_args, "initiator");
+	for (const auto& arg : Split(i_args, ' ')) {
+		add_arg(initiator_args, arg);
+	}
+
+	vector<char *> target_args;
+	add_arg(target_args, "target");
+	for (const auto& arg : Split(t_args, ' ')) {
+		add_arg(target_args, arg);
+	}
+
+	if (verbose) {
+		// Setting the log level is also effective for the in-process scsidump
+		add_arg(target_args, "-L");
+		add_arg(target_args, "trace");
+	}
+
+	auto target_thread = jthread([&target_args] () {
 		auto piscsi = make_unique<Piscsi>();
-		piscsi->run(piscsi_args, BUS::mode_e::IN_PROCESS_TARGET);
+		piscsi->run(target_args, BUS::mode_e::IN_PROCESS_TARGET);
 	});
 
 	// TODO Avoid sleep
 	sleep(1);
 
 	auto scsidump = make_unique<ScsiDump>();
-	scsidump->run(scsidump_args, BUS::mode_e::IN_PROCESS_INITIATOR);
+	scsidump->run(initiator_args, BUS::mode_e::IN_PROCESS_INITIATOR);
 
 	exit(EXIT_SUCCESS);
 }

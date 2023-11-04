@@ -179,7 +179,6 @@ test: $(SRC_GENERATED) $(BINDIR)/$(PISCSI_TEST)
 	$(BINDIR)/$(PISCSI_TEST)
 
 in_process_test: $(SRC_GENERATED) $(BINDIR)/$(IN_PROCESS_TEST)
-	$(BINDIR)/$(IN_PROCESS_TEST)
 
 coverage: CXXFLAGS += --coverage
 coverage: test
