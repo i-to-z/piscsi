@@ -70,8 +70,6 @@ public:
     bool GetSignal(int pin) const override;
     void SetSignal(int, bool) override;
 
-    bool FindSignal(int) const;
-
 private:
 
     void MakeTable() override { assert(false); }

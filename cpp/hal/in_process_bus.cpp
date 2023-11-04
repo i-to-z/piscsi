@@ -27,25 +27,21 @@ void InProcessBus::Reset()
 
 bool InProcessBus::GetSignal(int pin) const
 {
-	return FindSignal(pin);
-}
-
-void InProcessBus::SetSignal(int pin, bool state)
-{
-	FindSignal(pin);
-
-	scoped_lock<mutex> lock(write_locker);
-	signals[pin] = state;
-}
-
-bool InProcessBus::FindSignal(int pin) const
-{
 	const auto& it = signals.find(pin);
 	if (it == signals.end()) {
 		throw invalid_argument("Unhandled signal pin " + to_string(pin));
 	}
 
 	return it->second;
+}
+
+void InProcessBus::SetSignal(int pin, bool state)
+{
+	// Required for error handling
+	GetSignal(pin);
+
+	scoped_lock<mutex> lock(write_locker);
+	signals[pin] = state;
 }
 
 bool DelegatingInProcessBus::Init(mode_e mode)
