@@ -31,7 +31,10 @@ int main(int argc, char *argv[])
 
 	vector<char *> scsidump_args;
 	add_arg(scsidump_args, "scsidump");
-	add_arg(scsidump_args, "-s");
+	add_arg(scsidump_args, "-f");
+	add_arg(scsidump_args, "/tmp/a");
+	add_arg(scsidump_args, "-t");
+	add_arg(scsidump_args, "0");
 
     int opt;
 	while ((opt = getopt(argc, argv, "-v")) != -1) {
