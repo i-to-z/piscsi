@@ -288,28 +288,30 @@ bool ScsiDump::DisplayInquiry(ostream& console, bool check_type)
 
     scsi_executor->SetTarget(target_id, target_lun);
 
-    if (!scsi_executor->Inquiry(buffer)) {
+    vector<uint8_t> buf(36);
+
+    if (!scsi_executor->Inquiry(buf)) {
     	return false;
     }
 
-    const auto type = static_cast<byte>(buffer[0]);
+    const auto type = static_cast<byte>(buf[0]);
     if ((type & byte{0x1f}) == byte{0x1f}) {
     	// Requested LUN is not available
     	return false;
     }
 
     array<char, 17> str = {};
-    memcpy(str.data(), &buffer[8], 8);
+    memcpy(str.data(), &buf[8], 8);
     inq_info.vendor = string(str.data());
     console << "Vendor:      " << inq_info.vendor << "\n";
 
     str.fill(0);
-    memcpy(str.data(), &buffer[16], 16);
+    memcpy(str.data(), &buf[16], 16);
     inq_info.product = string(str.data());
     console << "Product:     " << inq_info.product << "\n";
 
     str.fill(0);
-    memcpy(str.data(), &buffer[32], 4);
+    memcpy(str.data(), &buf[32], 4);
     inq_info.revision = string(str.data());
     console << "Revision:    " << inq_info.revision << "\n" << flush;
 
@@ -320,7 +322,7 @@ bool ScsiDump::DisplayInquiry(ostream& console, bool check_type)
     	console << "Device Type: Unknown\n";
     }
 
-    console << "Removable:   " << (((static_cast<byte>(buffer[1]) & byte{0x80}) == byte{0x80}) ? "Yes" : "No") << "\n";
+    console << "Removable:   " << (((static_cast<byte>(buf[1]) & byte{0x80}) == byte{0x80}) ? "Yes" : "No") << "\n";
 
     if (check_type && type != static_cast<byte>(device_type::direct_access) &&
     		type != static_cast<byte>(device_type::cd_rom) && type != static_cast<byte>(device_type::optical_memory)) {
