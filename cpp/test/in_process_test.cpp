@@ -45,4 +45,8 @@ int main(int, char *[])
 		auto scsidump = make_unique<ScsiDump>();
 		scsidump->run(scsidump_args, BUS::mode_e::IN_PROCESS_INITIATOR);
 	});
+
+	initiator_thread.join();
+
+	exit(EXIT_SUCCESS);
 }
