@@ -52,6 +52,8 @@ private:
     string DumpRestore(ostream&);
     bool GetDeviceInfo(ostream&);
 
+    bool SetLogLevel() const;
+
     void Reset() const;
 
     void CleanUp() const;
@@ -70,6 +72,8 @@ private:
     int target_lun = 0;
 
     string filename;
+
+    string log_level = "info";
 
     bool to_stdout = false;
 

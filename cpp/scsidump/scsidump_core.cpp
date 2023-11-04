@@ -49,8 +49,8 @@ bool ScsiDump::Banner(ostream& console, span<char *> args) const
     console << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-    	console << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] [-f FILE] [-a] [-v] [-V] [-r] [-b BUFFER_SIZE]"
-        		<< " [-p] [-I] [-s]\n"
+    	console << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] [-f FILE] [-a] [-r] [-b BUFFER_SIZE]"
+        		<< " [-L log_level] [-p] [-I] [-s]\n"
 				<< " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
 				<< " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
 				<< " Default is 0.\n"
@@ -60,8 +60,6 @@ bool ScsiDump::Banner(ostream& console, span<char *> args) const
 				<< " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
 				<< " bytes. Default is 1 MiB.\n"
 				<< " -a Scan all potential LUNs during bus scan, default is LUN 0 only.\n"
-				<< " -v Enable verbose logging.\n"
-				<< " -V Enable even more verbose logging.\n"
 				<< " -r Restore instead of dump.\n"
 				<< " -p Generate .properties file to be used with the PiSCSI web interface."
 				<< " Only valid for dump and inquiry mode.\n"
@@ -102,7 +100,7 @@ void ScsiDump::ParseArguments(span<char *> args)
     optind = 1;
     opterr = 0;
     int opt;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:b:t:arsvpIV")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:b:t:L:arspI")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -135,16 +133,8 @@ void ScsiDump::ParseArguments(span<char *> args)
             }
             break;
 
-        case 'v':
-            if (!to_stdout) {
-            	set_level(level::debug);
-            }
-            break;
-
-        case 'V':
-            if (!to_stdout) {
-            	set_level(level::trace);
-            }
+        case 'L':
+        	log_level = optarg;
             break;
 
         case 'a':
@@ -230,6 +220,11 @@ int ScsiDump::run(span<char *> args, BUS::mode_e mode)
 		cerr << "Error: Can't initialize bus" << endl;
         return EXIT_FAILURE;
     }
+
+    if (!to_stdout && !SetLogLevel()) {
+    	cerr << "Error: Invalid log level '" + log_level + "'";
+    	return EXIT_FAILURE;
+	}
 
     if (run_bus_scan) {
     	ScanBus(console);
@@ -517,3 +512,17 @@ void ScsiDump::inquiry_info::GeneratePropertiesFile(ostream& console, const stri
     	console << "Created properties file '" + properties_file + "'\n" << flush;
     }
 }
+
+bool ScsiDump::SetLogLevel() const
+{
+	const level::level_enum l = level::from_str(log_level);
+	// Compensate for spdlog using 'off' for unknown levels
+	if (to_string_view(l) != log_level) {
+		return false;
+	}
+
+	set_level(l);
+
+	return true;
+}
+
