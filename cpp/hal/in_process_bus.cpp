@@ -38,6 +38,7 @@ void InProcessBus::SetSignal(int pin, bool state)
 {
 	const auto& [_, signal] = FindSignal(pin);
 
+	scoped_lock<mutex> lock(write_locker);
 	signals[pin].first = state;
 }
 

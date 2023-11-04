@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <cassert>
 #include <unordered_map>
+#include <mutex>
 #include <atomic>
 
 class InProcessBus : public GPIOBUS
@@ -98,9 +99,11 @@ private:
     // TODO This method should not exist at all, it pollutes the bus interface
     unique_ptr<DataSample> GetSample(uint64_t) override { assert(false); return nullptr; }
 
-    unordered_map<int, pair<atomic_bool, string>> signals;
+    unordered_map<int, pair<bool, string>> signals;
 
     atomic<uint8_t> dat = 0;
+
+    mutex write_locker;
 };
 
 // Required in order for the bus instances to be unique even though they must be shared between target and initiator
