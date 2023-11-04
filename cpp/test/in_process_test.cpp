@@ -22,13 +22,16 @@ int main(int argc, char *argv[])
 	add_arg(piscsi_args, "piscsi");
 	add_arg(piscsi_args, "-id");
 	add_arg(piscsi_args, "0");
+	add_arg(piscsi_args, "-t");
+	add_arg(piscsi_args, "scrm");
+	add_arg(piscsi_args, "/home/us/hatari/zip.hds");
+	add_arg(piscsi_args, "-id");
+	add_arg(piscsi_args, "6");
 	add_arg(piscsi_args, "services");
 
 	vector<char *> scsidump_args;
 	add_arg(scsidump_args, "scsidump");
-	add_arg(scsidump_args, "-I");
-	add_arg(scsidump_args, "-t");
-	add_arg(scsidump_args, "0");
+	add_arg(scsidump_args, "-s");
 
     int opt;
 	while ((opt = getopt(argc, argv, "-v")) != -1) {
