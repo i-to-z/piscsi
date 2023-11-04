@@ -24,8 +24,6 @@ public:
 	InProcessBus() = default;
 	~InProcessBus() override = default;
 
-    bool Init(mode_e) override;
-
     void Reset() override;
 
     void Cleanup() override {
@@ -71,6 +69,10 @@ public:
     uint8_t GetDAT() override { return dat; }
     void SetDAT(uint8_t d) override { dat = d; }
 
+protected:
+
+    string GetMode() const { return IsTarget() ? "target" :"initiator"; }
+
 private:
 
     void MakeTable() override { assert(false); }
@@ -100,10 +102,6 @@ private:
     // TODO This method should not exist at all, it pollutes the bus interface
     unique_ptr<DataSample> GetSample(uint64_t) override { assert(false); return nullptr; }
 
-    string GetMode() const { return in_process_mode == mode_e::IN_PROCESS_TARGET ? "target" :"initiator"; }
-
-    mode_e in_process_mode = mode_e::IN_PROCESS_TARGET;
-
     unordered_map<int, pair<atomic_bool, string>> signals;
 
     atomic<uint8_t> dat = 0;
@@ -117,6 +115,8 @@ public:
 
 	explicit DelegatingInProcessBus(InProcessBus& b) : bus(b) {}
     ~DelegatingInProcessBus() override = default;
+
+    bool Init(mode_e) override;
 
     void Reset() override { bus.Reset(); }
 
@@ -154,6 +154,10 @@ public:
     uint8_t GetDAT() override { return bus.GetDAT(); }
     void SetDAT(uint8_t dat) override { bus.SetDAT(dat); }
 
+    bool IsTarget() const override { return in_process_mode == mode_e::IN_PROCESS_TARGET; }
+
     InProcessBus& bus;
+
+    mode_e in_process_mode = mode_e::IN_PROCESS_TARGET;
 };
 

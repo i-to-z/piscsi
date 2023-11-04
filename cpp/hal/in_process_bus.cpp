@@ -10,7 +10,7 @@
 #include "hal/in_process_bus.h"
 #include <spdlog/spdlog.h>
 
-bool InProcessBus::Init(mode_e mode)
+bool DelegatingInProcessBus::Init(mode_e mode)
 {
 	assert(mode == mode_e::IN_PROCESS_TARGET || mode == mode_e::IN_PROCESS_INITIATOR);
 
@@ -18,7 +18,7 @@ bool InProcessBus::Init(mode_e mode)
 
 	spdlog::trace("Initializing bus for " + GetMode() + " mode");
 
-	return GPIOBUS::Init(mode);
+	return InProcessBus::Init(mode);
 }
 
 void InProcessBus::Reset()

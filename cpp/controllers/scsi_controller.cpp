@@ -192,7 +192,10 @@ void ScsiController::Execute()
 	// Initialization for data transfer
 	ResetOffset();
 	SetBlocks(1);
+
+#ifndef NO_DELAY
 	execstart = SysTimer::GetTimerLow();
+#endif
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if (GetOpcode() != scsi_command::eCmdRequestSense) {

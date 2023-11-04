@@ -20,6 +20,7 @@ int main(int, char *[])
 {
 	vector<char *> piscsi_args;
 	add_arg(piscsi_args, "piscsi");
+	// Setting the log level is also effective for the in-process scsidump
 	add_arg(piscsi_args, "-L");
 	add_arg(piscsi_args, "trace");
 	add_arg(piscsi_args, "-id");
@@ -28,7 +29,6 @@ int main(int, char *[])
 
 	vector<char *> scsidump_args;
 	add_arg(scsidump_args, "scsidump");
-	add_arg(scsidump_args, "-V");
 	add_arg(scsidump_args, "-I");
 	add_arg(scsidump_args, "-t");
 	add_arg(scsidump_args, "0");
