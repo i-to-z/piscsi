@@ -8,8 +8,9 @@
 //---------------------------------------------------------------------------
 
 #include "hal/in_process_bus.h"
+#include <iostream>
 
-InProcessBus::InProcessBus()
+void InProcessBus::Reset()
 {
 	// By initializing with all possible values the map becomes thread safe
 	signals[PIN_BSY] = false;
@@ -22,17 +23,18 @@ InProcessBus::InProcessBus()
 	signals[PIN_CD] = false;
 	signals[PIN_IO] = false;
 	signals[PIN_REQ] = false;
-}
 
-void InProcessBus::Reset()
-{
-	signals.clear();
 	dat = 0;
 }
 
 bool InProcessBus::GetSignal(int pin) const
 {
 	const auto& it = signals.find(pin);
-	assert(it != signals.end());
+
+	if (it == signals.end()) {
+		cerr << "Error: Unhandled signal pin " << pin << endl;
+		assert(false);
+	}
+
 	return it->second;
 }

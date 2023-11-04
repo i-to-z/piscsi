@@ -21,7 +21,7 @@ class InProcessBus : public GPIOBUS
 
 public:
 
-	InProcessBus();
+	InProcessBus() = default;
 	~InProcessBus() override = default;
 
     bool Init(mode_e) override { return true; }

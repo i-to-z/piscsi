@@ -19,11 +19,14 @@ using namespace std;
 
 unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 {
+	unique_ptr<BUS> bus;
+
 	if (mode == BUS::mode_e::IN_PROCESS) {
-		return make_unique<DelegatingInProcessBus>(in_process_busbus);
+		bus = make_unique<DelegatingInProcessBus>(in_process_busbus);
+		bus->Reset();
+		return bus;
 	}
 
-	unique_ptr<BUS> bus;
     try {
         SBC_Version::Init();
         if (SBC_Version::IsRaspberryPi()) {
