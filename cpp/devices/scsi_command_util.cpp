@@ -11,6 +11,7 @@
 #include "scsi_command_util.h"
 #include <spdlog/spdlog.h>
 #include <cstring>
+#include <sstream>
 #include <iomanip>
 
 using namespace scsi_defs;
