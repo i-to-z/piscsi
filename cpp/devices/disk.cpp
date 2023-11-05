@@ -17,7 +17,6 @@
 #include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "disk.h"
-#include <sstream>
 #include <iomanip>
 
 using namespace scsi_defs;
@@ -663,9 +662,7 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 		}
 	}
 
-	stringstream s;
-	s << "READ/WRITE/VERIFY/SEEK, start block: $" << setfill('0') << setw(8) << hex << start;
-	LogTrace(s.str() + ", blocks: " + to_string(count));
+	LogTrace(fmt::format("READ/WRITE/VERIFY/SEEK, start sector: ${0:x}, sector count: {1}", start, count));
 
 	// Check capacity
 	if (uint64_t capacity = GetBlockCount(); !capacity || start > capacity || start + count > capacity) {
