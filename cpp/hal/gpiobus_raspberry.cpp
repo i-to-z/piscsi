@@ -298,7 +298,7 @@ void GPIOBUS_Raspberry::Cleanup()
 
     // Initialize all signals
     for (int i = 0; SignalTable[i] >= 0; i++) {
-        int pin = SignalTable[i];
+        const int pin = SignalTable[i];
         PinSetSignal(pin, OFF);
         PinConfig(pin, GPIO_INPUT);
         PullConfig(pin, GPIO_PULLNONE);
@@ -338,7 +338,7 @@ void GPIOBUS_Raspberry::Reset()
     SetMode(PIN_REQ, IN);
     SetMode(PIN_IO, IN);
 
-    if (actmode == mode_e::TARGET) {
+    if (IsTarget()) {
         // Set the initiator signal to input
         SetControl(PIN_IND, IND_IN);
         SetMode(PIN_SEL, IN);
@@ -393,7 +393,7 @@ void GPIOBUS_Raspberry::SetBSY(bool ast)
     // Set BSY signal
     SetSignal(PIN_BSY, ast);
 
-    if (actmode == mode_e::TARGET) {
+    if (IsTarget()) {
         if (ast) {
             // Turn on ACTIVE signal
             SetControl(PIN_ACT, ACT_ON);
@@ -429,12 +429,10 @@ bool GPIOBUS_Raspberry::GetSEL() const
 
 void GPIOBUS_Raspberry::SetSEL(bool ast)
 {
-    if (actmode == mode_e::INITIATOR && ast) {
-        // Turn on ACTIVE signal
+    if (!IsTarget() && ast) {
         SetControl(PIN_ACT, ACT_ON);
     }
 
-    // Set SEL signal
     SetSignal(PIN_SEL, ast);
 }
 
@@ -492,7 +490,7 @@ bool GPIOBUS_Raspberry::GetIO()
 {
     const bool ast = GetSignal(PIN_IO);
 
-    if (actmode == mode_e::INITIATOR) {
+    if (!IsTarget()) {
         // Change the data input/output direction by IO signal
         if (ast) {
             SetControl(PIN_DTD, DTD_IN);
@@ -526,7 +524,7 @@ void GPIOBUS_Raspberry::SetIO(bool ast)
 {
     SetSignal(PIN_IO, ast);
 
-    if (actmode == mode_e::TARGET) {
+    if (IsTarget()) {
         // Change the data input/output direction by IO signal
         if (ast) {
             SetControl(PIN_DTD, DTD_OUT);
