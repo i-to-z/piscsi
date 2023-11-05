@@ -147,9 +147,7 @@ void ScsiController::Command()
 
 		const int actual_count = GetBus().CommandHandShake(GetBuffer());
 		if (actual_count == 0) {
-			stringstream s;
-			s << "Received unknown command: $" << setfill('0') << setw(2) << hex << GetBuffer()[0];
-			LogTrace(s.str());
+			LogTrace(fmt::format("Received unknown command: ${0:x}", GetBuffer()[0]));
 
 			Error(sense_key::illegal_request, asc::invalid_command_operation_code);
 			return;
@@ -258,9 +256,7 @@ void ScsiController::Status()
 	        nanosleep(&ts, nullptr);
 		}
 
-		stringstream s;
-		s << "Status phase, status is $" << setfill('0') << setw(2) << hex << static_cast<int>(GetStatus());
-		LogTrace(s.str());
+		LogTrace(fmt::format("Status phase, status is ${0:x}", static_cast<int>(GetStatus())));
 		SetPhase(phase_t::status);
 
 		// Signal line operated by the target
@@ -710,10 +706,7 @@ void ScsiController::DataOutNonBlockOriented() const
 			break;
 
 		default:
-			stringstream s;
-			s << "Unexpected Data Out phase for command $" << setfill('0') << setw(2) << hex
-					<< static_cast<int>(GetOpcode());
-			LogWarn(s.str());
+			LogWarn(fmt::format("Unexpected Data Out phase for command ${0:x}", static_cast<int>(GetOpcode())));
 			break;
 	}
 }
@@ -728,9 +721,7 @@ bool ScsiController::XferIn(vector<uint8_t>& buf)
 {
 	assert(IsDataIn());
 
-	stringstream s;
-	s << "Command: $" << setfill('0') << setw(2) << hex << static_cast<int>(GetOpcode());
-	LogTrace(s.str());
+	LogTrace(fmt::format("Command: ${0:x}", static_cast<int>(GetOpcode())));
 
 	const int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
@@ -869,10 +860,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			break;
 
 		default:
-			stringstream s;
-			s << "Received an unexpected command ($" << setfill('0') << setw(2) << hex
-					<< static_cast<int>(GetOpcode()) << ")";
-			LogWarn(s.str());
+			LogWarn(fmt::format("Received unexpected command ${0:x}", static_cast<int>(GetOpcode())));
 			break;
 	}
 
