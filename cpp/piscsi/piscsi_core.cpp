@@ -85,11 +85,7 @@ void Piscsi::CleanUp()
 
 	executor->DetachAll();
 
-	// TODO Check why there are rare cases where bus is NULL on a remote interface shutdown
-	// even though it is never set to NULL anywhere
-	if (bus) {
-		bus->Cleanup();
-	}
+	bus->Cleanup();
 }
 
 void Piscsi::ReadAccessToken(const path& filename)
