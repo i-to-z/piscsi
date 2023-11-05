@@ -11,17 +11,13 @@
 #include "device.h"
 #include <spdlog/spdlog.h>
 #include <cassert>
-#include <sstream>
-#include <iomanip>
 #include <stdexcept>
 
 using namespace std;
 
 Device::Device(PbDeviceType type, int lun) : type(type), lun(lun)
 {
-	ostringstream os;
-	os << setfill('0') << setw(2) << piscsi_major_version << setw(2) << piscsi_minor_version;
-	revision = os.str();
+	revision = fmt::format("{0:02}{1:02}", piscsi_major_version, piscsi_minor_version);
 }
 
 void Device::Reset()
@@ -72,13 +68,7 @@ void Device::SetRevision(const string& r)
 
 string Device::GetPaddedName() const
 {
-	ostringstream os;
-	os << left << setfill(' ') << setw(8) << vendor << setw(16) << product << setw(4) << revision;
-
-	const string name = os.str();
-	assert(name.length() == 28);
-
-	return name;
+	return fmt::format("{0:8}{1:16}{2:4}", vendor, product, revision);
 }
 
 string Device::GetParam(const string& key) const

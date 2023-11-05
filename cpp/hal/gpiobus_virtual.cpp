@@ -430,7 +430,6 @@ void GPIOBUS_Virtual::MakeTable(void)
 //---------------------------------------------------------------------------
 void GPIOBUS_Virtual::SetControl(int pin, bool ast)
 {
-    spdlog::trace("hwpin: " + to_string(pin));
     PinSetSignal(pin, ast);
 }
 
@@ -502,8 +501,6 @@ void GPIOBUS_Virtual::EnableIRQ()
 //---------------------------------------------------------------------------
 void GPIOBUS_Virtual::PinSetSignal(int hw_pin, bool ast)
 {
-    spdlog::trace("hwpin: " + to_string(hw_pin));
-
     // Check for invalid pin
     if (hw_pin < 0) {
         return;
