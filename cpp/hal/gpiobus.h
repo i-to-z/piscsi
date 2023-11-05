@@ -154,12 +154,12 @@ const static int OFF = 0;
 
 class GPIOBUS : public BUS
 {
-  public:
-    // Basic Functions
-    GPIOBUS() = default;
-    // Destructor
+
+public:
+
+	GPIOBUS() = default;
     ~GPIOBUS() override = default;
-    // Initialization
+
     bool Init(mode_e mode = mode_e::TARGET) override;
 
     // Command receive handshake
@@ -172,7 +172,8 @@ class GPIOBUS : public BUS
     // SEL signal event polling
     bool WaitForSelectEvent() override;
 
-  protected:
+protected:
+
     virtual void MakeTable() = 0;
 
     virtual bool WaitSignal(int, bool);

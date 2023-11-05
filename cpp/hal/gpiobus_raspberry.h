@@ -14,24 +14,6 @@
 #include "hal/data_sample_raspberry.h"
 #include "hal/gpiobus.h"
 #include "shared/scsi.h"
-#include <map>
-
-//---------------------------------------------------------------------------
-//
-//	SCSI signal pin assignment setting
-//	  GPIO pin mapping table for SCSI signals.
-//	  PIN_DT0～PIN_SEL
-//
-//---------------------------------------------------------------------------
-
-#define ALL_SCSI_PINS                                                                                      \
-    ((1 << PIN_DT0) | (1 << PIN_DT1) | (1 << PIN_DT2) | (1 << PIN_DT3) | (1 << PIN_DT4) | (1 << PIN_DT5) | \
-     (1 << PIN_DT6) | (1 << PIN_DT7) | (1 << PIN_DP) | (1 << PIN_ATN) | (1 << PIN_RST) | (1 << PIN_ACK) |  \
-     (1 << PIN_REQ) | (1 << PIN_MSG) | (1 << PIN_CD) | (1 << PIN_IO) | (1 << PIN_BSY) | (1 << PIN_SEL))
-
-#define GPIO_INEDGE ((1 << PIN_BSY) | (1 << PIN_SEL) | (1 << PIN_ATN) | (1 << PIN_ACK) | (1 << PIN_RST))
-
-#define GPIO_MCI ((1 << PIN_MSG) | (1 << PIN_CD) | (1 << PIN_IO))
 
 //---------------------------------------------------------------------------
 //
@@ -66,16 +48,14 @@ const static int GICC_EOIR          = 0x004;
 const static int GIC_IRQLOCAL0 = (16 + 14);
 const static int GIC_GPIO_IRQ  = (32 + 116); // GPIO3
 
-//---------------------------------------------------------------------------
-//
-//	Class definition
-//
-//---------------------------------------------------------------------------
 class GPIOBUS_Raspberry : public GPIOBUS
 {
-  public:
-    GPIOBUS_Raspberry()           = default;
+
+public:
+
+	GPIOBUS_Raspberry() = default;
     ~GPIOBUS_Raspberry() override = default;
+
     bool Init(mode_e mode = mode_e::TARGET) override;
 
     void Reset() override;
@@ -84,54 +64,34 @@ class GPIOBUS_Raspberry : public GPIOBUS
     //	Bus signal acquisition
     uint32_t Acquire() override;
 
-    // Get BSY signal
     bool GetBSY() const override;
-    // Set BSY signal
     void SetBSY(bool ast) override;
 
-    // Get SEL signal
     bool GetSEL() const override;
-    // Set SEL signal
     void SetSEL(bool ast) override;
 
-    // Get ATN signal
     bool GetATN() const override;
-    // Set ATN signal
     void SetATN(bool ast) override;
 
-    // Get ACK signal
     bool GetACK() const override;
-    // Set ACK signal
     void SetACK(bool ast) override;
 
-    // Get RST signal
     bool GetRST() const override;
-    // Set RST signal
     void SetRST(bool ast) override;
 
-    // Get MSG signal
     bool GetMSG() const override;
-    // Set MSG signal
     void SetMSG(bool ast) override;
 
-    // Get CD signal
     bool GetCD() const override;
-    // Set CD signal
     void SetCD(bool ast) override;
 
-    // Get IO signal
     bool GetIO() override;
-    // Set IO signal
     void SetIO(bool ast) override;
 
-    // Get REQ signal
     bool GetREQ() const override;
-    // Set REQ signal
     void SetREQ(bool ast) override;
 
-    // Get DAT signal
     uint8_t GetDAT() override;
-    // Set DAT signal
     void SetDAT(uint8_t dat) override;
 
     bool WaitREQ(bool ast) override
@@ -144,19 +104,22 @@ class GPIOBUS_Raspberry : public GPIOBUS
     }
     static uint32_t bcm_host_get_peripheral_address();
 
+    // TODO Remove
     unique_ptr<DataSample> GetSample(uint64_t timestamp) override
     {
         Acquire();
         return make_unique<DataSample_Raspberry>(signals, timestamp);
     }
 
-  protected:
+protected:
+
     // All bus signals
     uint32_t signals = 0;
     // GPIO input level
     volatile uint32_t *level = nullptr;
 
-  private:
+private:
+
     // SCSI I/O signal control
     void MakeTable() override;
     // Create work data

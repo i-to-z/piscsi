@@ -15,6 +15,11 @@
 
 using namespace std;
 
+class bus_exception : public runtime_error
+{
+	using runtime_error::runtime_error;
+};
+
 class ScsiLoop_GPIO
 {
   public:

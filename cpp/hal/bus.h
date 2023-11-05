@@ -18,7 +18,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
-#include <stdexcept>
+
 using namespace std;
 
 //---------------------------------------------------------------------------
@@ -56,16 +56,12 @@ const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS      = 30;
 // header and the actual data.
 const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_US = 100;
 
-
-class bus_exception : public runtime_error
-{
-	using runtime_error::runtime_error;
-};
-
 class BUS : public PinControl
 {
-  public:
-    // Operation modes definition
+
+public:
+
+	// Operation modes definition
     enum class mode_e {
         TARGET = 0,
         INITIATOR = 1,
@@ -104,7 +100,9 @@ class BUS : public PinControl
     // Set SCSI output signal value
     static const int SEND_NO_DELAY = -1;
     // Passed into SendHandShake when we don't want to delay
-  private:
+
+private:
+
     static const array<phase_t, 8> phase_table;
 
     static const unordered_map<phase_t, const char *> phase_str_mapping;
