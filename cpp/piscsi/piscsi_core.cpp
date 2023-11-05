@@ -570,6 +570,7 @@ void Piscsi::Process()
 	// Main Loop
 	while (service.IsRunning()) {
 		// Only process the SCSI command if the bus is not busy and no other device responded
+		// TODO There may be something wrong with the SEL/BSY handling, see PhaseExecutor/Arbitration
 		if (WaitForSelection() && WaitForNotBusy()) {
 			scoped_lock<mutex> lock(execution_locker);
 
@@ -650,13 +651,11 @@ bool Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 
 bool Piscsi::WaitForNotBusy() const
 {
-    // Wait until BSY is released as there is a possibility for the
-	// initiator to assert it while setting the ID (for up to 3 seconds)
+    // Wait 3 s for BSY to be released, signalling the end of the ARBITRATION phase
 	if (bus->GetBSY()) {
 		const auto now = chrono::steady_clock::now();
 	    while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3) {
 			bus->Acquire();
-
 			if (!bus->GetBSY()) {
 				return true;
 			}
