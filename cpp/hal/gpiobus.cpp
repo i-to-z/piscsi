@@ -397,6 +397,8 @@ bool GPIOBUS::WaitForSelectEvent()
         spdlog::warn("read failed");
         return false;
     }
+
+    Acquire();
 #endif
 
     return true;
