@@ -115,7 +115,7 @@ void Disk::Read(access_mode mode)
 		GetController()->SetBlocks(blocks);
 		GetController()->SetLength(Read(GetController()->GetBuffer(), start));
 
-		LogTrace("Length is " + to_string(GetController()->GetLength()));
+		LogTrace(fmt::format("Length is {}", GetController()->GetLength()));
 
 		// Set next block
 		GetController()->SetNext(start + 1);
@@ -629,8 +629,7 @@ void Disk::ValidateBlockAddress(access_mode mode) const
 	const uint64_t block = mode == RW16 ? GetInt64(GetController()->GetCmd(), 2) : GetInt32(GetController()->GetCmd(), 2);
 
 	if (block > GetBlockCount()) {
-		LogTrace("Capacity of " + to_string(GetBlockCount()) + " block(s) exceeded: Trying to access block "
-				+ to_string(block));
+		LogTrace(fmt::format("Capacity of {0} sector(s) exceeded: Trying to access sector {1}",	GetBlockCount(), block));
 		throw scsi_exception(sense_key::illegal_request, asc::lba_out_of_range);
 	}
 }
@@ -666,8 +665,8 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 
 	// Check capacity
 	if (uint64_t capacity = GetBlockCount(); !capacity || start > capacity || start + count > capacity) {
-		LogTrace("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
-				+ to_string(start) + ", block count " + to_string(count));
+		LogTrace(fmt::format("Capacity of {0} sector(s) exceeded: Trying to access sector {1}, sector count {2}",
+				GetBlockCount(), start, count));
 		throw scsi_exception(sense_key::illegal_request, asc::lba_out_of_range);
 	}
 

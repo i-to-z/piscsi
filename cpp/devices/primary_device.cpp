@@ -262,7 +262,7 @@ void PrimaryDevice::ReserveUnit()
 	reserving_initiator = GetController()->GetInitiatorId();
 
 	if (reserving_initiator != -1) {
-		LogTrace("Reserved device for initiator ID " + to_string(reserving_initiator));
+		LogTrace(fmt::format("Reserved device for initiator ID {}", reserving_initiator));
 	}
 	else {
 		LogTrace("Reserved device for unknown initiator");
@@ -274,7 +274,7 @@ void PrimaryDevice::ReserveUnit()
 void PrimaryDevice::ReleaseUnit()
 {
 	if (reserving_initiator != -1) {
-		LogTrace("Released device reserved by initiator ID " + to_string(reserving_initiator));
+		LogTrace(fmt::format("Released device reserved by initiator ID {}", reserving_initiator));
 	}
 	else {
 		LogTrace("Released device reserved by unknown initiator");
@@ -301,7 +301,7 @@ bool PrimaryDevice::CheckReservation(int initiator_id, scsi_command cmd, bool pr
 	}
 
 	if (initiator_id != -1) {
-		LogTrace("Initiator ID " + to_string(initiator_id) + " tries to access reserved device");
+		LogTrace(fmt::format("Initiator ID {} tries to access reserved device", initiator_id));
 	}
 	else {
 		LogTrace("Unknown initiator tries to access reserved device");

@@ -202,7 +202,7 @@ void ScsiController::Execute()
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
 		if (GetOpcode() != scsi_command::eCmdInquiry && GetOpcode() != scsi_command::eCmdRequestSense) {
-			LogTrace("Invalid LUN " + to_string(lun));
+			LogTrace(fmt::format("Invalid LUN {}", lun));
 
 			Error(sense_key::illegal_request, asc::invalid_lun);
 
@@ -216,7 +216,7 @@ void ScsiController::Execute()
 
 	// SCSI-2 4.4.3 Incorrect logical unit handling
 	if (GetOpcode() == scsi_command::eCmdInquiry && !HasDeviceForLun(lun)) {
-		LogTrace("Reporting LUN" + to_string(GetEffectiveLun()) + " as not supported");
+		LogTrace(fmt::format("Reporting LUN {} as not supported", GetEffectiveLun()));
 
 		GetBuffer().data()[0] = 0x7f;
 
@@ -431,7 +431,7 @@ void ScsiController::Send()
 	assert(GetBus().GetIO());
 
 	if (HasValidLength()) {
-		LogTrace("Sending data, offset: " + to_string(GetOffset()) + ", length: " + to_string(GetLength()));
+		LogTrace(fmt::format("Sending data, offset: {0}, length: {1}", GetOffset(), GetLength()));
 
 		// The delay should be taken from the respective LUN, but as there are no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
@@ -471,7 +471,7 @@ void ScsiController::Send()
 	}
 
 	// Move to next phase
-	LogTrace("All data transferred, moving to next phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
+	LogTrace(fmt::format("All data transferred, moving to next phase: {}", BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
 		case phase_t::msgin:
 			// Completed sending response to extended message of IDENTIFY message
@@ -507,12 +507,11 @@ void ScsiController::Receive()
 	assert(!GetBus().GetIO());
 
 	if (HasValidLength()) {
-		LogTrace("Receiving data, transfer length: " + to_string(GetLength()) + " byte(s)");
+		LogTrace(fmt::format("Receiving {} byte(s)", GetLength()));
 
 		// If not able to receive all, move to status phase
 		if (uint32_t len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
-			LogError("Not able to receive " + to_string(GetLength()) + " byte(s) of data, only received "
-					+ to_string(len));
+			LogError(fmt::format("Not able to receive {0} byte(s), only received {1}", GetLength(), len));
 			Error(sense_key::aborted_command);
 			return;
 		}
@@ -903,7 +902,7 @@ void ScsiController::ParseMessage()
 
 		if (message_type >= 0x80) {
 			identified_lun = static_cast<int>(message_type) & 0x1F;
-			LogTrace("Received IDENTIFY message for LUN " + to_string(identified_lun));
+			LogTrace(fmt::format("Received IDENTIFY message for LUN {}", identified_lun));
 		}
 
 		if (message_type == 0x01) {
