@@ -11,7 +11,6 @@
 #include "scsi_command_util.h"
 #include <spdlog/spdlog.h>
 #include <cstring>
-#include <sstream>
 #include <iomanip>
 
 using namespace scsi_defs;
@@ -63,9 +62,7 @@ string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uin
 			has_valid_page_code = true;
 		}
 		else {
-			stringstream s;
-			s << "Unknown MODE SELECT page code: $" << setfill('0') << setw(2) << hex << page;
-			result = s.str();
+			result = fmt::format("Unknown MODE SELECT page code: ${0:x}", page);
 		}
 
 		// Advance to the next page
