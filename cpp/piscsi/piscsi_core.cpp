@@ -535,6 +535,10 @@ int Piscsi::run(span<char *> args, BUS::mode_e mode)
 	LogDevices(device_list);
 	cout << device_list << flush;
 
+    if (!SBC_Version::IsRaspberryPi()) {
+    	cout << "Note: No PiSCSI hardware support, only client interface calls are supported\n" << flush;
+    }
+
 	instance = this;
 	// Signal handler to detach all devices on a KILL or TERM signal
 	struct sigaction termination_handler;
@@ -562,10 +566,6 @@ void Piscsi::Process()
 	sched_param schparam;
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
-
-    if (!SBC_Version::IsRaspberryPi()) {
-    	cout << "Note: No PiSCSI hardware support, only client interface calls are supported\n" << flush;
-    }
 
 	// Main Loop
 	while (service.IsRunning()) {
