@@ -193,14 +193,14 @@ protected:
 
     virtual bool IsTarget() const { return actmode == mode_e::TARGET; }
 
-private:
-
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal event request
     struct gpioevent_request selevreq = {};
     // epoll file descriptor
     int epfd = 0;
 #endif
+
+private:
 
     // Operation mode
     mode_e actmode = mode_e::TARGET;
