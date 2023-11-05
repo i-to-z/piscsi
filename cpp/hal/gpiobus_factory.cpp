@@ -10,7 +10,6 @@
 
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus_raspberry.h"
-#include "hal/gpiobus_virtual.h"
 #include "hal/sbc_version.h"
 #include <spdlog/spdlog.h>
 #include <memory>
@@ -22,7 +21,7 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 	unique_ptr<BUS> bus;
 
 	if (mode == BUS::mode_e::IN_PROCESS_TARGET || mode == BUS::mode_e::IN_PROCESS_INITIATOR) {
-		bus = make_unique<DelegatingInProcessBus>(in_process_bus);
+		bus = make_unique<DelegatingInProcessBus>(in_process_bus, true);
 		bus->Init(mode);
 		bus->Reset();
 		return bus;
@@ -38,7 +37,7 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 
             bus = make_unique<GPIOBUS_Raspberry>();
         } else {
-            bus = make_unique<GPIOBUS_Virtual>();
+            bus = make_unique<DelegatingInProcessBus>(in_process_bus, false);
         }
 
         if (bus->Init(mode)) {

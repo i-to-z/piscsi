@@ -110,7 +110,7 @@ class DelegatingInProcessBus : public InProcessBus
 
 public:
 
-	explicit DelegatingInProcessBus(InProcessBus& b) : bus(b) {}
+	explicit DelegatingInProcessBus(InProcessBus&, bool);
     ~DelegatingInProcessBus() override = default;
 
     bool Init(mode_e) override;
@@ -141,6 +141,8 @@ private:
     string GetSignalName(int) const;
 
     InProcessBus& bus;
+
+    bool log_signals = true;
 
     mode_e in_process_mode = mode_e::IN_PROCESS_TARGET;
 
