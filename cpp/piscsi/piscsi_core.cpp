@@ -714,7 +714,7 @@ bool Piscsi::WaitForSelection()
 	return true;
 #endif
 
-	// Reduce the process load on non Pi platforms
+	// Reduce the load on non Pi platforms
 	sleep(1);
 
 	return false;
