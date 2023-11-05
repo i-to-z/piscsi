@@ -79,14 +79,10 @@ bool SBC_Version::Init()
     ifstream input_stream(m_device_tree_model_path);
 
     if (input_stream.fail()) {
-#if defined(__x86_64__) || defined(__X86__)
+    	spdlog::trace("Failed to open " + m_device_tree_model_path + ": This may not be a Raspberry Pi");
+    	sbc_version = sbc_version_type::sbc_unknown;
     	spdlog::info("Detected " + GetAsString());
-        sbc_version = sbc_version_type::sbc_unknown;
         return true;
-#else
-        spdlog::error("Failed to open " + m_device_tree_model_path + ". Are you running as root?");
-        return false;
-#endif
     }
 
     stringstream str_buffer;
