@@ -12,6 +12,7 @@
 
 #include "hal/bus.h"
 #include "shared/scsi.h"
+#include <spdlog/spdlog.h>
 #include <memory>
 #include <vector>
 
@@ -36,7 +37,7 @@
 #endif
 
 #ifdef ENABLE_GPIO_TRACE
-#define GPIO_FUNCTION_TRACE LOGTRACE("%s", __PRETTY_FUNCTION__)
+#define GPIO_FUNCTION_TRACE spdlog::trace(__PRETTY_FUNCTION__);
 #else
 #define GPIO_FUNCTION_TRACE
 #endif
@@ -170,8 +171,6 @@ class GPIOBUS : public BUS
 
     // SEL signal event polling
     bool PollSelectEvent() override;
-    // Clear SEL signal event
-    void ClearSelectEvent() override;
 
   protected:
     virtual void MakeTable() = 0;

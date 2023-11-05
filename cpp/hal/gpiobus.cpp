@@ -11,7 +11,6 @@
 
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include <spdlog/spdlog.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/time.h>
@@ -24,8 +23,6 @@ using namespace std;
 
 bool GPIOBUS::Init(mode_e mode)
 {
-    GPIO_FUNCTION_TRACE
-
     actmode = mode;
 
     return true;
@@ -34,8 +31,6 @@ bool GPIOBUS::Init(mode_e mode)
 int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 {
 	assert(IsTarget());
-
-	GPIO_FUNCTION_TRACE
 
     DisableIRQ();
 
@@ -161,8 +156,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 //---------------------------------------------------------------------------
 int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 {
-    GPIO_FUNCTION_TRACE
-
 	int i;
 
     DisableIRQ();
@@ -270,8 +263,6 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 //---------------------------------------------------------------------------
 int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 {
-    GPIO_FUNCTION_TRACE
-
 	int i;
 
     DisableIRQ();
@@ -405,16 +396,6 @@ bool GPIOBUS::PollSelectEvent()
 
     return true;
 #endif
-}
-
-//---------------------------------------------------------------------------
-//
-//	Cancel SEL signal event
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::ClearSelectEvent()
-{
-    GPIO_FUNCTION_TRACE
 }
 
 //---------------------------------------------------------------------------
