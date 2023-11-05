@@ -67,10 +67,6 @@ public:
 
 private:
 
-    void MakeTable() override { assert(false); }
-    void SetControl(int, bool) override { assert(false); }
-    void SetMode(int, int) override{ assert(false); }
-
     void DisableIRQ() override {
     	// Nothing to do
     }
@@ -78,16 +74,13 @@ private:
     	// Nothing to do }
     }
 
-    void PinConfig(int, int) override {
-    	// Nothing to do
-    }
-    void PullConfig(int, int) override {
-    	// Nothing to do
-    }
+    void MakeTable() override { assert(false); }
+    void SetControl(int, bool) override { assert(false); }
+    void SetMode(int, int) override{ assert(false); }
+    void PinConfig(int, int) override { assert(false); }
+    void PullConfig(int, int) override { assert(false); }
     void PinSetSignal(int, bool) override { assert(false); }
-    void DrvConfig(uint32_t) override {
-    	// Nothing to do
-    }
+    void DrvConfig(uint32_t) override { assert(false); }
 
     // TODO This method should not exist at all, it pollutes the bus interface
     unique_ptr<DataSample> GetSample(uint64_t) override { assert(false); return nullptr; }
