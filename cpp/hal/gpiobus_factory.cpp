@@ -21,12 +21,8 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 
 	if (mode == BUS::mode_e::IN_PROCESS_TARGET || mode == BUS::mode_e::IN_PROCESS_INITIATOR) {
 		bus = make_unique<DelegatingInProcessBus>(in_process_bus, true);
-		bus->Init(mode);
-		bus->Reset();
-		return bus;
 	}
-
-	if (SBC_Version::Init()) {
+	else if (SBC_Version::Init()) {
         if (SBC_Version::IsRaspberryPi()) {
         	if (getuid()) {
         		spdlog::error("GPIO bus access requires root permissions");
@@ -37,10 +33,10 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
         } else {
             bus = make_unique<DelegatingInProcessBus>(in_process_bus, false);
         }
+    }
 
-        if (bus->Init(mode)) {
-        	bus->Reset();
-        }
+    if (bus && bus->Init(mode)) {
+    	bus->Reset();
     }
 
     return bus;
