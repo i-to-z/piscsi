@@ -379,7 +379,12 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 bool GPIOBUS::PollSelectEvent()
 {
 #ifndef USE_SEL_EVENT_ENABLE
-    return false;
+	Acquire();
+	if (!GetSEL()) {
+		const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
+		nanosleep(&ts, nullptr);
+		return false;
+	}
 #else
     errno = 0;
 
@@ -392,9 +397,9 @@ bool GPIOBUS::PollSelectEvent()
         spdlog::warn("read failed");
         return false;
     }
+#endif
 
     return true;
-#endif
 }
 
 //---------------------------------------------------------------------------

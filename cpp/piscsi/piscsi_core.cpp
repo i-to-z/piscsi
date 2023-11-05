@@ -678,7 +678,7 @@ bool Piscsi::WaitForSelection()
 		return bus->GetSEL();
 	}
 
-#ifdef USE_SEL_EVENT_ENABLE
+#if !defined(__x86_64__) && !defined(__X86__)
 	if (!bus->PollSelectEvent()) {
 		// Stop on interrupt
 		if (errno == EINTR) {
@@ -688,21 +688,9 @@ bool Piscsi::WaitForSelection()
 		return false;
 	}
 
-	bus->Acquire();
-
-	return true;
-#elif !defined(__x86_64__) && !defined(__X86__)
-	bus->Acquire();
-	if (!bus->GetSEL()) {
-		const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
-		nanosleep(&ts, nullptr);
-		return false;
-	}
-
 	return true;
 #else
 	service.WaitForTermination();
-
 	return false;
 #endif
 }
