@@ -10,7 +10,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/config.h"
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
@@ -19,6 +18,7 @@
 #include "devices/device_logger.h"
 #include "devices/device_factory.h"
 #include "devices/storage_device.h"
+#include "hal/sbc_version.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
 #include "piscsi/piscsi_core.h"
@@ -561,15 +561,15 @@ int Piscsi::run(span<char *> args, BUS::mode_e m)
 
 void Piscsi::Process()
 {
-#ifdef USE_SEL_EVENT_ENABLE
 	// Scheduling policy setting (highest priority)
 	// TODO Check whether this results in any performance gain
 	sched_param schparam;
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
-#else
-	cout << "Note: No PiSCSI hardware support, only client interface calls are supported" << endl;
-#endif
+
+    if (!SBC_Version::IsRaspberryPi()) {
+    	cout << "Note: No PiSCSI hardware support, only client interface calls are supported" << endl;
+    }
 
 	// Main Loop
 	while (service.IsRunning()) {
