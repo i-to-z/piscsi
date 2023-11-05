@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 	});
 
 	// TODO Avoid sleep
-	sleep(1);
+	sleep(2);
 
 	auto scsidump = make_unique<ScsiDump>();
 	scsidump->run(initiator_args, BUS::mode_e::IN_PROCESS_INITIATOR);

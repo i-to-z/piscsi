@@ -21,7 +21,7 @@ SBC_Version::sbc_version_type SBC_Version::sbc_version = sbc_version_type::sbc_u
 const string SBC_Version::str_raspberry_pi_1    = "Raspberry Pi 1";
 const string SBC_Version::str_raspberry_pi_2_3  = "Raspberry Pi 2/3";
 const string SBC_Version::str_raspberry_pi_4    = "Raspberry Pi 4";
-const string SBC_Version::str_unknown_sbc       = "Unknown platform";
+const string SBC_Version::str_unknown_sbc       = "unknown platform";
 
 // The strings in this table should align with the 'model' embedded
 // in the device tree. This can be aquired by running:
