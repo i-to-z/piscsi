@@ -7,7 +7,9 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/piscsi_util.h"
 #include "network_util.h"
+#include <spdlog/spdlog.h>
 #include <cstring>
 #include <ifaddrs.h>
 #include <sys/ioctl.h>
@@ -18,6 +20,7 @@
 #include <unistd.h>
 
 using namespace std;
+using namespace piscsi_util;
 
 bool network_util::IsInterfaceUp(const string& interface)
 {
@@ -40,9 +43,12 @@ set<string, less<>> network_util::GetNetworkInterfaces()
 
 #ifdef __linux__
 	ifaddrs *addrs;
-	getifaddrs(&addrs);
-	ifaddrs *tmp = addrs;
+	if (getifaddrs(&addrs) == -1) {
+		LogErrno("Can't get list of network interfaces");
+		return network_interfaces;
+	}
 
+	ifaddrs *tmp = addrs;
 	while (tmp) {
     	if (const string name = tmp->ifa_name; tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
     		name != "lo" && name != "piscsi_bridge" && !name.starts_with("dummy") && IsInterfaceUp(name)) {

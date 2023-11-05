@@ -172,7 +172,8 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 		// There is no C++ API that generates a file with a unique name
 		const int fd = mkstemp(f.data());
 		if (fd == -1) {
-			LogError("Can't create printer output file for pattern '" + filename + "': " + strerror(errno));
+			LogError(fmt::format("Can't create printer output file for pattern '{0}': {1}", file_template,
+					strerror(errno)));
 
 			++print_error_count;
 
