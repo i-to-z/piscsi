@@ -27,6 +27,7 @@ void InProcessBus::SetSignal(int pin, bool state)
 	scoped_lock<mutex> lock(write_locker);
 	signals[pin] = state;
 
+	// SEL triggers the SELECTION phase
 	if (state && pin == PIN_SEL) {
 		sel_condition.notify_all();
 	}
