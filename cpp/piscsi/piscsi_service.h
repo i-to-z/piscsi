@@ -30,7 +30,6 @@ public:
 	void Start();
 	void Stop();
 	bool IsRunning() const { return service_socket != -1 && service_thread.joinable(); }
-	void WaitForTermination();
 
 private:
 
