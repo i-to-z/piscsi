@@ -1,15 +1,15 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Copyright (C) 2020 akuker
+// Copyright (C) 2020 akuker
+// Copyright (C) 2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
+#include <spdlog/spdlog.h>
 #include "piscsi_version.h"
-#include <sstream>
-#include <iomanip>
 
 // The following should be updated for each release
 const int piscsi_major_version = 23; // Last two digits of year
@@ -20,18 +20,8 @@ using namespace std;
 
 string piscsi_get_version_string()
 {
-	stringstream s;
-
-	s << setw(2) << setfill('0') << piscsi_major_version << '.' << setw(2) << piscsi_minor_version;
-
-	if (piscsi_patch_version < 0) {
-		s << " --DEVELOPMENT BUILD--";
-    }
-    else {
-		s << '.' << setw(2) << piscsi_patch_version;
-    }
-
-	return s.str();
+	return fmt::format("{0:02}{1:02}{2}.", piscsi_major_version, piscsi_minor_version,
+			piscsi_patch_version < 0 ? " --DEVELOPMENT BUILD--" : "");
 }
 
 
