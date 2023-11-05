@@ -147,7 +147,7 @@ void ScsiController::Command()
 
 		const int actual_count = GetBus().CommandHandShake(GetBuffer());
 		if (actual_count == 0) {
-			LogTrace(fmt::format("Received unknown command: ${0:x}", GetBuffer()[0]));
+			LogTrace(fmt::format("Received unknown command: ${:x}", GetBuffer()[0]));
 
 			Error(sense_key::illegal_request, asc::invalid_command_operation_code);
 			return;
@@ -157,10 +157,9 @@ void ScsiController::Command()
 
 		// If not able to receive all, move to the status phase
 		if (actual_count != command_byte_count) {
-			stringstream s;
-			s << "Command byte count mismatch for command $" << setfill('0') << setw(2) << hex << GetBuffer()[0];
-			LogError(s.str() + ": expected " + to_string(command_byte_count) + " bytes, received"
-					+ to_string(actual_count) + " byte(s)");
+			LogError(fmt::format(
+					"Command byte count mismatch for command ${0:x}: expected {1} bytes, received {2} byte(s)",
+					GetBuffer()[0], command_byte_count, actual_count));
 			Error(sense_key::aborted_command);
 			return;
 		}
@@ -256,7 +255,7 @@ void ScsiController::Status()
 	        nanosleep(&ts, nullptr);
 		}
 
-		LogTrace(fmt::format("Status phase, status is ${0:x}", static_cast<int>(GetStatus())));
+		LogTrace(fmt::format("Status phase, status is ${:x}", static_cast<int>(GetStatus())));
 		SetPhase(phase_t::status);
 
 		// Signal line operated by the target
@@ -413,10 +412,8 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	if (sense_key != sense_key::no_sense || asc != asc::no_additional_sense_information) {
-		stringstream s;
-		s << setfill('0') << hex << "Error status: Sense Key $" << setw(2) << static_cast<int>(sense_key)
-				<< ", ASC $" << setw(2) << static_cast<int>(asc);
-		LogDebug(s.str());
+		LogDebug(fmt::format("Error status: Sense Key ${0:x}, ASC ${1:x}", static_cast<int>(sense_key),
+				static_cast<int>(asc)));
 
 		// Set Sense Key and ASC for a subsequent REQUEST SENSE
 		GetDeviceForLun(lun)->SetStatusCode((static_cast<int>(sense_key) << 16) | (static_cast<int>(asc) << 8));
@@ -706,7 +703,7 @@ void ScsiController::DataOutNonBlockOriented() const
 			break;
 
 		default:
-			LogWarn(fmt::format("Unexpected Data Out phase for command ${0:x}", static_cast<int>(GetOpcode())));
+			LogWarn(fmt::format("Unexpected Data Out phase for command ${:x}", static_cast<int>(GetOpcode())));
 			break;
 	}
 }
@@ -721,7 +718,7 @@ bool ScsiController::XferIn(vector<uint8_t>& buf)
 {
 	assert(IsDataIn());
 
-	LogTrace(fmt::format("Command: ${0:x}", static_cast<int>(GetOpcode())));
+	LogTrace(fmt::format("Command: ${:x}", static_cast<int>(GetOpcode())));
 
 	const int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
@@ -860,7 +857,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			break;
 
 		default:
-			LogWarn(fmt::format("Received unexpected command ${0:x}", static_cast<int>(GetOpcode())));
+			LogWarn(fmt::format("Received unexpected command ${:x}", static_cast<int>(GetOpcode())));
 			break;
 	}
 
