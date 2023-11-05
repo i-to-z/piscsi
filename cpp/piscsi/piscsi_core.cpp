@@ -570,7 +570,7 @@ void Piscsi::Process()
 	// Main Loop
 	while (service.IsRunning()) {
 		// Only process the SCSI command if the bus is not busy and no other device responded
-		if (WaitForSelection() && IsNotBusy()) {
+		if (WaitForSelection() && WaitForNotBusy()) {
 			scoped_lock<mutex> lock(execution_locker);
 
 			// Process command on the responsible controller based on the current initiator and target ID
@@ -648,7 +648,7 @@ bool Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 	return false;
 }
 
-bool Piscsi::IsNotBusy() const
+bool Piscsi::WaitForNotBusy() const
 {
     // Wait until BSY is released as there is a possibility for the
 	// initiator to assert it while setting the ID (for up to 3 seconds)
