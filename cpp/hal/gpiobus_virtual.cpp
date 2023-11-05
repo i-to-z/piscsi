@@ -10,11 +10,11 @@
 
 #include "hal/gpiobus_virtual.h"
 #include "hal/gpiobus.h"
-#include "hal/log.h"
+#include <spdlog/spdlog.h>
 #include <cstddef>
 #include <map>
 #include <memory>
-#include <string.h>
+#include <cstring>
 #ifdef __linux__
 #include <sys/epoll.h>
 #endif
@@ -33,15 +33,15 @@ bool GPIOBUS_Virtual::Init(mode_e mode)
     // Create a shared memory region that can be accessed as a virtual "SCSI bus"
     //  mutual exclusion semaphore, mutex_sem with an initial value 0.
     if ((mutex_sem = sem_open(SHARED_MEM_MUTEX_NAME.c_str(), O_CREAT, 0660, 0)) == SEM_FAILED) {
-        LOGERROR("Unable to open shared memory semaphore %s. Are you running as root?", SHARED_MEM_MUTEX_NAME.c_str());
+        spdlog::error("Unable to open shared memory semaphore %s. Are you running as root?", SHARED_MEM_MUTEX_NAME.c_str());
     }
     // Get shared memory
     if ((fd_shm = shm_open(SHARED_MEM_NAME.c_str(), O_RDWR | O_CREAT | O_EXCL, 0660)) == -1) {
-        LOGERROR("Unable to open shared memory %s. Are you running as root?", SHARED_MEM_NAME.c_str());
+        spdlog::error("Unable to open shared memory %s. Are you running as root?", SHARED_MEM_NAME.c_str());
         sem_close(mutex_sem);
     }
     if (ftruncate(fd_shm, sizeof(uint32_t)) == -1) {
-        LOGERROR("Unable to read shared memory");
+        spdlog::error("Unable to read shared memory");
         sem_close(mutex_sem);
         shm_unlink(SHARED_MEM_NAME.c_str());
         return false;
@@ -49,7 +49,7 @@ bool GPIOBUS_Virtual::Init(mode_e mode)
 
     signals = static_cast<uint32_t *>(mmap(NULL, sizeof(uint32_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0));
     if (static_cast<void *>(signals) == MAP_FAILED) {
-        LOGERROR("Unabled to map shared memory");
+    	spdlog::error("Unabled to map shared memory");
         sem_close(mutex_sem);
         shm_unlink(SHARED_MEM_NAME.c_str());
     }
@@ -430,7 +430,7 @@ void GPIOBUS_Virtual::MakeTable(void)
 //---------------------------------------------------------------------------
 void GPIOBUS_Virtual::SetControl(int pin, bool ast)
 {
-    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)pin)
+    spdlog::trace("hwpin: " + to_string(pin));
     PinSetSignal(pin, ast);
 }
 
@@ -458,14 +458,14 @@ bool GPIOBUS_Virtual::GetSignal(int hw_pin) const
     uint32_t signal_value = 0;
 #ifdef SHARED_MEMORY_GPIO
     if (sem_wait(mutex_sem) == -1) {
-        LOGERROR("Unable to lock the shared memory")
+        spdlog::error("Unable to lock the shared memory");
         return false;
     }
 #endif
     signal_value = *signals;
 #ifdef SHARED_MEMORY_GPIO
     if (sem_post(mutex_sem) == -1) {
-        LOGERROR("Unable to release the shared memory")
+        spdlog::error("Unable to release the shared memory");
         return false;
     }
 #endif
@@ -502,7 +502,7 @@ void GPIOBUS_Virtual::EnableIRQ()
 //---------------------------------------------------------------------------
 void GPIOBUS_Virtual::PinSetSignal(int hw_pin, bool ast)
 {
-    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)hw_pin)
+    spdlog::trace("hwpin: " + to_string(hw_pin));
 
     // Check for invalid pin
     if (hw_pin < 0) {
@@ -510,7 +510,7 @@ void GPIOBUS_Virtual::PinSetSignal(int hw_pin, bool ast)
     }
 #ifdef SHARED_MEMORY_GPIO
     if (sem_wait(mutex_sem) == -1) {
-        LOGERROR("Unable to lock the shared memory")
+        spdlog::error("Unable to lock the shared memory");
         return;
     }
 #endif
@@ -523,7 +523,7 @@ void GPIOBUS_Virtual::PinSetSignal(int hw_pin, bool ast)
     }
 #ifdef SHARED_MEMORY_GPIO
     if (sem_post(mutex_sem) == -1) {
-        LOGERROR("Unable to release the shared memory")
+        spdlog::error("Unable to release the shared memory");
         return;
     }
 #endif
@@ -547,14 +547,14 @@ uint32_t GPIOBUS_Virtual::Acquire()
     uint32_t signal_value = 0;
 #ifdef SHARED_MEMORY_GPIO
     if (sem_wait(mutex_sem) == -1) {
-        LOGERROR("Unable to lock the shared memory")
+        spdlog::error("Unable to lock the shared memory");
         return false;
     }
 #endif
     signal_value = *signals;
 #ifdef SHARED_MEMORY_GPIO
     if (sem_post(mutex_sem) == -1) {
-        LOGERROR("Unable to release the shared memory")
+    	spdlog::error("Unable to release the shared memory");
         return false;
     }
 #endif
