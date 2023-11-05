@@ -514,17 +514,13 @@ int Piscsi::run(span<char *> args, BUS::mode_e m)
 			return ExecuteCommand(context);
 		}, port); !error.empty()) {
 		cerr << "Error: " << error << endl;
-
 		CleanUp();
-
 		return EXIT_FAILURE;
 	}
 
 	if (const string error = executor->SetReservedIds(reserved_ids); !error.empty()) {
 		cerr << "Error: " << error << endl;
-
 		CleanUp();
-
 		return EXIT_FAILURE;
 	}
 
@@ -534,9 +530,7 @@ int Piscsi::run(span<char *> args, BUS::mode_e m)
 
 		if (const CommandContext context(command, piscsi_image.GetDefaultFolder(), locale); !executor->ProcessCmd(context)) {
 			cerr << "Error: Can't attach devices" << endl;
-
 			CleanUp();
-
 			return EXIT_FAILURE;
 		}
 	}
@@ -714,8 +708,7 @@ bool Piscsi::WaitForSelection()
 	return true;
 #endif
 
-	// Reduce the load on non Pi platforms
-	sleep(1);
+	service.WaitForTermination();
 
 	return false;
 }

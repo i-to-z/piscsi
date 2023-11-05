@@ -52,8 +52,12 @@ bool ControllerManager::DeleteController(const AbstractController& controller)
 	return controllers.erase(controller.GetTargetId()) == 1;
 }
 
-void ControllerManager::DeleteAllControllers()
+bool ControllerManager::DeleteAllControllers()
 {
+	if (controllers.empty()) {
+		return false;
+	}
+
 	unordered_set<shared_ptr<AbstractController>> values;
 	ranges::transform(controllers, inserter(values, values.begin()), [] (const auto& controller) { return controller.second; } );
 
@@ -62,6 +66,8 @@ void ControllerManager::DeleteAllControllers()
 	}
 
 	assert(controllers.empty());
+
+	return true;
 }
 
 AbstractController::piscsi_shutdown_mode ControllerManager::ProcessOnController(int id_data) const

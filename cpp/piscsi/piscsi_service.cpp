@@ -114,3 +114,8 @@ void PiscsiService::ExecuteCommand(int fd) const
 		}
 	}
 }
+
+void PiscsiService::WaitForTermination()
+{
+	service_thread.join();
+}
