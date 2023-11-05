@@ -262,7 +262,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
         // Enable interrupts
         irpctl[IRPT_ENB_IRQ_2] = (1 << (GPIO_IRQ % 32));
     }
-#endif // USE_SEL_EVENT_ENABLE
+#endif
 
     // Create work table
     MakeTable();
@@ -283,7 +283,7 @@ void GPIOBUS_Raspberry::Cleanup()
     // Release SEL signal interrupt
 #ifdef USE_SEL_EVENT_ENABLE
     close(selevreq.fd);
-#endif // USE_SEL_EVENT_ENABLE
+#endif
 
     // Set control signals
     PinSetSignal(PIN_ENB, OFF);
