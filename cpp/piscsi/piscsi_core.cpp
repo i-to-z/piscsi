@@ -552,6 +552,12 @@ int Piscsi::run(span<char *> args, BUS::mode_e mode)
     // Set the affinity to a specific processor core
 	FixCpu(3);
 
+	// Scheduling policy setting (highest priority)
+	// TODO Check whether this results in any performance gain
+	sched_param schparam;
+	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
+	sched_setscheduler(0, SCHED_FIFO, &schparam);
+
 	service.Start();
 
 	Process();
@@ -561,12 +567,6 @@ int Piscsi::run(span<char *> args, BUS::mode_e mode)
 
 void Piscsi::Process()
 {
-	// Scheduling policy setting (highest priority)
-	// TODO Check whether this results in any performance gain
-	sched_param schparam;
-	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
-	sched_setscheduler(0, SCHED_FIFO, &schparam);
-
 	// Main Loop
 	while (service.IsRunning()) {
 		// Only process the SCSI command if the bus is not busy and no other device responded
