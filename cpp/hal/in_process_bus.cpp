@@ -47,8 +47,6 @@ bool InProcessBus::WaitSignal(int pin, bool state)
 
 bool DelegatingInProcessBus::Init(mode_e mode)
 {
-	assert(mode == mode_e::IN_PROCESS_TARGET || mode == mode_e::IN_PROCESS_INITIATOR);
-
 	in_process_mode = mode;
 
 	return bus.Init(mode);
