@@ -195,7 +195,7 @@ protected:
 
 private:
 
-#ifdef __linux__
+#ifdef USE_SEL_EVENT_ENABLE
     // SEL signal event request
     struct gpioevent_request selevreq = {};
     // epoll file descriptor

@@ -21,7 +21,7 @@
 #include "hal/systimer.h"
 #include <map>
 #include <cstring>
-#ifdef __linux__
+#ifdef USE_SEL_EVENT_ENABLE
 #include <sys/epoll.h>
 #endif
 #include <sys/ioctl.h>
