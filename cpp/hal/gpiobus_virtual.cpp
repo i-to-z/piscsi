@@ -174,11 +174,6 @@ void GPIOBUS_Virtual::Reset()
 #endif // ifdef __x86_64__ || __X86__
 }
 
-void GPIOBUS_Virtual::SetENB(bool ast)
-{
-    PinSetSignal(PIN_ENB, ast ? ENB_ON : ENB_OFF);
-}
-
 bool GPIOBUS_Virtual::GetBSY() const
 {
     return GetSignal(PIN_BSY);
@@ -252,16 +247,6 @@ bool GPIOBUS_Virtual::GetACK() const
 void GPIOBUS_Virtual::SetACK(bool ast)
 {
     SetSignal(PIN_ACK, ast);
-}
-
-bool GPIOBUS_Virtual::GetACT() const
-{
-    return GetSignal(PIN_ACT);
-}
-
-void GPIOBUS_Virtual::SetACT(bool ast)
-{
-    SetSignal(PIN_ACT, ast);
 }
 
 bool GPIOBUS_Virtual::GetRST() const

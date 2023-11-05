@@ -383,11 +383,6 @@ void GPIOBUS_Raspberry::Reset()
 #endif // ifdef __x86_64__ || __X86__
 }
 
-void GPIOBUS_Raspberry::SetENB(bool ast)
-{
-    PinSetSignal(PIN_ENB, ast ? ENB_ON : ENB_OFF);
-}
-
 bool GPIOBUS_Raspberry::GetBSY() const
 {
     return GetSignal(PIN_BSY);
@@ -461,16 +456,6 @@ bool GPIOBUS_Raspberry::GetACK() const
 void GPIOBUS_Raspberry::SetACK(bool ast)
 {
     SetSignal(PIN_ACK, ast);
-}
-
-bool GPIOBUS_Raspberry::GetACT() const
-{
-    return GetSignal(PIN_ACT);
-}
-
-void GPIOBUS_Raspberry::SetACT(bool ast)
-{
-    SetSignal(PIN_ACT, ast);
 }
 
 bool GPIOBUS_Raspberry::GetRST() const

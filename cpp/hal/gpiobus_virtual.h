@@ -45,9 +45,6 @@ class GPIOBUS_Virtual final : public GPIOBUS
     //---------------------------------------------------------------------------
     uint32_t Acquire() override;
 
-    void SetENB(bool ast) override;
-    // Set ENB signal
-
     bool GetBSY() const override;
     // Get BSY signal
     void SetBSY(bool ast) override;
@@ -67,11 +64,6 @@ class GPIOBUS_Virtual final : public GPIOBUS
     // Get ACK signal
     void SetACK(bool ast) override;
     // Set ACK signal
-
-    bool GetACT() const override;
-    // Get ACT signal
-    void SetACT(bool ast) override;
-    // Set ACT signal
 
     bool GetRST() const override;
     // Get RST signal

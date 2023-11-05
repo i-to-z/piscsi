@@ -84,9 +84,6 @@ class GPIOBUS_Raspberry : public GPIOBUS
     //	Bus signal acquisition
     uint32_t Acquire() override;
 
-    // Set ENB signal
-    void SetENB(bool ast) override;
-
     // Get BSY signal
     bool GetBSY() const override;
     // Set BSY signal
@@ -106,11 +103,6 @@ class GPIOBUS_Raspberry : public GPIOBUS
     bool GetACK() const override;
     // Set ACK signal
     void SetACK(bool ast) override;
-
-    // Get ACT signal
-    bool GetACT() const override;
-    // Set ACT signal
-    void SetACT(bool ast) override;
 
     // Get RST signal
     bool GetRST() const override;

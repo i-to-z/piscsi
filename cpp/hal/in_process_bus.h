@@ -32,7 +32,6 @@ public:
 
     uint32_t Acquire() override { return dat; }
 
-    void SetENB(bool) override { assert(false); }
     bool GetBSY() const override { return GetSignal(PIN_BSY); }
     void SetBSY(bool state) override { SetSignal(PIN_BSY, state); }
     bool GetSEL() const override { return GetSignal(PIN_SEL); }
@@ -41,8 +40,6 @@ public:
     void SetATN(bool state) override { SetSignal(PIN_ATN, state); }
     bool GetACK() const override { return GetSignal(PIN_ACK); }
     void SetACK(bool state) override { SetSignal(PIN_ACK, state); }
-    bool GetACT() const override { assert(false); return GetSignal(PIN_ACT); }
-    void SetACT(bool state) override { assert(false); SetSignal(PIN_ACT, state); }
     bool GetRST() const override { return GetSignal(PIN_RST); }
     void SetRST(bool state) override { SetSignal(PIN_RST, state); };
     bool GetMSG() const override { return GetSignal(PIN_MSG); };
