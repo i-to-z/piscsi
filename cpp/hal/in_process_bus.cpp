@@ -24,7 +24,7 @@ bool InProcessBus::GetSignal(int pin) const
 
 void InProcessBus::SetSignal(int pin, bool state)
 {
-	scoped_lock<mutex> lock(write_locker);
+	scoped_lock lock(write_locker);
 	signals[pin] = state;
 
 	// Setting SEL triggers the SELECTION phase
