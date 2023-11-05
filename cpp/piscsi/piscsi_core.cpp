@@ -694,9 +694,7 @@ bool Piscsi::WaitForSelection()
 
 	return true;
 }
-#endif
-
-#if !defined(__x86_64__) && !defined(__X86__)
+#elif !defined(__x86_64__) && !defined(__X86__)
 	bus->Acquire();
 	if (!bus->GetSEL()) {
 		const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
