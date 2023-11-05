@@ -24,10 +24,8 @@ bool InProcessBus::GetSignal(int pin) const
 
 void InProcessBus::SetSignal(int pin, bool state)
 {
-	{
-		scoped_lock<mutex> lock(write_locker);
-		signals[pin] = state;
-	}
+	scoped_lock<mutex> lock(write_locker);
+	signals[pin] = state;
 
 	if (state && pin == PIN_SEL) {
 		sel_condition.notify_all();
