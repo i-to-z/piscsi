@@ -12,7 +12,6 @@
 #include "hal/gpiobus_raspberry.h"
 #include "hal/sbc_version.h"
 #include <spdlog/spdlog.h>
-#include <memory>
 
 using namespace std;
 

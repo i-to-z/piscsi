@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "hal/bus.h"
 #include "hal/in_process_bus.h"
 #include <memory>
 
@@ -26,5 +25,6 @@ public:
 
 private:
 
+	// Bus instance shared by initiator and target
 	inline static InProcessBus in_process_bus;
 };

@@ -95,7 +95,6 @@ private:
     array<bool, 28> signals;
 };
 
-// Required in order for the bus instances to be unique even though they must be shared between target and initiator
 class DelegatingInProcessBus : public InProcessBus
 {
 
