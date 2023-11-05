@@ -78,9 +78,7 @@ bool Piscsi::InitBus(BUS::mode_e mode)
 
 void Piscsi::CleanUp()
 {
-	if (service.IsRunning()) {
-		service.Stop();
-	}
+	service.Stop();
 
 	executor->DetachAll();
 

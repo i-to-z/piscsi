@@ -66,12 +66,12 @@ void PiscsiService::Start()
 
 void PiscsiService::Stop()
 {
-	assert(service_socket != -1);
+	if (service_socket != -1) {
+		shutdown(service_socket, SHUT_RD);
+		close(service_socket);
 
-	shutdown(service_socket, SHUT_RD);
-	close(service_socket);
-
-	service_socket = -1;
+		service_socket = -1;
+	}
 }
 
 void PiscsiService::Execute() const
