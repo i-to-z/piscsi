@@ -110,7 +110,7 @@ class DelegatingInProcessBus : public InProcessBus
 
 public:
 
-	explicit DelegatingInProcessBus(InProcessBus&, bool);
+	DelegatingInProcessBus(InProcessBus& b, bool l) : bus(b), log_signals(l) {}
     ~DelegatingInProcessBus() override = default;
 
     bool Init(mode_e) override;
