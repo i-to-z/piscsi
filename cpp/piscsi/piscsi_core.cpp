@@ -567,7 +567,7 @@ void Piscsi::Process()
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 
     if (!SBC_Version::IsRaspberryPi()) {
-    	cout << "Note: No PiSCSI hardware support, only client interface calls are supported" << endl;
+    	cout << "Note: No PiSCSI hardware support, only client interface calls are supported\n" << flush;
     }
 
 	// Main Loop
