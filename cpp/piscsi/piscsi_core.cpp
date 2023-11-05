@@ -679,9 +679,8 @@ bool Piscsi::WaitForSelection()
 	}
 
 #ifdef USE_SEL_EVENT_ENABLE
-	// SEL signal polling
 	if (!bus->PollSelectEvent()) {
-	// Stop on interrupt
+		// Stop on interrupt
 		if (errno == EINTR) {
 			service.Stop();
 		}
@@ -689,11 +688,9 @@ bool Piscsi::WaitForSelection()
 		return false;
 	}
 
-	// Get the bus
 	bus->Acquire();
 
 	return true;
-}
 #elif !defined(__x86_64__) && !defined(__X86__)
 	bus->Acquire();
 	if (!bus->GetSEL()) {
@@ -703,10 +700,9 @@ bool Piscsi::WaitForSelection()
 	}
 
 	return true;
-}
-#endif
-
+#else
 	service.WaitForTermination();
 
 	return false;
+#endif
 }
