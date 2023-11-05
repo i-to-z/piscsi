@@ -70,6 +70,8 @@ public:
     bool GetSignal(int pin) const override;
     void SetSignal(int, bool) override;
 
+    bool WaitForSelectEvent() override;
+
 private:
 
     void MakeTable() override { assert(false); }
@@ -98,6 +100,9 @@ private:
     unique_ptr<DataSample> GetSample(uint64_t) override { assert(false); return nullptr; }
 
     mutex write_locker;
+
+    mutex sel_mutex;
+    condition_variable sel_condition;
 
     atomic<uint8_t> dat = 0;
 

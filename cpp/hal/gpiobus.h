@@ -170,7 +170,7 @@ class GPIOBUS : public BUS
     int SendHandShake(uint8_t *, int, int) override;
 
     // SEL signal event polling
-    bool PollSelectEvent() override;
+    bool WaitForSelectEvent() override;
 
   protected:
     virtual void MakeTable() = 0;

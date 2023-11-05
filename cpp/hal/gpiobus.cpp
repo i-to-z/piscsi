@@ -376,7 +376,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 //	SEL signal event polling
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::PollSelectEvent()
+bool GPIOBUS::WaitForSelectEvent()
 {
 #ifndef USE_SEL_EVENT_ENABLE
 	Acquire();

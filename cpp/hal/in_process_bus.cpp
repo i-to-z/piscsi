@@ -24,8 +24,14 @@ bool InProcessBus::GetSignal(int pin) const
 
 void InProcessBus::SetSignal(int pin, bool state)
 {
-	scoped_lock<mutex> lock(write_locker);
-	signals[pin] = state;
+	{
+		scoped_lock<mutex> lock(write_locker);
+		signals[pin] = state;
+	}
+
+	if (state && pin == PIN_SEL) {
+		sel_condition.notify_all();
+	}
 }
 
 bool InProcessBus::WaitSignal(int pin, bool state)
@@ -43,6 +49,16 @@ bool InProcessBus::WaitSignal(int pin, bool state)
     } while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);
 
     return false;
+}
+
+bool InProcessBus::WaitForSelectEvent()
+{
+	if (!signals[PIN_SEL]) {
+		unique_lock sel_lock(sel_mutex);
+		sel_condition.wait(sel_lock, [] { return true; } );
+	}
+
+	return true;
 }
 
 bool DelegatingInProcessBus::Init(mode_e mode)

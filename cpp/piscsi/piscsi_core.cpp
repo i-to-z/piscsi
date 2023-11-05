@@ -675,11 +675,20 @@ bool Piscsi::IsNotBusy() const
 bool Piscsi::WaitForSelection()
 {
 	if (mode == BUS::mode_e::IN_PROCESS_TARGET) {
-		return bus->GetSEL();
+		if (!bus->WaitForSelectEvent()) {
+			// Stop on interrupt
+			if (errno == EINTR) {
+				service.Stop();
+			}
+
+			return false;
+		}
+
+		return true;
 	}
 
 #if !defined(__x86_64__) && !defined(__X86__)
-	if (!bus->PollSelectEvent()) {
+	if (!bus->WaitForSelectEvent()) {
 		// Stop on interrupt
 		if (errno == EINTR) {
 			service.Stop();

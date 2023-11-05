@@ -96,7 +96,7 @@ class BUS : public PinControl
     virtual int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) = 0;
 
     // SEL signal event polling
-    virtual bool PollSelectEvent() = 0;
+    virtual bool WaitForSelectEvent() = 0;
 
     virtual bool GetSignal(int pin) const = 0;
     // Get SCSI input signal value
