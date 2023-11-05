@@ -674,23 +674,26 @@ bool Piscsi::IsNotBusy() const
 
 bool Piscsi::WaitForSelection()
 {
-#ifdef USE_SEL_EVENT_ENABLE
-	if (mode == BUS::mode_e::TARGET) {
-		// SEL signal polling
-		if (!bus->PollSelectEvent()) {
-			// Stop on interrupt
-			if (errno == EINTR) {
-				service.Stop();
-			}
+	if (mode == BUS::mode_e::IN_PROCESS_TARGET) {
+		return bus->GetSEL();
+	}
 
-			return false;
+#ifdef USE_SEL_EVENT_ENABLE
+	// SEL signal polling
+	if (!bus->PollSelectEvent()) {
+	// Stop on interrupt
+		if (errno == EINTR) {
+			service.Stop();
 		}
 
-		// Get the bus
-		bus->Acquire();
-
-		return true;
+		return false;
 	}
+
+	// Get the bus
+	bus->Acquire();
+
+	return true;
+}
 #endif
 
 #if !defined(__x86_64__) && !defined(__X86__)
@@ -702,18 +705,8 @@ bool Piscsi::WaitForSelection()
 	}
 
 	return true;
+}
 #endif
-
-	if (mode == BUS::mode_e::IN_PROCESS_TARGET) {
-		bus->Acquire();
-		if (!bus->GetSEL()) {
-			const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
-			nanosleep(&ts, nullptr);
-			return false;
-		}
-
-		return true;
-	}
 
 	service.WaitForTermination();
 
