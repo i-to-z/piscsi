@@ -704,6 +704,17 @@ bool Piscsi::WaitForSelection()
 	return true;
 #endif
 
+	if (mode == BUS::mode_e::IN_PROCESS_TARGET) {
+		bus->Acquire();
+		if (!bus->GetSEL()) {
+			const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
+			nanosleep(&ts, nullptr);
+			return false;
+		}
+
+		return true;
+	}
+
 	service.WaitForTermination();
 
 	return false;
