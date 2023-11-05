@@ -11,8 +11,6 @@
 
 #include <functional>
 #include <thread>
-#include <condition_variable>
-#include <mutex>
 #include <string>
 
 class CommandContext;
