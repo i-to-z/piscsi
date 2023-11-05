@@ -20,7 +20,6 @@
 #include "devices/storage_device.h"
 #include "hal/sbc_version.h"
 #include "hal/gpiobus_factory.h"
-#include "hal/gpiobus.h"
 #include "piscsi/piscsi_core.h"
 #include <spdlog/spdlog.h>
 #include <netinet/in.h>

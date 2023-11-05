@@ -27,8 +27,7 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 		return bus;
 	}
 
-    try {
-        SBC_Version::Init();
+	if (SBC_Version::Init()) {
         if (SBC_Version::IsRaspberryPi()) {
         	if (getuid()) {
         		spdlog::error("GPIO bus access requires root permissions");
@@ -43,9 +42,6 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
         if (bus->Init(mode)) {
         	bus->Reset();
         }
-    } catch (const invalid_argument& e) {
-        spdlog::error(string("Exception while trying to initialize GPIO bus: ") + e.what());
-        return nullptr;
     }
 
     return bus;

@@ -36,7 +36,7 @@ class SBC_Version
     SBC_Version()  = delete;
     ~SBC_Version() = delete;
 
-    static void Init();
+    static bool Init();
 
     static sbc_version_type GetSbcVersion();
 
