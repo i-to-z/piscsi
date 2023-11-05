@@ -193,8 +193,7 @@ protected:
 
     virtual bool IsTarget() const { return actmode == mode_e::TARGET; }
 
-    // Operation mode
-    mode_e actmode = mode_e::TARGET;
+private:
 
 #ifdef __linux__
     // SEL signal event request
@@ -202,4 +201,7 @@ protected:
     // epoll file descriptor
     int epfd = 0;
 #endif
+
+    // Operation mode
+    mode_e actmode = mode_e::TARGET;
 };
