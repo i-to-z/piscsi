@@ -10,7 +10,6 @@
 #include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "primary_device.h"
-#include <sstream>
 #include <iomanip>
 
 using namespace std;
@@ -42,16 +41,14 @@ void PrimaryDevice::AddCommand(scsi_command cmd, const operation& execute)
 
 void PrimaryDevice::Dispatch(scsi_command cmd)
 {
-	stringstream s;
-	s << "$" << setfill('0') << setw(2) << hex << static_cast<int>(cmd);
-
 	if (const auto& it = commands.find(cmd); it != commands.end()) {
-		LogDebug("Device is executing " + command_mapping.find(cmd)->second.second + " (" + s.str() + ")");
+		LogDebug(fmt::format("Device is executing {0} (${1:x})", command_mapping.find(cmd)->second.second,
+				static_cast<int>(cmd)));
 
 		it->second();
 	}
 	else {
-		LogTrace("Received unsupported command: " + s.str());
+		LogTrace(fmt::format("Received unsupported command: {:x}", static_cast<int>(cmd)));
 
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
 	}
@@ -247,12 +244,8 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 	buf[12] = (byte)(GetStatusCode() >> 8);
 	buf[13] = (byte)GetStatusCode();
 
-	stringstream s;
-	s << setfill('0') << setw(2) << hex
-			<< "Status $" << static_cast<int>(GetController()->GetStatus())
-			<< ", Sense Key $" << static_cast<int>(buf[2])
-			<< ", ASC $" << static_cast<int>(buf[12]);
-	LogTrace(s.str());
+	LogTrace(fmt::format("Status ${0:x}, Sense Key ${1:x}, ASC ${2:x}", static_cast<int>(GetController()->GetStatus()),
+			static_cast<int>(buf[2]), static_cast<int>(buf[12])));
 
 	return buf;
 }
