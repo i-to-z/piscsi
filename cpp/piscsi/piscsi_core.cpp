@@ -560,14 +560,13 @@ int Piscsi::run(span<char *> args, BUS::mode_e mode)
 
 	service.Start();
 
-	Process();
+	ProcessScsiCommands();
 
 	return EXIT_SUCCESS;
 }
 
-void Piscsi::Process()
+void Piscsi::ProcessScsiCommands()
 {
-	// Main Loop
 	while (service.IsRunning()) {
 		// Only process the SCSI command if the bus is not busy and no other device responded
 		// TODO There may be something wrong with the SEL/BSY handling, see PhaseExecutor/Arbitration
