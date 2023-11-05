@@ -12,7 +12,9 @@
 #pragma once
 
 // Check SEL signal by event
+#ifdef __linux__
 #define USE_SEL_EVENT_ENABLE
+#endif
 
 // Currently for testing only: No BUS SETTLE DELAY in DATA IN/DATA OUT and COMMAND handshakes
 // because these dealys are not covered by the SCSI specification.
