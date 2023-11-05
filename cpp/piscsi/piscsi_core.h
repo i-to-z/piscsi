@@ -38,7 +38,7 @@ public:
 private:
 
 	void Banner(span<char *>) const;
-	bool InitBus();
+	bool InitBus(BUS::mode_e);
 	void CleanUp();
 	void ReadAccessToken(const path&);
 	void LogDevices(string_view) const;
@@ -58,8 +58,6 @@ private:
 	bool SetLogLevel(const string&) const;
 
 	static PbDeviceType ParseDeviceType(const string&);
-
-	BUS::mode_e mode = BUS::mode_e::TARGET;
 
 	mutex execution_locker;
 
