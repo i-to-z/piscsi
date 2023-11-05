@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "hal/data_sample.h"
+#include <vector>
 #include <memory>
 
 uint32_t scsimon_read_json(const string &json_filename, vector<shared_ptr<DataSample>> &data_capture_array);

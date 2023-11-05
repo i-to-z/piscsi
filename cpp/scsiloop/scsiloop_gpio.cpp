@@ -12,7 +12,7 @@
 #include "hal/gpiobus_factory.h"
 #include "hal/sbc_version.h"
 #include "scsiloop/scsiloop_cout.h"
-#include "hal/log.h"
+#include "scsiloop/log.h"
 
 #if defined CONNECT_TYPE_STANDARD
 #include "hal/connection_type/connection_standard.h"

@@ -10,9 +10,9 @@
 //---------------------------------------------------------------------------
 
 #include "hal/data_sample_raspberry.h"
-#include "hal/log.h"
 #include "sm_reports.h"
 #include "string.h"
+#include <spdlog/spdlog.h>
 #include <fstream>
 #include <iostream>
 

@@ -9,9 +9,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include "hal/log.h"
 #include "shared/piscsi_version.h"
 #include "sm_reports.h"
+#include <spdlog/spdlog.h>
 #include <iostream>
 #include <fstream>
 
