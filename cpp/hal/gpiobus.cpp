@@ -105,6 +105,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
     if (command_byte_count == 0) {
         EnableIRQ();
 
+        // Unknown command
         return 0;
     }
 

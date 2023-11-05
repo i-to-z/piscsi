@@ -98,8 +98,10 @@ public:
     // Get SCSI input signal value
     virtual void SetSignal(int pin, bool ast) = 0;
     // Set SCSI output signal value
-    static const int SEND_NO_DELAY = -1;
+
     // Passed into SendHandShake when we don't want to delay
+    // TODO Get rid of this
+    static const int SEND_NO_DELAY = -1;
 
 private:
 
