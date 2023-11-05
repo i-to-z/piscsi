@@ -381,7 +381,6 @@ bool GPIOBUS::PollSelectEvent()
 #ifndef USE_SEL_EVENT_ENABLE
     return false;
 #else
-    GPIO_FUNCTION_TRACE
     errno = 0;
 
     if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
