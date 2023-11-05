@@ -13,7 +13,6 @@
 #include "scsi_command_util.h"
 #include "mode_page_device.h"
 #include <cstddef>
-#include <sstream>
 #include <iomanip>
 
 using namespace std;
@@ -44,17 +43,14 @@ int ModePageDevice::AddModePages(cdb_t cdb, vector<uint8_t>& buf, int offset, in
 	// Get page code (0x3f means all pages)
 	const int page = cdb[2] & 0x3f;
 
-	stringstream s;
-	s << "Requesting mode page $" << setfill('0') << setw(2) << hex << page;
-	LogTrace(s.str());
+	LogTrace(fmt::format("Requesting mode page ${:x}", page));
 
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
 	map<int, vector<byte>> pages;
 	SetUpModePages(pages, page, changeable);
 
 	if (pages.empty()) {
-		s << "Unsupported mode page $" << page;
-		LogTrace(s.str());
+		LogTrace(fmt::format("Unsupported mode page ${:x}", page));
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
