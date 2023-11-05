@@ -703,6 +703,7 @@ bool Piscsi::WaitForSelection()
 	}
 #endif
 
+#if !defined(__x86_64__) && !defined(__X86__)
 	bus->Acquire();
 	if (!bus->GetSEL()) {
 		const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
@@ -711,4 +712,10 @@ bool Piscsi::WaitForSelection()
 	}
 
 	return true;
+#endif
+
+	// Reduce the process load on non Pi platforms
+	sleep(1);
+
+	return false;
 }
