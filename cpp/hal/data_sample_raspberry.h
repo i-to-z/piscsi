@@ -66,10 +66,6 @@ class DataSample_Raspberry final : public DataSample
     {
         return GetSignal(PIN_REQ);
     }
-    bool GetDP() const override
-    {
-        return GetSignal(PIN_DP);
-    }
     uint8_t GetDAT() const override
     {
         return ((data >> (PIN_DT0 - 0)) & 0x01)

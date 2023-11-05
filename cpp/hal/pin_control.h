@@ -46,9 +46,6 @@ class PinControl
     virtual uint8_t GetDAT()         = 0;
     virtual void SetDAT(uint8_t dat) = 0;
 
-    // Get parity signal
-    virtual bool GetDP() const = 0;
-
     // GPIO pin direction setting
     virtual void PinConfig(int pin, int mode) = 0;
     // GPIO pin pull up/down resistor setting

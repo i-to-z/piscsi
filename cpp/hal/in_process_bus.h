@@ -50,10 +50,6 @@ public:
     void SetIO(bool state) override { SetSignal(PIN_IO, state); }
     bool GetREQ() const override { return GetSignal(PIN_REQ); }
     void SetREQ(bool state) override { SetSignal(PIN_REQ, state); }
-    bool GetDP() const override {
-    	assert(false);
-    	return false;
-    }
 
     bool WaitSignal(int, bool) override;
 
