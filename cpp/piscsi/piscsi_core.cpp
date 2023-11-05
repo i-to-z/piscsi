@@ -570,7 +570,7 @@ void Piscsi::Process()
 	// Main Loop
 	while (service.IsRunning()) {
 		// Only process the SCSI command if the bus is not busy and no other device responded
-		if (WaitForSelection() && IsNotBusy() && bus->GetSEL()) {
+		if (WaitForSelection() && IsNotBusy()) {
 			scoped_lock<mutex> lock(execution_locker);
 
 			// Process command on the responsible controller based on the current initiator and target ID
