@@ -39,7 +39,7 @@ void DeviceLogger::Error(const string& message) const
 
 void DeviceLogger::Log(level::level_enum level, const string& message) const
 {
-	if (!message.empty() &&
+	if (spdlog::get_level() >= level && !message.empty() &&
 			(log_device_id == -1 ||
 					(log_device_id == id && (log_device_lun == -1 || log_device_lun == lun)))) {
 		if (lun == -1) {
