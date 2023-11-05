@@ -46,6 +46,7 @@ private:
     bool Init(BUS::mode_e);
     void ParseArguments(span<char *>);
     void DisplayBoardId(ostream&) const;
+    string ReadWrite(ostream&, fstream&, int, uint32_t, int);
     long CalculateEffectiveSize(ostream&) const;
     void ScanBus(ostream&);
     bool DisplayInquiry(ostream&, bool);

@@ -383,24 +383,8 @@ string ScsiDump::DumpRestore(ostream& console)
         spdlog::debug("SCSI transfer size: " + to_string(sector_count * inq_info.sector_size));
         spdlog::debug("File chunk size: " + to_string(byte_count));
 
-        if (restore) {
-        	fs.read((char*)buffer.data(), byte_count);
-        	if (fs.fail()) {
-        		return "Error reading from file '" + filename + "'";
-        	}
-        	if (!scsi_executor->ReadWrite(buffer, sector_offset, sector_count,
-        			sector_count * inq_info.sector_size, true)) {
-        		return "Error writing to device";
-        	}
-        } else {
-            if (!scsi_executor->ReadWrite(buffer, sector_offset,
-            		sector_count, sector_count * inq_info.sector_size, false)) {
-            	return "Error reading from device";
-            }
-            out.write((const char*)buffer.data(), byte_count);
-            if (out.fail()) {
-            	return "Error writing to file '" + filename + "'";
-            }
+        if (const string error = ReadWrite(out, fs, sector_offset, sector_count, byte_count); !error.empty()) {
+        	return error;
         }
 
         sector_offset += sector_count;
@@ -430,6 +414,33 @@ string ScsiDump::DumpRestore(ostream& console)
 
     if (create_properties_file && !restore) {
         inq_info.GeneratePropertiesFile(console, filename + ".properties");
+    }
+
+    return "";
+}
+
+string ScsiDump::ReadWrite(ostream& out, fstream& fs, int sector_offset, uint32_t sector_count, int byte_count)
+{
+    if (restore) {
+    	fs.read((char*)buffer.data(), byte_count);
+    	if (fs.fail()) {
+    		return "Error reading from file '" + filename + "'";
+    	}
+
+    	if (!scsi_executor->ReadWrite(buffer, sector_offset, sector_count,
+    			sector_count * inq_info.sector_size, true)) {
+    		return "Error writing to device";
+    	}
+    } else {
+        if (!scsi_executor->ReadWrite(buffer, sector_offset,
+        		sector_count, sector_count * inq_info.sector_size, false)) {
+        	return "Error reading from device";
+        }
+
+        out.write((const char*)buffer.data(), byte_count);
+        if (out.fail()) {
+        	return "Error writing to file '" + filename + "'";
+        }
     }
 
     return "";
