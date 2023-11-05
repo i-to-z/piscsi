@@ -39,6 +39,7 @@
 
 using namespace std;
 using namespace spdlog;
+using namespace piscsi_util;
 
 string current_log_level = "unknown"; // Some versions of spdlog do not support get_log_level()
 
@@ -132,7 +133,7 @@ int ScsiLoop::run(const vector<char *> &args)
     // The -v option should be available for any user, which requires special handling.
     for (auto this_arg : args) {
         if (!strcasecmp(this_arg, "-v")) {
-            cout << piscsi_get_version_string() << endl;
+            cout << GetVersionString() << endl;
             return 0;
         }
     }

@@ -4,15 +4,12 @@
 //	for Raspberry Pi
 //
 //	Copyright (C) 2020 akuker
-//	[ Define the version string ]
 //
 //---------------------------------------------------------------------------
+
 #pragma once
 
-#include <string>
-
-extern const int piscsi_major_version; // Last two digits of year
-extern const int piscsi_minor_version; // Month
-extern const int piscsi_patch_version; // Patch number
-
-std::string piscsi_get_version_string();
+// The following has to be updated for each release
+inline const int piscsi_major_version = 23; // Last two digits of year
+inline const int piscsi_minor_version = 11; // Month
+inline const int piscsi_patch_version = -1; // Patch number - increment for each update

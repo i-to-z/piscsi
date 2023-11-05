@@ -9,13 +9,14 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/piscsi_version.h"
+#include "shared/piscsi_util.h"
 #include "sm_reports.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <fstream>
 
 using namespace std;
+using namespace piscsi_util;
 
 const static string html_header = R"(
 <html>
@@ -67,7 +68,7 @@ static void print_copyright_info(ofstream& html_fp)
 {
     html_fp << "<table>" << endl \
             << "<h1>PiSCSI scsimon Capture Tool</h1>" << endl \
-            << "<pre>Version " << piscsi_get_version_string() \
+            << "<pre>Version " << GetVersionString() \
             << __DATE__ << " " << __TIME__ << endl \
             << "Copyright (C) 2016-2020 GIMONS" << endl \
             << "Copyright (C) 2020-2021 Contributors to the PiSCSI project" << endl \

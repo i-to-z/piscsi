@@ -20,6 +20,12 @@
 using namespace std;
 using namespace filesystem;
 
+string piscsi_util::GetVersionString()
+{
+	return fmt::format("{0:02}.{1:02}{2}", piscsi_major_version, piscsi_minor_version,
+			piscsi_patch_version < 0 ? " --DEVELOPMENT BUILD--" : "." + to_string(piscsi_patch_version));
+}
+
 vector<string> piscsi_util::Split(const string& s, char separator, int limit)
 {
 	assert(limit >= 0);
@@ -109,7 +115,7 @@ string piscsi_util::Banner(string_view app)
 	ostringstream s;
 
 	s << "SCSI Target Emulator PiSCSI " << app << "\n";
-	s << "Version " << piscsi_get_version_string() << "  (" << __DATE__ << ' ' << __TIME__ << ")\n";
+	s << "Version " << GetVersionString() << "  (" << __DATE__ << ' ' << __TIME__ << ")\n";
 	s << "Powered by XM6 TypeG Technology / ";
 	s << "Copyright (C) 2016-2020 GIMONS\n";
 	s << "Copyright (C) 2020-2023 Contributors to the PiSCSI project\n";

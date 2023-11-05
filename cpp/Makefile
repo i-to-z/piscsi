@@ -79,7 +79,6 @@ SRC_PROTOBUF = \
 	shared/protobuf_util.cpp
 
 SRC_SHARED = \
-	shared/piscsi_version.cpp \
 	shared/piscsi_util.cpp \
 	shared/network_util.cpp
 

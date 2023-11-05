@@ -478,7 +478,7 @@ int Piscsi::run(span<char *> args, BUS::mode_e mode)
 
 	// The -v option shall result in no other action except displaying the version
 	if (ranges::find_if(args, [] (const char *arg) { return !strcasecmp(arg, "-v"); } ) != args.end()) {
-		cout << piscsi_get_version_string() << '\n';
+		cout << GetVersionString() << '\n';
 		return EXIT_SUCCESS;
 	}
 

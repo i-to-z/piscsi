@@ -218,7 +218,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 				break;
 
 			case 'v':
-				cout << "scsictl version: " << piscsi_get_version_string() << '\n';
+				cout << "scsictl version: " << GetVersionString() << '\n';
 				exit(EXIT_SUCCESS);
 				break;
 

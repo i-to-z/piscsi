@@ -44,6 +44,7 @@ namespace piscsi_util
 		return s.str();
 	}
 
+	string GetVersionString();
 	vector<string> Split(const string&, char, int = INT_MAX);
 	string GetLocale();
 	bool GetAsUnsignedInt(const string&, int&);
