@@ -11,6 +11,8 @@
 //
 //---------------------------------------------------------------------------
 
+// TODO Fix the timer abstraction. This is not really an abstraction at all ...
+
 #include "hal/systimer_raspberry.h"
 #include "hal/sbc_version.h"
 
