@@ -54,7 +54,7 @@ static void vcd_output_if_changed_phase(ofstream &fp, phase_t data, int pin, cha
 {
     if (prev_value[pin] != static_cast<uint8_t>(data)) {
         prev_value[pin] = static_cast<uint8_t>(data);
-        fp << "s" << BUS::GetPhaseStrRaw(data) << " " << symbol << endl;
+        fp << "s" << BUS::GetPhaseName(data) << " " << symbol << endl;
     }
 }
 

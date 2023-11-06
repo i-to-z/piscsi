@@ -69,7 +69,7 @@ bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> b
 
 bool PhaseExecutor::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length)
 {
-	spdlog::trace(string("Handling ") + BUS::GetPhaseStrRaw(phase) + " phase");
+	spdlog::trace(string("Handling ") + BUS::GetPhaseName(phase) + " phase");
 
 	switch (phase) {
 		case phase_t::command:
@@ -98,7 +98,7 @@ bool PhaseExecutor::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb,
     		break;
 
     	default:
-    		throw phase_exception(string("Ignoring ") + BUS::GetPhaseStrRaw(phase) + " phase");
+    		throw phase_exception(string("Ignoring ") + BUS::GetPhaseName(phase) + " phase");
     		break;
 	}
 

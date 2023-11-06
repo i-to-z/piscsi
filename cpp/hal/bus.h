@@ -70,7 +70,7 @@ public:
     }
 
     // Get the string phase name, based upon the raw data
-    static const char *GetPhaseStrRaw(phase_t);
+    static const char *GetPhaseName(phase_t);
 
     virtual uint32_t Acquire() = 0;
     // TODO Try to remove

@@ -4,8 +4,8 @@
 //
 // Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 // Copyright (C) 2014-2020 GIMONS
-// Copyright (C) 2022 Uwe Seimet
 // Copyright (C) 2022 akuker
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -26,19 +26,12 @@ int BUS::GetCommandByteCount(uint8_t opcode)
 	return mapping != command_mapping.end() ? mapping->second.first : 0;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Phase Acquisition
-//
-//---------------------------------------------------------------------------
 phase_t BUS::GetPhase()
 {
-	// Selection Phase
 	if (GetSEL()) {
 		return phase_t::selection;
 	}
 
-	// Bus busy phase
 	if (!GetBSY()) {
 		return phase_t::busfree;
 	}
@@ -50,14 +43,9 @@ phase_t BUS::GetPhase()
 	return GetPhase(mci);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Determine Phase String phase enum
-//
-//---------------------------------------------------------------------------
-const char* BUS::GetPhaseStrRaw(phase_t current_phase) {
-	const auto& it = phase_str_mapping.find(current_phase);
-	return it != phase_str_mapping.end() ? it->second : "INVALID";
+const char* BUS::GetPhaseName(phase_t phase) {
+	const auto& it = phase_str_mapping.find(phase);
+	return it != phase_str_mapping.end() ? it->second : "????";
 }
 
 //---------------------------------------------------------------------------

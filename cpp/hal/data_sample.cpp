@@ -17,7 +17,7 @@ using namespace std;
 
 string DataSample::GetPhaseStr() const
 {
-    return BUS::GetPhaseStrRaw(GetPhase());
+    return BUS::GetPhaseName(GetPhase());
 }
 
 phase_t DataSample::GetPhase() const
