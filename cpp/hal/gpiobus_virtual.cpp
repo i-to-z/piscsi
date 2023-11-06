@@ -109,7 +109,7 @@ void GPIOBUS_Virtual::Reset()
         SetSignal(j, OFF);
     }
 
-    if (actmode == mode_e::TARGET) {
+    if (operation_mode == mode_e::TARGET) {
         // Target mode
 
         // Set target signal to input
@@ -184,7 +184,7 @@ void GPIOBUS_Virtual::SetBSY(bool ast)
     // Set BSY signal
     SetSignal(PIN_BSY, ast);
 
-    if (actmode == mode_e::TARGET) {
+    if (operation_mode == mode_e::TARGET) {
         if (ast) {
             // Turn on ACTIVE signal
             SetControl(PIN_ACT, ACT_ON);
@@ -220,7 +220,7 @@ bool GPIOBUS_Virtual::GetSEL() const
 
 void GPIOBUS_Virtual::SetSEL(bool ast)
 {
-    if (actmode == mode_e::INITIATOR && ast) {
+    if (operation_mode == mode_e::INITIATOR && ast) {
         // Turn on ACTIVE signal
         SetControl(PIN_ACT, ACT_ON);
     }
@@ -283,7 +283,7 @@ bool GPIOBUS_Virtual::GetIO()
 {
     bool ast = GetSignal(PIN_IO);
 
-    if (actmode == mode_e::INITIATOR) {
+    if (operation_mode == mode_e::INITIATOR) {
         // Change the data input/output direction by IO signal
         if (ast) {
             SetControl(PIN_DTD, DTD_IN);
@@ -317,7 +317,7 @@ void GPIOBUS_Virtual::SetIO(bool ast)
 {
     SetSignal(PIN_IO, ast);
 
-    if (actmode == mode_e::TARGET) {
+    if (operation_mode == mode_e::TARGET) {
         // Change the data input/output direction by IO signal
         if (ast) {
             SetControl(PIN_DTD, DTD_OUT);

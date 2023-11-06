@@ -169,7 +169,6 @@ public:
     // Data transmission handshake
     int SendHandShake(uint8_t *, int, int) override;
 
-    // SEL signal event polling
     bool WaitForSelectEvent() override;
 
 protected:
@@ -178,11 +177,9 @@ protected:
 
     virtual bool WaitSignal(int, bool);
 
-    // Wait for a signal to change
     virtual bool WaitREQ(bool) = 0;
     virtual bool WaitACK(bool) = 0;
 
-    // Interrupt control
     virtual void EnableIRQ() = 0;
     virtual void DisableIRQ() = 0;
 
@@ -191,7 +188,7 @@ protected:
     // Set GPIO drive strength
     virtual void DrvConfig(uint32_t) = 0;
 
-    virtual bool IsTarget() const { return actmode == mode_e::TARGET; }
+    virtual bool IsTarget() const { return operation_mode == mode_e::TARGET; }
 
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal event request
@@ -202,6 +199,11 @@ protected:
 
 private:
 
-    // Operation mode
-    mode_e actmode = mode_e::TARGET;
+    mode_e operation_mode = mode_e::TARGET;
+
+    // The DaynaPort SCSI Link do a short delay in the middle of transfering
+    // a packet. This is the number of uS that will be delayed between the
+    // header and the actual data.
+    // TODO Should be verified
+    inline const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_US = 100;
 };
