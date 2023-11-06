@@ -20,7 +20,6 @@
 #include "scsiloop/scsiloop_core.h"
 #include "scsiloop/scsiloop_cout.h"
 #include "scsiloop/scsiloop_gpio.h"
-#include "scsiloop/scsiloop_timer.h"
 
 #include <iostream>
 #include <signal.h>

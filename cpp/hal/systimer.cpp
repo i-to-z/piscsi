@@ -69,17 +69,13 @@ SysTimer::SysTimer()
     }
 }
 
-uint32_t SysTimer::GetTimerLow()
-{
-    return systaddr[SYST_CLO];
-}
-
+// Timing is based on system timer low
 void SysTimer::SleepUsec(uint32_t usec)
 {
     // If time is 0, don't do anything
     if (usec) {
-    	const uint32_t now = GetTimerLow();
-    	while ((GetTimerLow() - now) < usec) {
+    	const uint32_t now = systaddr[SYST_CLO];
+    	while ((systaddr[SYST_CLO] - now) < usec) {
     		// Do nothing
     	}
 	}

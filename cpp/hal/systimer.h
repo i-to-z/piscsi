@@ -24,14 +24,12 @@ public:
 	SysTimer();
 	~SysTimer() = default;
 
-    uint32_t GetTimerLow();
-
     void SleepUsec(uint32_t);
 
 private:
 
     // System timer address
-    inline static uint32_t *systaddr;
+    uint32_t *systaddr;
 
     const static int ARMT_LOAD    = 0;
     const static int ARMT_VALUE   = 1;
