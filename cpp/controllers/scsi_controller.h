@@ -35,6 +35,7 @@ class ScsiController : public AbstractController
 
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
+	// TODO PiSCSI cannot support sync transfers. Is this code needed?
 	using scsi_t = struct _scsi_t {
 		// Synchronous transfer
 		bool syncenable;				// Synchronous transfer possible
