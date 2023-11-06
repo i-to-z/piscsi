@@ -64,9 +64,9 @@ void Piscsi::Banner(span<char *> args) const
 	}
 }
 
-bool Piscsi::InitBus(BUS::mode_e mode)
+bool Piscsi::InitBus(bool in_process)
 {
-	bus = GPIOBUS_Factory::Create(mode);
+	bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET, in_process);
 	if (bus == nullptr) {
 		return false;
 	}
@@ -470,7 +470,7 @@ bool Piscsi::HandleDeviceListChange(const CommandContext& context, PbOperation o
 	return true;
 }
 
-int Piscsi::run(span<char *> args, BUS::mode_e mode)
+int Piscsi::run(span<char *> args, bool in_process)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -495,7 +495,7 @@ int Piscsi::run(span<char *> args, BUS::mode_e mode)
 		return EXIT_FAILURE;
 	}
 
-	if (!InitBus(mode)) {
+	if (!InitBus(in_process)) {
 		cerr << "Error: Can't initialize bus" << endl;
 
 		return EXIT_FAILURE;

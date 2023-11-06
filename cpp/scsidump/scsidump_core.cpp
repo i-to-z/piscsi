@@ -73,7 +73,7 @@ bool ScsiDump::Banner(ostream& console, span<char *> args) const
     return true;
 }
 
-bool ScsiDump::Init(BUS::mode_e mode)
+bool ScsiDump::Init(bool in_process)
 {
 	instance = this;
 	// Signal handler for cleaning up
@@ -84,7 +84,7 @@ bool ScsiDump::Init(BUS::mode_e mode)
 	sigaction(SIGTERM, &termination_handler, nullptr);
 	signal(SIGPIPE, SIG_IGN);
 
-    bus = GPIOBUS_Factory::Create(mode);
+    bus = GPIOBUS_Factory::Create(BUS::mode_e::INITIATOR, in_process);
 
     if (bus != nullptr) {
         scsi_executor = make_unique<ScsiExecutor>(*bus, initiator_id);
@@ -165,7 +165,7 @@ void ScsiDump::ParseArguments(span<char *> args)
     buffer = vector<uint8_t>(buffer_size);
 }
 
-int ScsiDump::run(span<char *> args, BUS::mode_e mode)
+int ScsiDump::run(span<char *> args, bool in_process)
 {
 	to_stdout = !isatty(STDOUT_FILENO);
 
@@ -205,18 +205,18 @@ int ScsiDump::run(span<char *> args, BUS::mode_e mode)
     }
 
 #if defined(__x86_64__) || defined(__X86__) || !defined(__linux__)
-    if (mode == BUS::mode_e::INITIATOR) {
+    if (!in_process) {
     	cerr << "Error: No PiSCSI hardware support" << endl;
     	return EXIT_FAILURE;
     }
 #endif
 
-    if (mode == BUS::mode_e::INITIATOR && getuid()) {
+    if (!in_process && getuid()) {
     	cerr << "Error: GPIO bus access requires root permissions" << endl;
         return EXIT_FAILURE;
     }
 
-    if (!Init(mode)) {
+    if (!Init(in_process)) {
 		cerr << "Error: Can't initialize bus" << endl;
         return EXIT_FAILURE;
     }

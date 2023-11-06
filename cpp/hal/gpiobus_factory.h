@@ -21,7 +21,7 @@ public:
 	GPIOBUS_Factory() = default;
 	~GPIOBUS_Factory() = default;
 
-	static unique_ptr<BUS> Create(BUS::mode_e mode);
+	static unique_ptr<BUS> Create(BUS::mode_e, bool = false);
 
 private:
 

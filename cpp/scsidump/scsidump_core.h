@@ -27,7 +27,7 @@ public:
     ScsiDump() = default;
     ~ScsiDump() = default;
 
-    int run(span<char *>, BUS::mode_e = BUS::mode_e::INITIATOR);
+    int run(span<char *>, bool = false);
 
     struct inquiry_info {
         string vendor;
@@ -43,7 +43,7 @@ public:
 private:
 
     bool Banner(ostream&, span<char *>) const;
-    bool Init(BUS::mode_e);
+    bool Init(bool);
     void ParseArguments(span<char *>);
     void DisplayBoardId(ostream&) const;
     string ReadWrite(ostream&, fstream&, int, uint32_t, int);

@@ -57,14 +57,14 @@ int main(int argc, char *argv[])
 
 	auto target_thread = jthread([&target_args] () {
 		auto piscsi = make_unique<Piscsi>();
-		piscsi->run(target_args, BUS::mode_e::IN_PROCESS_TARGET);
+		piscsi->run(target_args, true);
 	});
 
 	// TODO Avoid sleep
 	sleep(1);
 
 	auto scsidump = make_unique<ScsiDump>();
-	scsidump->run(initiator_args, BUS::mode_e::IN_PROCESS_INITIATOR);
+	scsidump->run(initiator_args, true);
 
 	exit(EXIT_SUCCESS);
 }

@@ -15,11 +15,11 @@
 
 using namespace std;
 
-unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
+unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode, bool in_process)
 {
 	unique_ptr<BUS> bus;
 
-	if (mode == BUS::mode_e::IN_PROCESS_TARGET || mode == BUS::mode_e::IN_PROCESS_INITIATOR) {
+	if (in_process) {
 		bus = make_unique<DelegatingInProcessBus>(in_process_bus, true);
 	}
 	else if (SBC_Version::Init()) {

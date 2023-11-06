@@ -33,12 +33,12 @@ public:
 	Piscsi() = default;
 	~Piscsi() = default;
 
-	int run(span<char *>, BUS::mode_e = BUS::mode_e::TARGET);
+	int run(span<char *>, bool = false);
 
 private:
 
 	void Banner(span<char *>) const;
-	bool InitBus(BUS::mode_e);
+	bool InitBus(bool);
 	void CleanUp();
 	void ReadAccessToken(const path&);
 	void LogDevices(string_view) const;

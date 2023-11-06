@@ -65,9 +65,7 @@ public:
     enum class mode_e {
         TARGET = 0,
         INITIATOR = 1,
-        MONITOR = 2,
-		IN_PROCESS_TARGET = 3,
-		IN_PROCESS_INITIATOR =4
+        MONITOR = 2
     };
 
     static int GetCommandByteCount(uint8_t);

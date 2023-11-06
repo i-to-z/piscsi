@@ -122,11 +122,11 @@ public:
     void SetSignal(int, bool) override;
     bool WaitSignal(int, bool) override;
 
-    bool IsTarget() const override { return in_process_mode == mode_e::IN_PROCESS_TARGET; }
+    bool IsTarget() const override { return in_process_mode == mode_e::TARGET; }
 
 private:
 
-    string GetMode() const { return in_process_mode == mode_e::IN_PROCESS_TARGET ? "target" :"initiator"; }
+    string GetMode() const { return in_process_mode == mode_e::TARGET ? "target" :"initiator"; }
 
     string GetSignalName(int) const;
 
@@ -134,7 +134,7 @@ private:
 
     bool log_signals = true;
 
-    mode_e in_process_mode = mode_e::IN_PROCESS_TARGET;
+    mode_e in_process_mode = mode_e::TARGET;
 
     inline static const unordered_map<int, string> SIGNALS {
        	{ PIN_BSY, "BSY" },
