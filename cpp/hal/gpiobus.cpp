@@ -271,7 +271,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
         const phase_t phase = GetPhase();
 
         for (bytes_sent = 0; bytes_sent < count; bytes_sent++) {
-            // Set the DATA signals
             SetDAT(*buf);
 
             // Check for timeout waiting for REQ to be asserted
