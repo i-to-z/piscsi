@@ -238,6 +238,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
             SetREQ(false);
 
             // Check for timeout waiting for ACK signal
+            // TODO Do we have to wait for REQ to be false before checking this?
             if (!ret) {
                 break;
             }
