@@ -372,11 +372,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
     return i;
 }
 
-//---------------------------------------------------------------------------
-//
-//	SEL signal event polling
-//
-//---------------------------------------------------------------------------
 bool GPIOBUS::WaitForSelectEvent()
 {
 #ifndef USE_SEL_EVENT_ENABLE
@@ -405,11 +400,6 @@ bool GPIOBUS::WaitForSelectEvent()
     return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Wait for signal change
-//
-//---------------------------------------------------------------------------
 bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
 	const auto now = chrono::steady_clock::now();
@@ -418,9 +408,12 @@ bool GPIOBUS::WaitSignal(int pin, bool ast)
     do {
         // Immediately upon receiving a reset
         Acquire();
+
+#ifndef NO_DELAY
         if (GetRST()) {
             return false;
         }
+#endif
 
         // Check for the signal edge
         if (GetSignal(pin) == ast) {
