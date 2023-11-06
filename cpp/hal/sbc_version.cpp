@@ -102,14 +102,7 @@ bool SBC_Version::Init()
 
 bool SBC_Version::IsRaspberryPi()
 {
-    switch (sbc_version) {
-    case sbc_version_type::sbc_raspberry_pi_1:
-    case sbc_version_type::sbc_raspberry_pi_2_3:
-    case sbc_version_type::sbc_raspberry_pi_4:
-        return true;
-    default:
-        return false;
-    }
+	return sbc_version != sbc_version_type::sbc_unknown;
 }
 
 // The following functions are only used on the Raspberry Pi
