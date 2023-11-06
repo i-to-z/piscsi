@@ -203,7 +203,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
            	// TODO Try to get rid of this
         	if (bytes_sent == daynaport_delay_after_bytes) {
         		if (!sys_timer_daynaport) {
-        			sys_timer_daynaport = make_unique<SysTimer>();
+        			sys_timer_daynaport = make_shared<SysTimer>();
         		}
 				sys_timer_daynaport->SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }

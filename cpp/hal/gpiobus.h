@@ -198,8 +198,9 @@ protected:
     int epfd = 0;
 #endif
 
-    // Lazily instated if needed
-    unique_ptr<SysTimer> sys_timer_daynaport;
+    // Lazily instantiated if needed
+    // TODO Check why in_process_test on a PC crashes at the end when this is a unique_ptr
+    shared_ptr<SysTimer> sys_timer_daynaport;
 
 private:
 
