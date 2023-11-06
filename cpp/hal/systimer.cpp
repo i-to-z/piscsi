@@ -13,9 +13,6 @@
 
 #include "hal/systimer.h"
 #include "hal/systimer_raspberry.h"
-#include <spdlog/spdlog.h>
-
-#include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
 
 using namespace std;
@@ -30,25 +27,21 @@ void SysTimer::Init()
 	systimer_ptr->Init();
 }
 
-// Get system timer low byte
 uint32_t SysTimer::GetTimerLow()
 {
     return systimer_ptr->GetTimerLow();
 }
 
-// Get system timer high byte
 uint32_t SysTimer::GetTimerHigh()
 {
     return systimer_ptr->GetTimerHigh();
 }
 
-// Sleep for N nanoseconds
 void SysTimer::SleepNsec(uint32_t nsec)
 {
     systimer_ptr->SleepNsec(nsec);
 }
 
-// Sleep for N microseconds
 void SysTimer::SleepUsec(uint32_t usec)
 {
     systimer_ptr->SleepUsec(usec);
