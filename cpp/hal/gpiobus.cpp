@@ -262,7 +262,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 //	Handshake for DATA OUT and MESSAGE OUT
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
+int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_bytes)
 {
 	int i;
 
@@ -271,7 +271,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
     if (IsTarget()) {
         for (i = 0; i < count; i++) {
            	// TODO Try to get rid of this
-        	if (i == delay_after_bytes) {
+        	if (i == daynaport_delay_after_bytes) {
                  SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
