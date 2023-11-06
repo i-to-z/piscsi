@@ -24,8 +24,10 @@ using namespace std;
 //===========================================================================
 class SBC_Version
 {
-  public:
-    // Type of Single Board Computer
+
+public:
+
+	// Type of Single Board Computer
     enum class sbc_version_type : uint8_t {
         sbc_unknown = 0,
         sbc_raspberry_pi_1,
@@ -33,10 +35,10 @@ class SBC_Version
         sbc_raspberry_pi_4
     };
 
-    SBC_Version()  = default;
+    SBC_Version() = default;
     ~SBC_Version() = default;
 
-    static bool Init();
+    static void Init();
 
     static sbc_version_type GetSbcVersion();
 
@@ -46,7 +48,8 @@ class SBC_Version
 
     static uint32_t GetPeripheralAddress();
 
-  private:
+private:
+
     static sbc_version_type sbc_version;
 
     static const string str_raspberry_pi_1;

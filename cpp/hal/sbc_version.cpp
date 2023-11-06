@@ -72,7 +72,7 @@ SBC_Version::sbc_version_type SBC_Version::GetSbcVersion()
 //  based upon the device tree model string.
 //
 //---------------------------------------------------------------------------
-bool SBC_Version::Init()
+void SBC_Version::Init()
 {
     ifstream input_stream(m_device_tree_model_path);
 
@@ -80,7 +80,7 @@ bool SBC_Version::Init()
     	spdlog::trace("Failed to open " + m_device_tree_model_path + ": This may not be a Raspberry Pi");
     	sbc_version = sbc_version_type::sbc_unknown;
     	spdlog::info("Detected " + GetAsString());
-        return true;
+        return;
     }
 
     stringstream str_buffer;
@@ -91,13 +91,12 @@ bool SBC_Version::Init()
     	if (device_tree_model.starts_with(key)) {
     		sbc_version = value;
     		spdlog::info("Detected " + GetAsString());
-    		return true;
+    		return;
     	}
     }
 
     sbc_version = sbc_version_type::sbc_raspberry_pi_4;
     spdlog::error("Unable to determine single board computer type. Defaulting to Raspberry Pi 4");
-    return false;
 }
 
 bool SBC_Version::IsRaspberryPi()
