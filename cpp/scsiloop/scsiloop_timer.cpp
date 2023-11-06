@@ -66,4 +66,7 @@ int ScsiLoop_Timer::RunTimerTest(vector<string> &error_list)
     } else {
         ScsiLoop_Cout::PrintUpdate();
     }
+
+    ScsiLoop_Cout::FinishTest("hardware timer", timer_test_failures);
+    return timer_test_failures;
 }
