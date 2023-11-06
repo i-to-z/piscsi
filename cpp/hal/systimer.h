@@ -31,8 +31,6 @@ private:
 
     // System timer address
     inline static uint32_t *systaddr;
-    // ARM timer address
-    inline static uint32_t *armtaddr;
 
     const static int ARMT_LOAD    = 0;
     const static int ARMT_VALUE   = 1;

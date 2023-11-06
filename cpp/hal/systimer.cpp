@@ -57,9 +57,9 @@ void SysTimer::Init()
 
     // Save the base address
     systaddr = (uint32_t *)map + SYST_OFFSET / sizeof(uint32_t);
-    armtaddr = (uint32_t *)map + ARMT_OFFSET / sizeof(uint32_t);
 
     // Change the ARM timer to free run mode
+    uint32_t *armtaddr = (uint32_t *)map + ARMT_OFFSET / sizeof(uint32_t);
     armtaddr[ARMT_CTRL] = 0x00000282;
 
     // Get the core frequency
