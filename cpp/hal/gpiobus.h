@@ -11,7 +11,6 @@
 #pragma once
 
 #include "hal/bus.h"
-#include "hal/systimer.h"
 #include "shared/scsi.h"
 #include <spdlog/spdlog.h>
 #include <memory>
