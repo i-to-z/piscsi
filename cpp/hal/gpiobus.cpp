@@ -408,17 +408,17 @@ bool GPIOBUS::WaitSignal(int pin, bool ast)
     do {
         Acquire();
 
-#ifndef NO_DELAY
+        // Check for the signal edge
+        if (GetSignal(pin) == ast) {
+            return true;
+        }
+
+        #ifndef NO_DELAY
         // Immediately upon receiving a reset
         if (GetRST()) {
             return false;
         }
 #endif
-
-        // Check for the signal edge
-        if (GetSignal(pin) == ast) {
-            return true;
-        }
     } while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);
 
     // We timed out waiting for the signal
