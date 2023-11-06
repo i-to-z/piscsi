@@ -48,7 +48,7 @@ bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> b
 
         if (bus.GetREQ()) {
         	try {
-        		if (Dispatch(bus.GetPhase(), cmd, cdb, buffer, static_cast<int>(length))) {
+        		if (Dispatch(bus.AcquireAndGetPhase(), cmd, cdb, buffer, static_cast<int>(length))) {
         			now = chrono::steady_clock::now();
         		}
         		else {

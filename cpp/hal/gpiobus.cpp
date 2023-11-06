@@ -155,7 +155,6 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
             buf++;
         }
     } else {
-        Acquire();
         const phase_t phase = GetPhase();
 
         for (bytes_received = 0; bytes_received < count; bytes_received++) {
@@ -167,7 +166,6 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 // Assumption: Phase does not change here, but only below
 #ifndef NO_DELAY
             // Phase error
-            Acquire();
             if (GetPhase() != phase) {
                 break;
             }
@@ -186,14 +184,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 
             SetACK(false);
 
-            // Check for timeout waiting for REQ to clear
-            if (!req) {
-                break;
-            }
-
-            // Phase error
-            Acquire();
-            if (GetPhase() != phase) {
+            // Check for timeout waiting for REQ to clear and for unexpected phase change
+            if (!req || GetPhase() != phase) {
                 break;
             }
 
@@ -248,7 +240,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
 
         WaitACK(false);
     } else {
-        Acquire();
         const phase_t phase = GetPhase();
 
         for (bytes_sent = 0; bytes_sent < count; bytes_sent++) {
@@ -267,7 +258,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
 // Assumption: Phase does not change here, but only below
 #ifndef NO_DELAY
             // Phase error
-            Acquire();
             if (GetPhase() != phase) {
                 break;
             }
@@ -279,14 +269,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
 
             SetACK(false);
 
-            // Check for timeout waiting for REQ to clear
-            if (!req) {
-                break;
-            }
-
-            // Phase error
-            Acquire();
-            if (GetPhase() != phase) {
+            // Check for timeout waiting for REQ to clear and for unexpected phase change
+            if (!req || GetPhase() != phase) {
                 break;
             }
 
