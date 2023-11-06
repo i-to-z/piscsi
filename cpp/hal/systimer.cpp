@@ -23,10 +23,6 @@ using namespace std;
 
 SysTimer::SysTimer()
 {
-    // Get the base address
-    const auto baseaddr = SBC_Version::GetPeripheralAddress();
-
-    // Open /dev/mem
     const int mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
     if (mem_fd == -1) {
         spdlog::error("Error: Unable to open /dev/mem. Are you running as root?");
@@ -34,7 +30,8 @@ SysTimer::SysTimer()
     }
 
     // Map peripheral region memory
-    void *map = mmap(nullptr, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, baseaddr);
+    // TODO What is this needed for?
+    void *map = mmap(nullptr, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, SBC_Version::GetPeripheralAddress());
     if (map == MAP_FAILED) {
         spdlog::error("Error: Unable to map memory");
         close(mem_fd);
