@@ -41,6 +41,7 @@ class SysTimer
 
 public:
 
+	static void Init();
     // Get system timer low byte
     static uint32_t GetTimerLow();
     // Get system timer high byte
