@@ -406,10 +406,10 @@ bool GPIOBUS::WaitSignal(int pin, bool ast)
 
     // Wait 3 s
     do {
-        // Immediately upon receiving a reset
         Acquire();
 
 #ifndef NO_DELAY
+        // Immediately upon receiving a reset
         if (GetRST()) {
             return false;
         }
