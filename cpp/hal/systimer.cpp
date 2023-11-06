@@ -11,7 +11,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "hal/systimer.h"
 #include "hal/systimer_raspberry.h"
 #include "hal/sbc_version.h"
 
