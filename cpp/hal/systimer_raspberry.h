@@ -16,20 +16,16 @@
 #include "systimer.h"
 #include <stdint.h>
 
-//===========================================================================
-//
-//	System timer
-//
-//===========================================================================
 class SysTimer_Raspberry : public PlatformSpecificTimer
 {
-  public:
-    // Default constructor
-    SysTimer_Raspberry() = default;
-    // Default destructor
+
+public:
+
+	SysTimer_Raspberry() = default;
     ~SysTimer_Raspberry() override = default;
-    // Initialization
+
     void Init() override;
+
     // Get system timer low byte
     uint32_t GetTimerLow() override;
     // Get system timer high byte
@@ -37,13 +33,12 @@ class SysTimer_Raspberry : public PlatformSpecificTimer
     // Sleep for N microseconds
     void SleepUsec(uint32_t usec) override;
 
-  private:
+private:
+
     // System timer address
     static volatile uint32_t *systaddr;
     // ARM timer address
     static volatile uint32_t *armtaddr;
-    // Core frequency
-    static volatile uint32_t corefreq;
 
     const static int ARMT_LOAD    = 0;
     const static int ARMT_VALUE   = 1;

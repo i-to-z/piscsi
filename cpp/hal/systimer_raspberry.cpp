@@ -24,7 +24,6 @@
 volatile uint32_t *SysTimer_Raspberry::systaddr = nullptr;
 // ARM timer address
 volatile uint32_t *SysTimer_Raspberry::armtaddr = nullptr;
-volatile uint32_t SysTimer_Raspberry::corefreq  = 0;
 
 using namespace std;
 
@@ -72,7 +71,6 @@ void SysTimer_Raspberry::Init()
     // Get the core frequency
     if (int vcio_fd = open("/dev/vcio", O_RDONLY); vcio_fd >= 0) {
         ioctl(vcio_fd, _IOWR(100, 0, char *), maxclock.data());
-        corefreq = maxclock[6] / 1000000;
         close(vcio_fd);
     }
 }
