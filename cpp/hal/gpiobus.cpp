@@ -34,10 +34,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
     DisableIRQ();
 
-    // Assert REQ signal
     SetREQ(ON);
 
-    // Wait for ACK signal
     bool ret = WaitACK(ON);
 
 #ifndef NO_DELAY
@@ -48,7 +46,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
     // Get data
     buf[0] = GetDAT();
 
-    // Disable REQ signal
     SetREQ(OFF);
 
     // Timeout waiting for ACK assertion
@@ -57,7 +54,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
         return 0;
     }
 
-    // Wait for ACK to clear
     ret = WaitACK(OFF);
 
     // Timeout waiting for ACK to clear
@@ -115,20 +111,17 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
     for (bytes_received = 1; bytes_received < command_byte_count; bytes_received++) {
         ++offset;
 
-        // Assert REQ signal
         SetREQ(ON);
 
-        // Wait for ACK signal
         ret = WaitACK(ON);
 
 #ifndef NO_DELAY
         // Wait until the signal line stabilizes
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
-        // Get data
+
         buf[offset] = GetDAT();
 
-        // Clear the REQ signal
         SetREQ(OFF);
 
         // Check for timeout waiting for ACK assertion
@@ -136,7 +129,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
             break;
         }
 
-        // Wait for ACK to clear
         ret = WaitACK(OFF);
 
         // Check for timeout waiting for ACK to clear
@@ -163,10 +155,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 
     if (IsTarget()) {
         for (i = 0; i < count; i++) {
-            // Assert the REQ signal
             SetREQ(ON);
 
-            // Wait for ACK
             bool ret = WaitACK(ON);
 
 #ifndef NO_DELAY
@@ -174,10 +164,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
 
-            // Get data
             *buf = GetDAT();
 
-            // Clear the REQ signal
             SetREQ(OFF);
 
             // Check for timeout waiting for ACK signal
@@ -185,7 +173,6 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
                 break;
             }
 
-            // Wait for ACK to clear
             ret = WaitACK(OFF);
 
             // Check for timeout waiting for ACK to clear
@@ -222,16 +209,13 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
             // Wait until the signal line stabilizes
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
-            // Get data
+
             *buf = GetDAT();
 
-            // Assert the ACK signal
             SetACK(ON);
 
-            // Wait for REQ to clear
             ret = WaitREQ(OFF);
 
-            // Clear the ACK signal
             SetACK(OFF);
 
             // Check for timeout waiting for REQ to clear
@@ -273,10 +257,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
                  SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
-            // Set the DATA signals
             SetDAT(*buf);
 
-            // Wait for ACK to clear
             bool ret = WaitACK(OFF);
 
             // Check for timeout waiting for ACK to clear
@@ -284,13 +266,10 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
                 break;
             }
 
-            // Assert the REQ signal
             SetREQ(ON);
 
-            // Wait for ACK
             ret = WaitACK(ON);
 
-            // Clear REQ signal
             SetREQ(OFF);
 
             // Check for timeout waiting for ACK to clear
@@ -301,7 +280,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
             buf++;
         }
 
-        // Wait for ACK to clear
         WaitACK(OFF);
     } else {
         Acquire();
@@ -333,13 +311,10 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
             }
 #endif
 
-            // Assert the ACK signal
             SetACK(ON);
 
-            // Wait for REQ to clear
             ret = WaitREQ(OFF);
 
-            // Clear the ACK signal
             SetACK(OFF);
 
             // Check for timeout waiting for REQ to clear
