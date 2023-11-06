@@ -38,13 +38,13 @@ bool InProcessBus::WaitSignal(int pin, bool state)
 	const auto now = chrono::steady_clock::now();
 
     do {
-        if (signals[PIN_RST]) {
-            return false;
-        }
-
         if (signals[pin] == state) {
             return true;
         }
+
+        if (signals[PIN_RST]) {
+        	return false;
+         }
     } while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);
 
     return false;
@@ -54,7 +54,13 @@ bool InProcessBus::WaitForSelectEvent()
 {
 	if (!signals[PIN_SEL]) {
 		unique_lock sel_lock(sel_mutex);
-		sel_condition.wait(sel_lock, [] { return true; } );
+
+		// Use wait_for as guard against the C++ spurious wakeup issue
+		while (sel_condition.wait_for(sel_lock, chrono::seconds(1)) == cv_status::timeout) {
+			if (signals[PIN_SEL]) {
+				break;
+			}
+		}
 	}
 
 	return true;
