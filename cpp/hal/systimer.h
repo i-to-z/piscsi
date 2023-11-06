@@ -20,13 +20,14 @@
 
 class PlatformSpecificTimer
 {
-  public:
-    // Default constructor
+
+public:
+
     PlatformSpecificTimer() = default;
-    // Default destructor
     virtual ~PlatformSpecificTimer() = default;
-    // Initialization
+
     virtual void Init() = 0;
+
     // Get system timer low byte
     virtual uint32_t GetTimerLow() = 0;
     // Get system timer high byte
@@ -37,15 +38,12 @@ class PlatformSpecificTimer
     virtual void SleepUsec(uint32_t usec) = 0;
 };
 
-//===========================================================================
-//
-//	System timer
-//
-//===========================================================================
 class SysTimer
 {
-  public:
-    static void Init();
+
+public:
+
+	static void Init();
     // Get system timer low byte
     static uint32_t GetTimerLow();
     // Get system timer high byte
@@ -55,9 +53,9 @@ class SysTimer
     // Sleep for N microseconds
     static void SleepUsec(uint32_t usec);
 
-  private:
+private:
+
     static bool initialized;
-    static bool is_allwinnner;
     static bool is_raspberry;
 
     static std::unique_ptr<PlatformSpecificTimer> systimer_ptr;
