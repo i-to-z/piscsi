@@ -18,23 +18,16 @@
 #include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
 
-bool SysTimer::initialized = false;
-bool SysTimer::is_raspberry = false;
-
 using namespace std;
 
 unique_ptr<PlatformSpecificTimer> SysTimer::systimer_ptr;
 
 void SysTimer::Init()
 {
-    if (!initialized) {
-        if (SBC_Version::IsRaspberryPi()) {
-            systimer_ptr = make_unique<SysTimer_Raspberry>();
-            is_raspberry = true;
-        }
-        systimer_ptr->Init();
-        initialized = true;
-    }
+	if (SBC_Version::IsRaspberryPi()) {
+		systimer_ptr = make_unique<SysTimer_Raspberry>();
+	}
+	systimer_ptr->Init();
 }
 
 // Get system timer low byte

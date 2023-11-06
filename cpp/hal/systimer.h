@@ -53,8 +53,5 @@ public:
 
 private:
 
-    static bool initialized;
-    static bool is_raspberry;
-
     static std::unique_ptr<PlatformSpecificTimer> systimer_ptr;
 };
