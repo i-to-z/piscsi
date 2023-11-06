@@ -193,7 +193,6 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
                 break;
             }
 
-            // Advance the buffer pointer to receive the next byte
             buf++;
         }
     } else {
@@ -246,7 +245,6 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
                 break;
             }
 
-            // Advance the buffer pointer to receive the next byte
             buf++;
         }
     }
@@ -286,8 +284,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
                 break;
             }
 
-            // Already waiting for ACK to clear
-
             // Assert the REQ signal
             SetREQ(ON);
 
@@ -302,7 +298,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
                 break;
             }
 
-            // Advance the data buffer pointer to receive the next byte
             buf++;
         }
 
@@ -338,8 +333,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
             }
 #endif
 
-            // Already waiting for REQ assertion
-
             // Assert the ACK signal
             SetACK(ON);
 
@@ -360,7 +353,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
                 break;
             }
 
-            // Advance the data buffer pointer to receive the next byte
             buf++;
         }
     }
