@@ -109,7 +109,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
         SetREQ(true);
 
-        const bool ret = WaitACK(true);
+        ret = WaitACK(true);
 
 #ifndef NO_DELAY
         // Wait until the signal line stabilizes
