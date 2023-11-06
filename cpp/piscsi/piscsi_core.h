@@ -44,6 +44,7 @@ private:
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
 	string ParseArguments(span<char *>, PbCommand&, int&, string&);
+	void SetUpEnvironment();
 	void ProcessScsiCommands();
 	bool WaitForNotBusy() const;
 	bool WaitForSelection();

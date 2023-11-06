@@ -539,6 +539,17 @@ int Piscsi::run(span<char *> args, BUS::mode_e mode)
     	cout << "Note: No PiSCSI hardware support, only client interface calls are supported\n" << flush;
     }
 
+    SetUpEnvironment();
+
+    service.Start();
+
+	ProcessScsiCommands();
+
+	return EXIT_SUCCESS;
+}
+
+void Piscsi::SetUpEnvironment()
+{
 	instance = this;
 	// Signal handler to detach all devices on a KILL or TERM signal
 	struct sigaction termination_handler;
@@ -557,12 +568,6 @@ int Piscsi::run(span<char *> args, BUS::mode_e mode)
 	sched_param schparam;
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
-
-	service.Start();
-
-	ProcessScsiCommands();
-
-	return EXIT_SUCCESS;
 }
 
 void Piscsi::ProcessScsiCommands()
