@@ -797,7 +797,7 @@ void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
     } else {
         gpio[GPIO_CLR_0] = 0x1 << pin;
     }
-#endif // SIGNAL_CONTROL_MODE
+#endif
 }
 
 void GPIOBUS_Raspberry::DisableIRQ()
@@ -817,9 +817,6 @@ void GPIOBUS_Raspberry::DisableIRQ()
         irptenb = irpctl[IRPT_ENB_IRQ_1];
         irpctl[IRPT_DIS_IRQ_1] = irptenb & 0xf;
     }
-#else
-    (void)0;
-#endif
 }
 
 void GPIOBUS_Raspberry::EnableIRQ()

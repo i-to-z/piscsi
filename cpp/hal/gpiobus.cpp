@@ -412,12 +412,10 @@ bool GPIOBUS::WaitSignal(int pin, bool ast)
             return true;
         }
 
-        #ifndef NO_DELAY
         // Abort on a reset
         if (GetRST()) {
             return false;
         }
-#endif
     } while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);
 
     return false;
