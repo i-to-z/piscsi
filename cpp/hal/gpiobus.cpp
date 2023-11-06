@@ -47,14 +47,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
     SetREQ(false);
 
-    // Timeout waiting for ACK assertion
-    if (!ret) {
-        EnableIRQ();
-        return 0;
-    }
-
-    // Timeout waiting for ACK to clear
-    if (!WaitACK(false)) {
+    // Timeout waiting for ACK to change
+    if (!ret || !WaitACK(false)) {
         EnableIRQ();
         return 0;
     }
@@ -82,12 +76,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
         SetREQ(false);
 
-        if (!ret) {
-            EnableIRQ();
-            return 0;
-        }
-
-        if (!WaitACK(false)) {
+        // Timeout waiting for ACK to change
+        if (!ret || !WaitACK(false)) {
             EnableIRQ();
             return 0;
         }
@@ -120,13 +110,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
         SetREQ(false);
 
-        // Check for timeout waiting for ACK assertion
-        if (!ret) {
-            break;
-        }
-
-        // Check for timeout waiting for ACK to clear
-        if (!WaitACK(false)) {
+        // Timeout waiting for ACK to change
+        if (!ret || !WaitACK(false)) {
             break;
         }
     }
@@ -162,13 +147,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 
             SetREQ(false);
 
-            // Check for timeout waiting for ACK signal
-            if (!ret) {
-                break;
-            }
-
-            // Check for timeout waiting for ACK to clear
-            if (!WaitACK(false)) {
+            // Timeout waiting for ACK to change
+            if (!ret || !WaitACK(false)) {
                 break;
             }
 
