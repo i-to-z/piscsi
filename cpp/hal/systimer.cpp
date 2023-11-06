@@ -23,26 +23,26 @@ using namespace std;
 
 SysTimer::SysTimer()
 {
-    const int mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
-    if (mem_fd == -1) {
+    const int fd = open("/dev/mem", O_RDWR | O_SYNC);
+    if (fd == -1) {
         spdlog::error("Error: Unable to open /dev/mem. Are you running as root?");
         return;
     }
 
-    // Map peripheral region memory
-    void *map = mmap(nullptr, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, SBC_Version::GetPeripheralAddress());
+    // Map peripheral region memory with the system timer addresses
+    void *map = mmap(nullptr, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, SBC_Version::GetPeripheralAddress());
     if (map == MAP_FAILED) {
         spdlog::error("Error: Unable to map memory");
-        close(mem_fd);
+        close(fd);
         return;
     }
-    close(mem_fd);
+    close(fd);
 
     // Save the base address
     systaddr = (uint32_t *)map + SYST_OFFSET / sizeof(uint32_t);
 
     // Change the ARM timer to free run mode
-    uint32_t *armtaddr = (uint32_t *)map + ARMT_OFFSET / sizeof(uint32_t);
+    auto armtaddr = static_cast<uint32_t *>(map) + ARMT_OFFSET / sizeof(uint32_t);
     armtaddr[ARMT_CTRL] = 0x00000282;
 
     // RPI Mailbox property interface
@@ -56,7 +56,7 @@ SysTimer::SysTimer()
     //
     // Clock id
     //  0x000000004: CORE
-    const array<uint32_t, 32> maxclock = {32, 0, 0x00030004, 8, 0, 4, 0, 0};
+    const array<uint32_t, 32> maxclock = { 32, 0, 0x00030004, 8, 0, 4, 0, 0 };
 
     // Get the core frequency
     if (const int vcio_fd = open("/dev/vcio", O_RDONLY); vcio_fd >= 0) {
