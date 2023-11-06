@@ -198,10 +198,6 @@ protected:
     int epfd = 0;
 #endif
 
-    // Lazily instantiated if needed
-    // TODO Check why in_process_test on a PC crashes at the end when this is a unique_ptr
-    shared_ptr<SysTimer> sys_timer_daynaport;
-
 private:
 
     mode_e operation_mode = mode_e::TARGET;
@@ -210,5 +206,5 @@ private:
     // a packet. This is the number of uS that will be delayed between the
     // header and the actual data.
     // TODO Should be verified
-    inline const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_US = 100;
+    inline const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_NS = 100'000;
 };

@@ -18,7 +18,6 @@
 #include <spdlog/spdlog.h>
 #include "hal/gpiobus_raspberry.h"
 #include "hal/gpiobus.h"
-#include "hal/systimer.h"
 #include <map>
 #include <cstring>
 #ifdef USE_SEL_EVENT_ENABLE
@@ -871,13 +870,14 @@ void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
         bits |= (pull << shift);
         gpio[GPIO_PUPPDN0 + (pin >> 4)] = bits;
     } else {
-    	SysTimer sys_timer;
+    	// 2 us
+		const timespec ts = {.tv_sec = 0, .tv_nsec = 2'000};
 
     	pin &= 0x1f;
         gpio[GPIO_PUD] = mode & 0x3;
-        sys_timer.SleepUsec(2);
+        nanosleep(&ts, nullptr);
         gpio[GPIO_CLK_0] = 0x1 << pin;
-        sys_timer.SleepUsec(2);
+        nanosleep(&ts, nullptr);
         gpio[GPIO_PUD] = 0;
         gpio[GPIO_CLK_0] = 0;
     }

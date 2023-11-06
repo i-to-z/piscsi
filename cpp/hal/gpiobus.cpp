@@ -202,10 +202,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
         for (bytes_sent = 0; bytes_sent < count; bytes_sent++) {
            	// TODO Try to get rid of this
         	if (bytes_sent == daynaport_delay_after_bytes) {
-        		if (!sys_timer_daynaport) {
-        			sys_timer_daynaport = make_shared<SysTimer>();
-        		}
-				sys_timer_daynaport->SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
+        		const timespec ts = {.tv_sec = 0, .tv_nsec = SCSI_DELAY_SEND_DATA_DAYNAPORT_NS};
+        		nanosleep(&ts, nullptr);
             }
 
             SetDAT(*buf);
