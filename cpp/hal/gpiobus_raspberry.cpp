@@ -396,7 +396,7 @@ void GPIOBUS_Raspberry::SetBSY(bool ast)
     if (IsTarget()) {
         if (ast) {
             // Turn on ACTIVE signal
-            SetControl(PIN_ACT, ACT_ON);
+            SetControl(PIN_ACT, true);
 
             // Set Target signal to output
             SetControl(PIN_TAD, TAD_OUT);
@@ -408,7 +408,7 @@ void GPIOBUS_Raspberry::SetBSY(bool ast)
             SetMode(PIN_IO, OUT);
         } else {
             // Turn off the ACTIVE signal
-            SetControl(PIN_ACT, ACT_OFF);
+            SetControl(PIN_ACT, false);
 
             // Set the target signal to input
             SetControl(PIN_TAD, TAD_IN);
@@ -430,7 +430,7 @@ bool GPIOBUS_Raspberry::GetSEL() const
 void GPIOBUS_Raspberry::SetSEL(bool ast)
 {
     if (!IsTarget() && ast) {
-        SetControl(PIN_ACT, ACT_ON);
+        SetControl(PIN_ACT, true);
     }
 
     SetSignal(PIN_SEL, ast);
