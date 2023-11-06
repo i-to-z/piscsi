@@ -21,6 +21,8 @@ using namespace std;
 class ScsiMon
 {
   public:
+    ScsiMon()  = default;
+    ~ScsiMon() = default;
 
     int run(const vector<char *> &);
 

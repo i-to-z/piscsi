@@ -53,6 +53,9 @@ class GPIOBUS_Raspberry : public GPIOBUS
 
 public:
 
+	GPIOBUS_Raspberry() = default;
+    ~GPIOBUS_Raspberry() override = default;
+
     bool Init(mode_e mode = mode_e::TARGET) override;
 
     void Reset() override;

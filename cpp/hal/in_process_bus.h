@@ -21,6 +21,9 @@ class InProcessBus : public GPIOBUS
 
 public:
 
+	InProcessBus() = default;
+	~InProcessBus() override = default;
+
     void Reset() override;
 
     void Cleanup() override {
