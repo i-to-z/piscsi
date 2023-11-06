@@ -114,7 +114,6 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 
     // System timer
     sys_timer = make_unique<SysTimer>();
-    sys_timer.Init();
 
     // Interrupt controller
     irpctl = (uint32_t *)map;
