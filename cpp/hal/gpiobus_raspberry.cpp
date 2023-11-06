@@ -271,7 +271,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 #endif // ifdef __x86_64__ || __X86__
 }
 
-void GPIOBUS_Raspberry::Cleanup()
+void GPIOBUS_Raspberry::CleanUp()
 {
 #if defined(__x86_64__) || defined(__X86__)
     return;

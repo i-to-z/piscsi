@@ -118,7 +118,7 @@ ScsiLoop_GPIO::ScsiLoop_GPIO()
 
 void ScsiLoop_GPIO::Cleanup()
 {
-    bus->Cleanup();
+    bus->CleanUp();
 }
 
 // Set transceivers IC1 and IC2 to OUTPUT

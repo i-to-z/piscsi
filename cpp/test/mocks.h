@@ -29,7 +29,7 @@ public:
 
 	MOCK_METHOD(bool, Init, (mode_e), (override));
 	MOCK_METHOD(void, Reset, (), (override));
-	MOCK_METHOD(void, Cleanup, (), (override));
+	MOCK_METHOD(void, CleanUp, (), (override));
 	MOCK_METHOD(bool, GetBSY, (), (const override));
 	MOCK_METHOD(void, SetBSY, (bool), (override));
 	MOCK_METHOD(bool, GetSEL, (), (const override));

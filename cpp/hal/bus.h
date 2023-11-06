@@ -56,7 +56,7 @@ public:
 
     virtual bool Init(mode_e) = 0;
     virtual void Reset() = 0;
-    virtual void Cleanup() = 0;
+    virtual void CleanUp() = 0;
     phase_t GetPhase();
 
     static phase_t GetPhase(int mci)

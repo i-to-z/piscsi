@@ -35,7 +35,7 @@ class GPIOBUS_Virtual final : public GPIOBUS
     // // Initialization
     void Reset() override;
     // Reset
-    void Cleanup() override;
+    void CleanUp() override;
     // Cleanup
 
     //---------------------------------------------------------------------------

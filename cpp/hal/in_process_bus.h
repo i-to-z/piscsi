@@ -26,7 +26,7 @@ public:
 
     void Reset() override;
 
-    void Cleanup() override {
+    void CleanUp() override {
     	// Nothing to do
     }
 
@@ -102,7 +102,7 @@ public:
 
     void Reset() override;
 
-    void Cleanup() override { bus.Cleanup(); }
+    void CleanUp() override { bus.CleanUp(); }
 
     uint32_t Acquire() override { return bus.Acquire(); }
 

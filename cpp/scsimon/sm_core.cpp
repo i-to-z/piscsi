@@ -136,7 +136,7 @@ void ScsiMon::Cleanup() const
     spdlog::info("Generating " + html_file_name + "...");
     scsimon_generate_html(html_file_name, data_buffer);
 
-    bus->Cleanup();
+    bus->CleanUp();
 }
 
 void ScsiMon::Reset() const

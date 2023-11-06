@@ -59,7 +59,7 @@ public:
     bool Init(mode_e mode = mode_e::TARGET) override;
 
     void Reset() override;
-    void Cleanup() override;
+    void CleanUp() override;
 
     //	Bus signal acquisition
     uint32_t Acquire() override;

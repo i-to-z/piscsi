@@ -33,7 +33,7 @@ using namespace piscsi_util;
 void ScsiDump::CleanUp() const
 {
     if (bus != nullptr) {
-        bus->Cleanup();
+        bus->CleanUp();
     }
 }
 

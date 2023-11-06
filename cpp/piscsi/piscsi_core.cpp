@@ -82,7 +82,7 @@ void Piscsi::CleanUp()
 
 	executor->DetachAll();
 
-	bus->Cleanup();
+	bus->CleanUp();
 }
 
 void Piscsi::ReadAccessToken(const path& filename)

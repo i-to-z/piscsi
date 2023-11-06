@@ -60,7 +60,7 @@ bool GPIOBUS_Virtual::Init(mode_e mode)
     return true;
 }
 
-void GPIOBUS_Virtual::Cleanup()
+void GPIOBUS_Virtual::CleanUp()
 {
     // Set control signals
     PinSetSignal(PIN_ENB, OFF);

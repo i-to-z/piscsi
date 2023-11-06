@@ -51,7 +51,7 @@ bool InProcessBus::WaitForSelectEvent()
 	const timespec ts = { .tv_sec = 0, .tv_nsec = 1'000'000 };
 	nanosleep(&ts, nullptr);
 
-	return signals[PIN_SEL];
+	return true;
 }
 
 void DelegatingInProcessBus::Reset()
