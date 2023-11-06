@@ -143,12 +143,12 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 //---------------------------------------------------------------------------
 int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 {
-	int i;
+	int bytes_received;
 
     DisableIRQ();
 
     if (IsTarget()) {
-        for (i = 0; i < count; i++) {
+        for (bytes_received = 0; bytes_received < count; bytes_received++) {
             SetREQ(true);
 
             const bool ret = WaitACK(true);
@@ -178,7 +178,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
         Acquire();
         const phase_t phase = GetPhase();
 
-        for (i = 0; i < count; i++) {
+        for (bytes_received = 0; bytes_received < count; bytes_received++) {
             // Check for timeout waiting for REQ signal
             if (!WaitREQ(true)) {
                 break;
@@ -223,8 +223,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 
     EnableIRQ();
 
-    // Return the number of bytes received
-    return i;
+    return bytes_received;
 }
 
 //---------------------------------------------------------------------------
@@ -234,14 +233,14 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 //---------------------------------------------------------------------------
 int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_bytes)
 {
-	int i;
+	int bytes_sent;
 
     DisableIRQ();
 
     if (IsTarget()) {
-        for (i = 0; i < count; i++) {
+        for (bytes_sent = 0; bytes_sent < count; bytes_sent++) {
            	// TODO Try to get rid of this
-        	if (i == daynaport_delay_after_bytes) {
+        	if (bytes_sent == daynaport_delay_after_bytes) {
                  SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
@@ -271,7 +270,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
         Acquire();
         const phase_t phase = GetPhase();
 
-        for (i = 0; i < count; i++) {
+        for (bytes_sent = 0; bytes_sent < count; bytes_sent++) {
             // Set the DATA signals
             SetDAT(*buf);
 
@@ -281,7 +280,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
             }
 
            	// Signal the last MESSAGE OUT byte
-            if (phase == phase_t::msgout && i == count - 1) {
+            if (phase == phase_t::msgout && bytes_sent == count - 1) {
             	SetATN(false);
             }
 
@@ -317,8 +316,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
 
     EnableIRQ();
 
-    // Return number of transmissions
-    return i;
+    return bytes_sent;
 }
 
 bool GPIOBUS::WaitForSelectEvent()
