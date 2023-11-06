@@ -23,6 +23,9 @@ class PiscsiService
 
 public:
 
+	PiscsiService() = default;
+	~PiscsiService() = default;
+
 	string Init(const callback&, int);
 	void Start();
 	void Stop();

@@ -24,8 +24,10 @@ class PrimaryDevice;
 
 class ControllerManager
 {
-
 public:
+
+	ControllerManager() = default;
+	~ControllerManager() = default;
 
 	bool AttachToController(BUS&, int, shared_ptr<PrimaryDevice>);
 	bool DeleteController(const AbstractController&);

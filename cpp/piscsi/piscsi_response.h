@@ -25,6 +25,9 @@ class PiscsiResponse
 {
 public:
 
+	PiscsiResponse() = default;
+	~PiscsiResponse() = default;
+
 	bool GetImageFile(PbImageFile&, const string&, const string&) const;
 	void GetImageFilesInfo(PbImageFilesInfo&, const string&, const string&, const string&, int) const;
 	void GetReservedIds(PbReservedIdsInfo&, const unordered_set<int>&) const;

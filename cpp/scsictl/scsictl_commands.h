@@ -19,7 +19,6 @@ struct sockaddr_in;
 
 class ScsictlCommands
 {
-
 public:
 
 	ScsictlCommands(PbCommand& command, const string& hostname, int port)
