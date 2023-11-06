@@ -12,7 +12,6 @@
 
 #include "shared/piscsi_exceptions.h"
 #include "hal/gpiobus.h"
-#include "hal/systimer.h"
 #include "controllers/controller_manager.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
