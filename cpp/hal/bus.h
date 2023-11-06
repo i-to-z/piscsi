@@ -13,6 +13,7 @@
 #include "hal/pin_control.h"
 #include "shared/config.h"
 #include "shared/scsi.h"
+#include <string>
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -21,13 +22,7 @@
 
 using namespace std;
 
-//---------------------------------------------------------------------------
-//
-//	Constant declarations (bus control timing)
-//
-//---------------------------------------------------------------------------
-// SCSI Bus timings taken from:
-//     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
+// SCSI Bus timings taken from https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
 const static int SCSI_DELAY_ARBITRATION_DELAY_NS         = 2400;
 const static int SCSI_DELAY_ASSERTION_PERIOD_NS          = 90;
 const static int SCSI_DELAY_BUS_CLEAR_DELAY_NS           = 800;
@@ -69,8 +64,7 @@ public:
         return phase_table[mci];
     }
 
-    // Get the string phase name, based upon the raw data
-    static const char *GetPhaseName(phase_t);
+    static string GetPhaseName(phase_t);
 
     virtual uint32_t Acquire() = 0;
     // TODO Try to remove
@@ -92,5 +86,5 @@ private:
 
     static const array<phase_t, 8> phase_table;
 
-    static const unordered_map<phase_t, const char *> phase_names;
+    static const unordered_map<phase_t, string> phase_names;
 };

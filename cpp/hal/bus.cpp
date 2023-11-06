@@ -42,7 +42,7 @@ phase_t BUS::GetPhase()
 	return GetPhase(mci);
 }
 
-const char* BUS::GetPhaseName(phase_t phase) {
+string BUS::GetPhaseName(phase_t phase) {
 	const auto& it = phase_names.find(phase);
 	return it != phase_names.end() ? it->second : "????";
 }
@@ -75,7 +75,7 @@ const array<phase_t, 8> BUS::phase_table = {
 	phase_t::msgin
 };
 
-const unordered_map<phase_t, const char*> BUS::phase_names = {
+const unordered_map<phase_t, string> BUS::phase_names = {
 	{ phase_t::busfree, "busfree" },
 	{ phase_t::arbitration, "arbitration" },
 	{ phase_t::selection, "selection" },
