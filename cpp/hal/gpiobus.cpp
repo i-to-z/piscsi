@@ -167,6 +167,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 // Assumption: Phase does not change here, but only below
 #ifndef NO_DELAY
             // Phase error
+            Acquire();
             if (GetPhase() != phase) {
                 break;
             }
@@ -266,6 +267,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
 // Assumption: Phase does not change here, but only below
 #ifndef NO_DELAY
             // Phase error
+            Acquire();
             if (GetPhase() != phase) {
                 break;
             }

@@ -27,8 +27,6 @@ int BUS::GetCommandByteCount(uint8_t opcode)
 
 phase_t BUS::GetPhase()
 {
-	Acquire();
-
 	if (GetSEL()) {
 		return phase_t::selection;
 	}
