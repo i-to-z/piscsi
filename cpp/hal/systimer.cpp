@@ -11,26 +11,76 @@
 //
 //---------------------------------------------------------------------------
 
-// TODO Fix the timer implementations, do not use static fields
-
-#include "hal/systimer_raspberry.h"
+#include "hal/systimer.h"
+#include "hal/gpiobus.h"
+#include "hal/sbc_version.h"
+#include <spdlog/spdlog.h>
+#include <memory>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
 
 using namespace std;
 
-unique_ptr<PlatformSpecificTimer> SysTimer::systimer_ptr;
-
 void SysTimer::Init()
 {
-	systimer_ptr = make_unique<SysTimer_Raspberry>();
-	systimer_ptr->Init();
+    // Get the base address
+    const auto baseaddr = SBC_Version::GetPeripheralAddress();
+
+    // Open /dev/mem
+    const int mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
+    if (mem_fd == -1) {
+        spdlog::error("Error: Unable to open /dev/mem. Are you running as root?");
+        return;
+    }
+
+    // Map peripheral region memory
+    void *map = mmap(nullptr, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, baseaddr);
+    if (map == MAP_FAILED) {
+        spdlog::error("Error: Unable to map memory");
+        close(mem_fd);
+        return;
+    }
+    close(mem_fd);
+
+    // RPI Mailbox property interface
+    // Get max clock rate
+    //  Tag: 0x00030004
+    //
+    //  Request: Length: 4
+    //   Value: u32: clock id
+    //  Response: Length: 8
+    //   Value: u32: clock id, u32: rate (in Hz)
+    //
+    // Clock id
+    //  0x000000004: CORE
+    const array<uint32_t, 32> maxclock = {32, 0, 0x00030004, 8, 0, 4, 0, 0};
+
+    // Save the base address
+    systaddr = (uint32_t *)map + SYST_OFFSET / sizeof(uint32_t);
+    armtaddr = (uint32_t *)map + ARMT_OFFSET / sizeof(uint32_t);
+
+    // Change the ARM timer to free run mode
+    armtaddr[ARMT_CTRL] = 0x00000282;
+
+    // Get the core frequency
+    if (int vcio_fd = open("/dev/vcio", O_RDONLY); vcio_fd >= 0) {
+        ioctl(vcio_fd, _IOWR(100, 0, char *), maxclock.data());
+        close(vcio_fd);
+    }
 }
 
 uint32_t SysTimer::GetTimerLow()
 {
-    return systimer_ptr->GetTimerLow();
+    return systaddr[SYST_CLO];
 }
 
 void SysTimer::SleepUsec(uint32_t usec)
 {
-    systimer_ptr->SleepUsec(usec);
+    // If time is 0, don't do anything
+    if (usec) {
+    	const uint32_t now = GetTimerLow();
+    	while ((GetTimerLow() - now) < usec) {
+    		// Do nothing
+    	}
+	}
 }
