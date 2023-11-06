@@ -103,8 +103,6 @@ public:
 	DelegatingInProcessBus(InProcessBus& b, bool l) : bus(b), log_signals(l) {}
     ~DelegatingInProcessBus() override = default;
 
-    bool Init(mode_e) override;
-
     void Reset() override;
 
     void Cleanup() override { bus.Cleanup(); }
@@ -121,8 +119,6 @@ public:
     bool GetSignal(int) const override;
     void SetSignal(int, bool) override;
     bool WaitSignal(int, bool) override;
-
-    bool IsTarget() const override { return in_process_mode == mode_e::TARGET; }
 
 private:
 

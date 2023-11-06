@@ -60,13 +60,6 @@ bool InProcessBus::WaitForSelectEvent()
 	return true;
 }
 
-bool DelegatingInProcessBus::Init(mode_e mode)
-{
-	in_process_mode = mode;
-
-	return bus.Init(mode);
-}
-
 void DelegatingInProcessBus::Reset()
 {
 	spdlog::trace(GetMode() + ": Resetting bus");
