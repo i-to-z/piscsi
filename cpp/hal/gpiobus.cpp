@@ -175,9 +175,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
             buf++;
         }
     } else {
-        // Get phase
         Acquire();
-        phase_t phase = GetPhase();
+        const phase_t phase = GetPhase();
 
         for (i = 0; i < count; i++) {
             // Check for timeout waiting for REQ signal
@@ -270,7 +269,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
         WaitACK(false);
     } else {
         Acquire();
-        phase_t phase = GetPhase();
+        const phase_t phase = GetPhase();
 
         for (i = 0; i < count; i++) {
             // Set the DATA signals
