@@ -59,7 +59,7 @@ private:
 
     static const map<std::string, sbc_version_type, less<>> proc_device_tree_mapping;
 
-    static const string m_device_tree_model_path;
+    static const string DEVICE_TREE_MODEL_PATH;
 
     static uint32_t GetDeviceTreeRanges(const char *filename, uint32_t offset);
 };

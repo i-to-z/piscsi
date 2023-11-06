@@ -40,7 +40,7 @@ const map<string, SBC_Version::sbc_version_type, less<>> SBC_Version::proc_devic
     {"Raspberry Pi Zero", sbc_version_type::sbc_raspberry_pi_1}
 };
 
-const string SBC_Version::m_device_tree_model_path = "/proc/device-tree/model";
+const string SBC_Version::DEVICE_TREE_MODEL_PATH = "/proc/device-tree/model";
 
 //---------------------------------------------------------------------------
 //
@@ -74,10 +74,10 @@ SBC_Version::sbc_version_type SBC_Version::GetSbcVersion()
 //---------------------------------------------------------------------------
 void SBC_Version::Init()
 {
-    ifstream input_stream(m_device_tree_model_path);
+    ifstream input_stream(DEVICE_TREE_MODEL_PATH);
 
     if (input_stream.fail()) {
-    	spdlog::trace("Failed to open " + m_device_tree_model_path + ": This may not be a Raspberry Pi");
+    	spdlog::trace("Failed to open " + DEVICE_TREE_MODEL_PATH + ": This may not be a Raspberry Pi");
     	sbc_version = sbc_version_type::sbc_unknown;
     	spdlog::info("Detected " + GetAsString());
         return;
@@ -96,7 +96,7 @@ void SBC_Version::Init()
     }
 
     sbc_version = sbc_version_type::sbc_raspberry_pi_4;
-    spdlog::error("Unable to determine single board computer type. Defaulting to Raspberry Pi 4");
+    spdlog::error("Unable to determine Raspberry Pi model. Defaulting to Raspberry Pi 4");
 }
 
 bool SBC_Version::IsRaspberryPi()
