@@ -43,7 +43,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
     SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
 
-    // Get data
     buf[0] = GetDAT();
 
     SetREQ(OFF);
@@ -54,10 +53,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
         return 0;
     }
 
-    ret = WaitACK(OFF);
-
     // Timeout waiting for ACK to clear
-    if (!ret) {
+    if (!WaitACK(OFF)) {
         EnableIRQ();
         return 0;
     }
@@ -79,6 +76,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 #ifndef NO_DELAY
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 #endif
+
         // Get the actual SCSI command
         buf[0] = GetDAT();
 
@@ -89,9 +87,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
             return 0;
         }
 
-        WaitACK(OFF);
-
-        if (!ret) {
+        if (!WaitACK(OFF)) {
             EnableIRQ();
             return 0;
         }
@@ -113,7 +109,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
         SetREQ(ON);
 
-        ret = WaitACK(ON);
+        const bool ret = WaitACK(ON);
 
 #ifndef NO_DELAY
         // Wait until the signal line stabilizes
@@ -129,10 +125,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
             break;
         }
 
-        ret = WaitACK(OFF);
-
         // Check for timeout waiting for ACK to clear
-        if (!ret) {
+        if (!WaitACK(OFF)) {
             break;
         }
     }
@@ -157,7 +151,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
         for (i = 0; i < count; i++) {
             SetREQ(ON);
 
-            bool ret = WaitACK(ON);
+            const bool ret = WaitACK(ON);
 
 #ifndef NO_DELAY
             // Wait until the signal line stabilizes
@@ -173,10 +167,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
                 break;
             }
 
-            ret = WaitACK(OFF);
-
             // Check for timeout waiting for ACK to clear
-            if (!ret) {
+            if (!WaitACK(OFF)) {
                 break;
             }
 
@@ -272,7 +264,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
 
             SetREQ(OFF);
 
-            // Check for timeout waiting for ACK to clear
+            // Check for timeout waiting for ACK signal
             if (!ret) {
                 break;
             }
