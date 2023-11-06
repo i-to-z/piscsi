@@ -14,7 +14,6 @@
 // TODO Fix the timer implementations, do not use static fields
 
 #include "hal/systimer_raspberry.h"
-#include "hal/sbc_version.h"
 
 using namespace std;
 
@@ -22,9 +21,7 @@ unique_ptr<PlatformSpecificTimer> SysTimer::systimer_ptr;
 
 void SysTimer::Init()
 {
-	if (SBC_Version::IsRaspberryPi()) {
-		systimer_ptr = make_unique<SysTimer_Raspberry>();
-	}
+	systimer_ptr = make_unique<SysTimer_Raspberry>();
 	systimer_ptr->Init();
 }
 
