@@ -16,8 +16,6 @@
 #include <memory>
 #include <stdint.h>
 
-#include "shared/scsi.h"
-
 class PlatformSpecificTimer
 {
 
