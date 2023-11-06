@@ -28,8 +28,6 @@ public:
 
     // Get system timer low byte
     virtual uint32_t GetTimerLow() = 0;
-    // Get system timer high byte
-    virtual uint32_t GetTimerHigh() = 0;
     // Sleep for N microseconds
     virtual void SleepUsec(uint32_t usec) = 0;
 };
@@ -42,8 +40,6 @@ public:
 	static void Init();
     // Get system timer low byte
     static uint32_t GetTimerLow();
-    // Get system timer high byte
-    static uint32_t GetTimerHigh();
     // Sleep for N microseconds
     static void SleepUsec(uint32_t usec);
 

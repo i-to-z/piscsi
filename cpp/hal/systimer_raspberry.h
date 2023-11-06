@@ -28,8 +28,6 @@ public:
 
     // Get system timer low byte
     uint32_t GetTimerLow() override;
-    // Get system timer high byte
-    uint32_t GetTimerHigh() override;
     // Sleep for N microseconds
     void SleepUsec(uint32_t usec) override;
 

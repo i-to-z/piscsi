@@ -31,11 +31,6 @@ uint32_t SysTimer::GetTimerLow()
     return systimer_ptr->GetTimerLow();
 }
 
-uint32_t SysTimer::GetTimerHigh()
-{
-    return systimer_ptr->GetTimerHigh();
-}
-
 void SysTimer::SleepUsec(uint32_t usec)
 {
     systimer_ptr->SleepUsec(usec);

@@ -80,11 +80,6 @@ uint32_t SysTimer_Raspberry::GetTimerLow()
     return systaddr[SYST_CLO];
 }
 
-uint32_t SysTimer_Raspberry::GetTimerHigh()
-{
-    return systaddr[SYST_CHI];
-}
-
 void SysTimer_Raspberry::SleepUsec(uint32_t usec)
 {
     // If time is 0, don't do anything
