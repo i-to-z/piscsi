@@ -25,16 +25,16 @@ SysTimer::SysTimer()
 {
     const int fd = open("/dev/mem", O_RDWR | O_SYNC);
     if (fd == -1) {
-        spdlog::error("Error: Unable to open /dev/mem. Are you running as root?");
-        return;
+        spdlog::error("Unable to open /dev/mem");
+        abort();
     }
 
     // Map peripheral region memory with the system timer addresses
     void *map = mmap(nullptr, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, SBC_Version::GetPeripheralAddress());
     if (map == MAP_FAILED) {
-        spdlog::error("Error: Unable to map memory");
+        spdlog::error("Unable to map memory");
         close(fd);
-        return;
+        abort();
     }
     close(fd);
 
