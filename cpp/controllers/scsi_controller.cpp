@@ -187,6 +187,7 @@ void ScsiController::Execute()
 	SetBlocks(1);
 
 #ifndef NO_DELAY
+	// TODO If it turns out that SysTimer is still needed this code has to be updated
 	execstart = SysTimer::GetTimerLow();
 #endif
 
