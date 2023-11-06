@@ -31,7 +31,6 @@ const string SBC_Version::str_unknown_sbc       = "unknown platform";
 //     "Raspberry Pi 4 Model B" will match with both of the following:
 //         - Raspberry Pi 4 Model B Rev 1.4
 //         - Raspberry Pi 4 Model B Rev 1.3
-// TODO Is there a better way to detect the Pi type than relying on strings?
 const map<string, SBC_Version::sbc_version_type, less<>> SBC_Version::proc_device_tree_mapping = {
     {"Raspberry Pi 1 Model ", sbc_version_type::sbc_raspberry_pi_1},
     {"Raspberry Pi 2 Model ", sbc_version_type::sbc_raspberry_pi_2_3},
