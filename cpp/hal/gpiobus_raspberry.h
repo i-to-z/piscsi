@@ -182,6 +182,9 @@ private:
     // GIC CPU interface register
     volatile uint32_t *gicc = nullptr;
 
+    // Lazily instantiated
+    unique_ptr<SysTimer> sys_timer;
+
     // RAM copy of GPFSEL0-4  values (GPIO Function Select)
     array<uint32_t, 4> gpfsel;
 

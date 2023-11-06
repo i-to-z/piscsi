@@ -113,6 +113,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     pads += PADS_OFFSET / sizeof(uint32_t);
 
     // System timer
+    sys_timer = make_unique<SysTimer>();
     sys_timer.Init();
 
     // Interrupt controller
@@ -874,13 +875,11 @@ void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
         bits |= (pull << shift);
         gpio[GPIO_PUPPDN0 + (pin >> 4)] = bits;
     } else {
-    	SysTimer sys_timer;
-
     	pin &= 0x1f;
         gpio[GPIO_PUD] = mode & 0x3;
-        sys_timer.SleepUsec(2);
+        sys_timer->SleepUsec(2);
         gpio[GPIO_CLK_0] = 0x1 << pin;
-        sys_timer.SleepUsec(2);
+        sys_timer->SleepUsec(2);
         gpio[GPIO_PUD] = 0;
         gpio[GPIO_CLK_0] = 0;
     }
