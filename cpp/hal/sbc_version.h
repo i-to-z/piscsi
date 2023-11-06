@@ -33,8 +33,8 @@ class SBC_Version
         sbc_raspberry_pi_4
     };
 
-    SBC_Version()  = delete;
-    ~SBC_Version() = delete;
+    SBC_Version()  = default;
+    ~SBC_Version() = default;
 
     static bool Init();
 

@@ -38,7 +38,6 @@ const map<string, SBC_Version::sbc_version_type, less<>> SBC_Version::proc_devic
     {"Raspberry Pi 3 Model ", sbc_version_type::sbc_raspberry_pi_2_3},
     {"Raspberry Pi 4 Model ", sbc_version_type::sbc_raspberry_pi_4},
     {"Raspberry Pi 400 ", sbc_version_type::sbc_raspberry_pi_4},
-    {"Raspberry Pi Zero W", sbc_version_type::sbc_raspberry_pi_1},
     {"Raspberry Pi Zero", sbc_version_type::sbc_raspberry_pi_1}
 };
 
