@@ -66,7 +66,7 @@ SysTimer::SysTimer()
 }
 
 // Timing is based on system timer low
-void SysTimer::SleepUsec(uint32_t usec)
+void SysTimer::SleepUsec(uint32_t usec) const
 {
     // If time is 0, don't do anything
     if (usec) {

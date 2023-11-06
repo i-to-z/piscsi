@@ -24,7 +24,7 @@ public:
 	SysTimer();
 	~SysTimer() = default;
 
-    void SleepUsec(uint32_t);
+    void SleepUsec(uint32_t) const;
 
 private:
 
