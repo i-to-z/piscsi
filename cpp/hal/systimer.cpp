@@ -63,7 +63,7 @@ void SysTimer::Init()
     armtaddr[ARMT_CTRL] = 0x00000282;
 
     // Get the core frequency
-    if (int vcio_fd = open("/dev/vcio", O_RDONLY); vcio_fd >= 0) {
+    if (const int vcio_fd = open("/dev/vcio", O_RDONLY); vcio_fd >= 0) {
         ioctl(vcio_fd, _IOWR(100, 0, char *), maxclock.data());
         close(vcio_fd);
     }
