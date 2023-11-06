@@ -67,7 +67,7 @@ void Piscsi::Banner(span<char *> args) const
 bool Piscsi::InitBus(bool in_process)
 {
 	bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET, in_process);
-	if (bus == nullptr) {
+	if (!bus) {
 		return false;
 	}
 
