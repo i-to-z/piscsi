@@ -238,7 +238,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
             SetREQ(false);
 
             // Check for timeout waiting for ACK signal
-            // TODO Do we have to reset REQ before checking this?
+            // TODO Do we have to reset REQ here and everywhere else before checking this?
             if (!ack) {
                 break;
             }
