@@ -92,7 +92,7 @@ private:
 
     atomic<uint8_t> dat = 0;
 
-    array<bool, 28> signals;
+    array<bool, 28> signals = {};
 };
 
 class DelegatingInProcessBus : public InProcessBus
