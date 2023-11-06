@@ -78,7 +78,7 @@ bool DelegatingInProcessBus::GetSignal(int pin) const
 {
 	const bool state = bus.GetSignal(pin);
 
-	if (log_signals && spdlog::get_level() == spdlog::level::trace) {
+	if (log_signals && pin != PIN_ACK && pin != PIN_REQ && spdlog::get_level() == spdlog::level::trace) {
 		spdlog::trace(GetMode() + ": Getting " + GetSignalName(pin) + (state ? ": true" : ": false"));
 	}
 
@@ -87,7 +87,7 @@ bool DelegatingInProcessBus::GetSignal(int pin) const
 
 void DelegatingInProcessBus::SetSignal(int pin, bool state)
 {
-	if (log_signals && spdlog::get_level() == spdlog::level::trace) {
+	if (log_signals && pin != PIN_ACK && pin != PIN_REQ && spdlog::get_level() == spdlog::level::trace) {
 		spdlog::trace(GetMode() + ": Setting " + GetSignalName(pin) + " to " + (state ? "true" : "false"));
 	}
 
@@ -96,7 +96,7 @@ void DelegatingInProcessBus::SetSignal(int pin, bool state)
 
 bool DelegatingInProcessBus::WaitSignal(int pin, bool state)
 {
-	if (log_signals && spdlog::get_level() == spdlog::level::trace) {
+	if (log_signals && pin != PIN_ACK && pin != PIN_REQ && spdlog::get_level() == spdlog::level::trace) {
 		spdlog::trace(GetMode() + ": Waiting for " + GetSignalName(pin) + " to become " + (state ? "true" : "false"));
 	}
 

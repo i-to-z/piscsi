@@ -282,7 +282,7 @@ void ScsiDump::ScanBus(ostream& console)
 
 bool ScsiDump::DisplayInquiry(ostream& console, bool check_type)
 {
-    console << DIVIDER << "\nTarget device is " << target_id << ":" << target_lun << "\n" << flush;
+    console << DIVIDER << "\nScanning target ID:LUN " << target_id << ":" << target_lun << "\n" << flush;
 
     inq_info = {};
 
