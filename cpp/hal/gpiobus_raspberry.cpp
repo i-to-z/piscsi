@@ -800,6 +800,7 @@ void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
 #endif
 }
 
+// TODO This could be faster. Use a function pointer based on the Pi type, which you determine only once
 void GPIOBUS_Raspberry::DisableIRQ()
 {
 #ifdef __linux__
