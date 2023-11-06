@@ -11,8 +11,6 @@
 
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include <sys/ioctl.h>
-#include <sys/mman.h>
 #include <sys/time.h>
 #ifdef __linux__
 #include <sys/epoll.h>
@@ -121,11 +119,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
     return bytes_received;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Handshake for DATA IN and MESSAGE IN
-//
-//---------------------------------------------------------------------------
+// Handshake for DATA IN and MESSAGE IN
 int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 {
 	int bytes_received;
@@ -198,11 +192,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
     return bytes_received;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Handshake for DATA OUT and MESSAGE OUT
-//
-//---------------------------------------------------------------------------
+// Handshake for DATA OUT and MESSAGE OUT
 int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_bytes)
 {
 	int bytes_sent;
