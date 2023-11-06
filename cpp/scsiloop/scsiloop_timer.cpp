@@ -66,26 +66,4 @@ int ScsiLoop_Timer::RunTimerTest(vector<string> &error_list)
     } else {
         ScsiLoop_Cout::PrintUpdate();
     }
-
-    //------------------------------------------------------
-    // Test SysTimer::SleepNsec()
-    LOGDEBUG("++ Testing SysTimer::SleepNsec()")
-
-    before = SysTimer::GetTimerLow();
-    SysTimer::SleepNsec(1000000);
-    after = SysTimer::GetTimerLow();
-    LOGDEBUG("SysTimer::SleepNSec: %d (expected ~1000)", (uint32_t)(after - before));
-
-    elapsed_nanosecs = after - before;
-    if ((elapsed_nanosecs > (1000 * (1.0 + timer_tolerance_percent))) ||
-        (elapsed_nanosecs < (1000 * (1.0 - timer_tolerance_percent)))) {
-        error_list.push_back(
-            fmt::format("SysTimer::SleepNsec Test: Expected time approx: 1000, but actually {}", elapsed_nanosecs));
-        timer_test_failures++;
-    } else {
-        ScsiLoop_Cout::PrintUpdate();
-    }
-
-    ScsiLoop_Cout::FinishTest("hardware timer", timer_test_failures);
-    return timer_test_failures;
 }

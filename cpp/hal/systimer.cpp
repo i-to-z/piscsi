@@ -36,11 +36,6 @@ uint32_t SysTimer::GetTimerHigh()
     return systimer_ptr->GetTimerHigh();
 }
 
-void SysTimer::SleepNsec(uint32_t nsec)
-{
-    systimer_ptr->SleepNsec(nsec);
-}
-
 void SysTimer::SleepUsec(uint32_t usec)
 {
     systimer_ptr->SleepUsec(usec);

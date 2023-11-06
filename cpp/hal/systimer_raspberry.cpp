@@ -28,11 +28,6 @@ volatile uint32_t SysTimer_Raspberry::corefreq  = 0;
 
 using namespace std;
 
-//---------------------------------------------------------------------------
-//
-//	Initialize the system timer
-//
-//---------------------------------------------------------------------------
 void SysTimer_Raspberry::Init()
 {
     // Get the base address
@@ -82,59 +77,16 @@ void SysTimer_Raspberry::Init()
     }
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get system timer low byte
-//
-//---------------------------------------------------------------------------
 uint32_t SysTimer_Raspberry::GetTimerLow()
 {
     return systaddr[SYST_CLO];
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get system timer high byte
-//
-//---------------------------------------------------------------------------
 uint32_t SysTimer_Raspberry::GetTimerHigh()
 {
     return systaddr[SYST_CHI];
 }
 
-//---------------------------------------------------------------------------
-//
-//	Sleep in nanoseconds
-//
-//---------------------------------------------------------------------------
-void SysTimer_Raspberry::SleepNsec(uint32_t nsec)
-{
-    // If time is 0, don't do anything
-    if (nsec == 0) {
-        return;
-    }
-
-    // Calculate the timer difference
-    const uint32_t diff = corefreq * nsec / 1000;
-
-    // Return if the difference in time is too small
-    if (diff == 0) {
-        return;
-    }
-
-    // Start
-    const uint32_t start = armtaddr[ARMT_FREERUN];
-
-    // Loop until timer has elapsed
-    while ((armtaddr[ARMT_FREERUN] - start) < diff)
-        ;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Sleep in microseconds
-//
-//---------------------------------------------------------------------------
 void SysTimer_Raspberry::SleepUsec(uint32_t usec)
 {
     // If time is 0, don't do anything
