@@ -18,10 +18,8 @@ using namespace piscsi_interface;
 
 class ScsiCtl
 {
-	public:
 
-	ScsiCtl() = default;
-	~ScsiCtl() = default;
+public:
 
 	int run(const vector<char *>&) const;
 

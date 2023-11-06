@@ -19,9 +19,6 @@ class ScsictlParser
 
 public:
 
-	ScsictlParser() = default;
-	~ScsictlParser() = default;
-
 	PbOperation ParseOperation(string_view) const;
 	PbDeviceType ParseType(const string&) const;
 

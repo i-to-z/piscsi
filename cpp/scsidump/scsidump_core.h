@@ -24,9 +24,6 @@ class ScsiDump
 
 public:
 
-    ScsiDump() = default;
-    ~ScsiDump() = default;
-
     int run(span<char *>, bool = false);
 
     struct inquiry_info {

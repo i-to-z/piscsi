@@ -17,10 +17,8 @@ using namespace piscsi_interface;
 
 class ScsictlDisplay
 {
-public:
 
-	ScsictlDisplay() = default;
-	~ScsictlDisplay() = default;
+public:
 
 	string DisplayDevicesInfo(const PbDevicesInfo&) const;
 	string DisplayDeviceInfo(const PbDevice&) const;
