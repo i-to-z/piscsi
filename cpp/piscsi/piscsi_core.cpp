@@ -80,7 +80,7 @@ void Piscsi::CleanUp()
 {
 	service.Stop();
 
-	// TODO This sometimes crashes on a regular PC due to an unknown race condition
+	// TODO When devices are attached this sometimes crashes on a regular PC due to an unknown race condition
 	executor->DetachAll();
 
 	bus->Cleanup();
