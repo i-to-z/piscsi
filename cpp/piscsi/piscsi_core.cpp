@@ -590,23 +590,23 @@ void Piscsi::ProcessScsiCommands()
 }
 
 // Shutdown on a remote interface command
-bool Piscsi::ShutDown(const CommandContext& context, const string& m) {
-	if (m.empty()) {
+bool Piscsi::ShutDown(const CommandContext& context, const string& mode) {
+	if (mode.empty()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
 	}
 
 	AbstractController::piscsi_shutdown_mode shutdown_mode = AbstractController::piscsi_shutdown_mode::NONE;
-	if (m == "rascsi") {
+	if (mode == "rascsi") {
 		shutdown_mode = AbstractController::piscsi_shutdown_mode::STOP_PISCSI;
 	}
-	else if (m == "system") {
+	else if (mode == "system") {
 		shutdown_mode = AbstractController::piscsi_shutdown_mode::STOP_PI;
 	}
-	else if (m == "reboot") {
+	else if (mode == "reboot") {
 		shutdown_mode = AbstractController::piscsi_shutdown_mode::RESTART_PI;
 	}
 	else {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID, m);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID, mode);
 	}
 
 	// Shutdown modes other than rascsi require root permissions
