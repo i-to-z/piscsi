@@ -30,7 +30,6 @@ SysTimer::SysTimer()
     }
 
     // Map peripheral region memory
-    // TODO What is this needed for?
     void *map = mmap(nullptr, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, SBC_Version::GetPeripheralAddress());
     if (map == MAP_FAILED) {
         spdlog::error("Error: Unable to map memory");
@@ -38,6 +37,13 @@ SysTimer::SysTimer()
         return;
     }
     close(mem_fd);
+
+    // Save the base address
+    systaddr = (uint32_t *)map + SYST_OFFSET / sizeof(uint32_t);
+
+    // Change the ARM timer to free run mode
+    uint32_t *armtaddr = (uint32_t *)map + ARMT_OFFSET / sizeof(uint32_t);
+    armtaddr[ARMT_CTRL] = 0x00000282;
 
     // RPI Mailbox property interface
     // Get max clock rate
@@ -51,13 +57,6 @@ SysTimer::SysTimer()
     // Clock id
     //  0x000000004: CORE
     const array<uint32_t, 32> maxclock = {32, 0, 0x00030004, 8, 0, 4, 0, 0};
-
-    // Save the base address
-    systaddr = (uint32_t *)map + SYST_OFFSET / sizeof(uint32_t);
-
-    // Change the ARM timer to free run mode
-    uint32_t *armtaddr = (uint32_t *)map + ARMT_OFFSET / sizeof(uint32_t);
-    armtaddr[ARMT_CTRL] = 0x00000282;
 
     // Get the core frequency
     if (const int vcio_fd = open("/dev/vcio", O_RDONLY); vcio_fd >= 0) {
