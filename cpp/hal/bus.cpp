@@ -22,7 +22,6 @@ using namespace scsi_defs;
 int BUS::GetCommandByteCount(uint8_t opcode)
 {
 	const auto& mapping = command_mapping.find(static_cast<scsi_command>(opcode));
-
 	return mapping != command_mapping.end() ? mapping->second.first : 0;
 }
 
@@ -44,8 +43,8 @@ phase_t BUS::GetPhase()
 }
 
 const char* BUS::GetPhaseName(phase_t phase) {
-	const auto& it = phase_str_mapping.find(phase);
-	return it != phase_str_mapping.end() ? it->second : "????";
+	const auto& it = phase_names.find(phase);
+	return it != phase_names.end() ? it->second : "????";
 }
 
 //---------------------------------------------------------------------------
@@ -76,12 +75,7 @@ const array<phase_t, 8> BUS::phase_table = {
 	phase_t::msgin
 };
 
-//---------------------------------------------------------------------------
-//
-// Phase string to phase mapping
-//
-//---------------------------------------------------------------------------
-const unordered_map<phase_t, const char*> BUS::phase_str_mapping = {
+const unordered_map<phase_t, const char*> BUS::phase_names = {
 	{ phase_t::busfree, "busfree" },
 	{ phase_t::arbitration, "arbitration" },
 	{ phase_t::selection, "selection" },
