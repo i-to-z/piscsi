@@ -52,6 +52,7 @@ bool SCSIDaynaPort::Init(const param_map& params)
 
 	// The Daynaport needs to have a delay after the size/flags field of the read response.
 	// In the MacOS driver, it looks like the driver is doing two "READ" system calls.
+	// TODO Verify this
 	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
 
 	tap_enabled = tap.Init(GetParams());
