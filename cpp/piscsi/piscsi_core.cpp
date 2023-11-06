@@ -551,6 +551,7 @@ int Piscsi::run(span<char *> args, BUS::mode_e mode)
 void Piscsi::SetUpEnvironment()
 {
 	instance = this;
+
 	// Signal handler to detach all devices on a KILL or TERM signal
 	struct sigaction termination_handler;
 	termination_handler.sa_handler = TerminationHandler;
