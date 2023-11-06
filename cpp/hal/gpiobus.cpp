@@ -36,7 +36,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
     SetREQ(true);
 
-    bool ret = WaitACK(true);
+    bool ack = WaitACK(true);
 
 #ifndef NO_DELAY
     // Wait until the signal line stabilizes
@@ -48,7 +48,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
     SetREQ(false);
 
     // Timeout waiting for ACK to change
-    if (!ret || !WaitACK(false)) {
+    if (!ack || !WaitACK(false)) {
         EnableIRQ();
         return 0;
     }
@@ -65,7 +65,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
     if (buf[0] == 0x1F) {
         SetREQ(true);
 
-        ret = WaitACK(true);
+        ack = WaitACK(true);
 
 #ifndef NO_DELAY
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -77,7 +77,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
         SetREQ(false);
 
         // Timeout waiting for ACK to change
-        if (!ret || !WaitACK(false)) {
+        if (!ack || !WaitACK(false)) {
             EnableIRQ();
             return 0;
         }
@@ -99,7 +99,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
         SetREQ(true);
 
-        ret = WaitACK(true);
+        ack = WaitACK(true);
 
 #ifndef NO_DELAY
         // Wait until the signal line stabilizes
@@ -111,7 +111,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
         SetREQ(false);
 
         // Timeout waiting for ACK to change
-        if (!ret || !WaitACK(false)) {
+        if (!ack || !WaitACK(false)) {
             break;
         }
     }
@@ -136,7 +136,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
         for (bytes_received = 0; bytes_received < count; bytes_received++) {
             SetREQ(true);
 
-            const bool ret = WaitACK(true);
+            const bool ack = WaitACK(true);
 
 #ifndef NO_DELAY
             // Wait until the signal line stabilizes
@@ -148,7 +148,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
             SetREQ(false);
 
             // Timeout waiting for ACK to change
-            if (!ret || !WaitACK(false)) {
+            if (!ack || !WaitACK(false)) {
                 break;
             }
 
@@ -182,12 +182,12 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 
             SetACK(true);
 
-            const bool ret = WaitREQ(false);
+            const bool req = WaitREQ(false);
 
             SetACK(false);
 
             // Check for timeout waiting for REQ to clear
-            if (!ret) {
+            if (!req) {
                 break;
             }
 
@@ -233,13 +233,13 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
 
             SetREQ(true);
 
-            const bool ret = WaitACK(true);
+            const bool ack = WaitACK(true);
 
             SetREQ(false);
 
             // Check for timeout waiting for ACK signal
             // TODO Do we have to reset REQ before checking this?
-            if (!ret) {
+            if (!ack) {
                 break;
             }
 
@@ -275,12 +275,12 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
 
             SetACK(true);
 
-            const bool ret = WaitREQ(false);
+            const bool req = WaitREQ(false);
 
             SetACK(false);
 
             // Check for timeout waiting for REQ to clear
-            if (!ret) {
+            if (!req) {
                 break;
             }
 
