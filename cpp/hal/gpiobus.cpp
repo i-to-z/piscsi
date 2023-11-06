@@ -270,10 +270,9 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 
     if (IsTarget()) {
         for (i = 0; i < count; i++) {
-            if (i == delay_after_bytes) {
-                spdlog::trace(fmt::format("Delaying for {0} uS after sending {1} byte(s)",
-                		SCSI_DELAY_SEND_DATA_DAYNAPORT_US, delay_after_bytes));
-                SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
+           	// TODO Try to get rid of this
+        	if (i == delay_after_bytes) {
+                 SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
             // Set the DATA signals

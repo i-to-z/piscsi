@@ -172,7 +172,7 @@ void PhaseExecutor::Command(scsi_command cmd, span<uint8_t> cdb) const
     }
 
     if (static_cast<int>(cdb.size()) !=
-        bus.SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
+        bus.SendHandShake(cdb.data(), static_cast<int>(cdb.size()))) {
 
         throw phase_exception(command_mapping.find(cmd)->second.second + string(" failed"));
     }
@@ -198,7 +198,7 @@ void PhaseExecutor::DataIn(span<uint8_t> buffer, int length)
 
 void PhaseExecutor::DataOut(span<uint8_t> buffer, int length)
 {
-    if (!bus.SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
+    if (!bus.SendHandShake(buffer.data(), length)) {
         throw phase_exception("DATA OUT failed");
     }
 }
@@ -223,7 +223,7 @@ void PhaseExecutor::MsgOut() const
 	// IDENTIFY
 	buf[0] = static_cast<uint8_t>(target_lun | 0x80);
 
-	if (bus.SendHandShake(buf.data(), buf.size(), BUS::SEND_NO_DELAY) != buf.size()) {
+	if (bus.SendHandShake(buf.data(), buf.size()) != buf.size()) {
         throw phase_exception("MESSAGE OUT failed");
     }
 }

@@ -167,7 +167,7 @@ public:
     // Data receive handshake
     int ReceiveHandShake(uint8_t *, int) override;
     // Data transmission handshake
-    int SendHandShake(uint8_t *, int, int) override;
+    int SendHandShake(uint8_t *, int, int = SEND_NO_DELAY) override;
 
     bool WaitForSelectEvent() override;
 

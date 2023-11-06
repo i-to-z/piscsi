@@ -71,7 +71,7 @@ public:
     virtual unique_ptr<DataSample> GetSample(uint64_t= 0) = 0;
     virtual int CommandHandShake(vector<uint8_t> &) = 0;
     virtual int ReceiveHandShake(uint8_t *buf, int) = 0;
-    virtual int SendHandShake(uint8_t *, int, int) = 0;
+    virtual int SendHandShake(uint8_t *, int, int = SEND_NO_DELAY) = 0;
 
     virtual bool WaitForSelectEvent() = 0;
 
