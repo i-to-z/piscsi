@@ -11,6 +11,7 @@
 #pragma once
 
 #include "hal/bus.h"
+#include "hal/systimer.h"
 #include "shared/scsi.h"
 #include <spdlog/spdlog.h>
 #include <memory>
@@ -196,6 +197,9 @@ protected:
     // epoll file descriptor
     int epfd = 0;
 #endif
+
+    // Lazily instated if needed
+    unique_ptr<SysTimer> sys_timer_daynaport;
 
 private:
 

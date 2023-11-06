@@ -14,7 +14,9 @@
 
 int ScsiLoop_Timer::RunTimerTest(vector<string> &error_list)
 {
-    uint32_t timer_test_failures = 0;
+	SysTimer sys_timer;
+
+	uint32_t timer_test_failures = 0;
 
     ScsiLoop_Cout::StartTest("hardware timer");
 
@@ -25,12 +27,12 @@ int ScsiLoop_Timer::RunTimerTest(vector<string> &error_list)
     //------------------------------------------------------
     // Test SysTimer::GetTimerLow()
     LOGDEBUG("++ Testing SysTimer::GetTimerLow()")
-    uint32_t before = SysTimer::GetTimerLow();
+    uint32_t before = sys_timer.GetTimerLow();
     for (int i = 0; i < 10; i++) {
         usleep(100000);
         ScsiLoop_Cout::PrintUpdate();
     }
-    uint32_t after = SysTimer::GetTimerLow();
+    uint32_t after = sys_timer.GetTimerLow();
 
     uint32_t elapsed_nanosecs = after - before;
 
@@ -50,11 +52,11 @@ int ScsiLoop_Timer::RunTimerTest(vector<string> &error_list)
     LOGDEBUG("++ Testing SysTimer::SleepUsec()")
 
     uint32_t expected_usec_result = 1000 * 100;
-    before                        = SysTimer::GetTimerLow();
+    before                        = sys_timer.GetTimerLow();
     for (int i = 0; i < 100; i++) {
-        SysTimer::SleepUsec(1000);
+    	sys_timer.SleepUsec(1000);
     }
-    after            = SysTimer::GetTimerLow();
+    after            = sys_timer.GetTimerLow();
     elapsed_nanosecs = after - before;
     LOGDEBUG("SysTimer::SleepUsec() Average %d", elapsed_nanosecs / 100);
 

@@ -10,7 +10,6 @@
 //---------------------------------------------------------------------------
 
 #include "hal/gpiobus.h"
-#include "hal/systimer.h"
 #include <sys/time.h>
 #ifdef __linux__
 #include <sys/epoll.h>
@@ -203,7 +202,10 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
         for (bytes_sent = 0; bytes_sent < count; bytes_sent++) {
            	// TODO Try to get rid of this
         	if (bytes_sent == daynaport_delay_after_bytes) {
-                 SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
+        		if (!sys_timer_daynaport) {
+        			sys_timer_daynaport = make_unique<SysTimer>();
+        		}
+				sys_timer_daynaport->SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
             SetDAT(*buf);

@@ -21,11 +21,12 @@ class SysTimer
 
 public:
 
-    static void Init();
+	SysTimer();
+	~SysTimer() = default;
 
-    static uint32_t GetTimerLow();
+    uint32_t GetTimerLow();
 
-    static void SleepUsec(uint32_t);
+    void SleepUsec(uint32_t);
 
 private:
 

@@ -21,7 +21,7 @@
 
 using namespace std;
 
-void SysTimer::Init()
+SysTimer::SysTimer()
 {
     // Get the base address
     const auto baseaddr = SBC_Version::GetPeripheralAddress();
