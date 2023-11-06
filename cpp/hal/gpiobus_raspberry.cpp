@@ -817,6 +817,7 @@ void GPIOBUS_Raspberry::DisableIRQ()
         irptenb = irpctl[IRPT_ENB_IRQ_1];
         irpctl[IRPT_DIS_IRQ_1] = irptenb & 0xf;
     }
+#endif
 }
 
 void GPIOBUS_Raspberry::EnableIRQ()
