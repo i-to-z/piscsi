@@ -34,7 +34,7 @@ public:
 
 private:
 
-    bool Dispatch(phase_t phase, scsi_command, span<uint8_t>, span<uint8_t>, int);
+    bool Dispatch(scsi_command, span<uint8_t>, span<uint8_t>, int);
 
     void Reset() const;
 

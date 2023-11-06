@@ -48,7 +48,7 @@ bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> b
 
         if (bus.GetREQ()) {
         	try {
-        		if (Dispatch(bus.AcquireAndGetPhase(), cmd, cdb, buffer, static_cast<int>(length))) {
+        		if (Dispatch(cmd, cdb, buffer, static_cast<int>(length))) {
         			now = chrono::steady_clock::now();
         		}
         		else {
@@ -67,8 +67,10 @@ bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> b
     return false;
 }
 
-bool PhaseExecutor::Dispatch(phase_t phase, scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length)
+bool PhaseExecutor::Dispatch(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, int length)
 {
+	const phase_t phase = bus.GetPhase();
+
 	spdlog::trace(string("Handling ") + BUS::GetPhaseName(phase) + " phase");
 
 	switch (phase) {
