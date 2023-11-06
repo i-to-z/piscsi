@@ -26,11 +26,6 @@ void InProcessBus::SetSignal(int pin, bool state)
 {
 	scoped_lock lock(write_locker);
 	signals[pin] = state;
-
-	// Setting SEL triggers the SELECTION phase
-	if (state && pin == PIN_SEL) {
-		sel_condition.notify_all();
-	}
 }
 
 bool InProcessBus::WaitSignal(int pin, bool state)
@@ -52,18 +47,11 @@ bool InProcessBus::WaitSignal(int pin, bool state)
 
 bool InProcessBus::WaitForSelectEvent()
 {
-	if (!signals[PIN_SEL]) {
-		unique_lock sel_lock(sel_mutex);
+	// TODO Is there a better way to avoid busy waiting?
+	const timespec ts = { .tv_sec = 0, .tv_nsec = 1'000'000 };
+	nanosleep(&ts, nullptr);
 
-		// Use wait_for as guard against the C++ spurious wakeup issue
-		while (sel_condition.wait_for(sel_lock, chrono::seconds(1)) == cv_status::timeout) {
-			if (signals[PIN_SEL]) {
-				break;
-			}
-		}
-	}
-
-	return true;
+	return signals[PIN_SEL];
 }
 
 void DelegatingInProcessBus::Reset()

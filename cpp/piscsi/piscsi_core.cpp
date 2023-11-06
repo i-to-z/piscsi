@@ -80,7 +80,6 @@ void Piscsi::CleanUp()
 {
 	service.Stop();
 
-	// TODO When devices are attached this sometimes crashes on a regular PC on Ctrl-C
 	executor->DetachAll();
 
 	bus->Cleanup();
