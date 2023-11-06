@@ -8,9 +8,6 @@
 //  Copyright (C) akuker
 //  Copyright (C) 2022-2023 Uwe Seimet
 //
-//  	Licensed under the BSD 3-Clause License.
-//  	See LICENSE file in the project root folder.
-//
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_exceptions.h"
