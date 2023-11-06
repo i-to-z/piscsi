@@ -30,9 +30,6 @@ class Piscsi
 
 public:
 
-	Piscsi() = default;
-	~Piscsi() = default;
-
 	int run(span<char *>, bool = false);
 
 private:

@@ -13,7 +13,6 @@
 #include "hal/bus.h"
 #include "shared/scsi.h"
 #include <spdlog/spdlog.h>
-#include <memory>
 #include <vector>
 
 #ifdef __linux__
@@ -43,12 +42,6 @@
 #endif
 
 using namespace std;
-
-//---------------------------------------------------------------------------
-//
-//	Signal control logic and pin assignment customization
-//
-//---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 //
@@ -156,9 +149,6 @@ class GPIOBUS : public BUS
 {
 
 public:
-
-	GPIOBUS() = default;
-    ~GPIOBUS() override = default;
 
     bool Init(mode_e mode = mode_e::TARGET) override;
 

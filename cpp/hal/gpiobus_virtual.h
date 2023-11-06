@@ -26,10 +26,6 @@
 class GPIOBUS_Virtual final : public GPIOBUS
 {
   public:
-    // Basic Functions
-    GPIOBUS_Virtual()           = default;
-    ~GPIOBUS_Virtual() override = default;
-    // Destructor
     bool Init(mode_e mode = mode_e::TARGET) override;
 
     // // Initialization

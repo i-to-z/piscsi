@@ -21,13 +21,7 @@
 
 using namespace std;
 
-//---------------------------------------------------------------------------
-//
-//	Constant declarations (bus control timing)
-//
-//---------------------------------------------------------------------------
-// SCSI Bus timings taken from:
-//     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
+// SCSI Bus timings taken from https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
 const static int SCSI_DELAY_ARBITRATION_DELAY_NS         = 2400;
 const static int SCSI_DELAY_ASSERTION_PERIOD_NS          = 90;
 const static int SCSI_DELAY_BUS_CLEAR_DELAY_NS           = 800;
