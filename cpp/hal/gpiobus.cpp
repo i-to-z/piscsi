@@ -180,11 +180,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
         phase_t phase = GetPhase();
 
         for (i = 0; i < count; i++) {
-            // Wait for the REQ signal to be asserted
-            bool ret = WaitREQ(true);
-
             // Check for timeout waiting for REQ signal
-            if (!ret) {
+            if (!WaitREQ(true)) {
                 break;
             }
 
@@ -206,7 +203,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 
             SetACK(true);
 
-            ret = WaitREQ(false);
+            const bool ret = WaitREQ(false);
 
             SetACK(false);
 
