@@ -84,7 +84,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
     }
 
     const int command_byte_count = GetCommandByteCount(buf[0]);
-    if (command_byte_count == 0) {
+    if (!command_byte_count) {
         EnableIRQ();
 
         // Unknown command
