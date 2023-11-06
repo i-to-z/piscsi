@@ -251,16 +251,14 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
 
             SetDAT(*buf);
 
-            bool ret = WaitACK(OFF);
-
             // Check for timeout waiting for ACK to clear
-            if (!ret) {
+            if (!WaitACK(OFF)) {
                 break;
             }
 
             SetREQ(ON);
 
-            ret = WaitACK(ON);
+            const bool ret = WaitACK(ON);
 
             SetREQ(OFF);
 
@@ -281,11 +279,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
             // Set the DATA signals
             SetDAT(*buf);
 
-            // Wait for REQ to be asserted
-            bool ret = WaitREQ(ON);
-
             // Check for timeout waiting for REQ to be asserted
-            if (!ret) {
+            if (!WaitREQ(ON)) {
                 break;
             }
 
@@ -305,7 +300,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
 
             SetACK(ON);
 
-            ret = WaitREQ(OFF);
+            const bool ret = WaitREQ(OFF);
 
             SetACK(OFF);
 
