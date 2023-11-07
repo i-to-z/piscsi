@@ -16,6 +16,7 @@
 //        work with the Sharp X68000 operating system.
 //---------------------------------------------------------------------------
 
+#include "hal/sbc_version.h"
 #include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsi_host_bridge.h"
@@ -59,12 +60,12 @@ bool SCSIBR::Init(const param_map& params)
 
 	SetReady(tap_enabled);
 
-// Not terminating on regular Linux PCs is helpful for testing
-#if defined(__x86_64__) || defined(__X86__)
-	return true;
-#else
+	if (!SBC_Version::IsRaspberryPi()) {
+		// Not terminating on regular Linux PCs is helpful for testing
+		return true;
+	}
+
 	return tap_enabled;
-#endif
 }
 
 void SCSIBR::CleanUp()

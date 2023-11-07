@@ -24,6 +24,7 @@
 //  Note: This requires a DaynaPort SCSI Link driver.
 //---------------------------------------------------------------------------
 
+#include "hal/sbc_version.h"
 #include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsi_daynaport.h"
@@ -56,14 +57,12 @@ bool SCSIDaynaPort::Init(const param_map& params)
 	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
 
 	tap_enabled = tap.Init(GetParams());
-	if (!tap_enabled) {
-// Not terminating on regular Linux PCs is helpful for testing
-#if !defined(__x86_64__) && !defined(__X86__)
+	if (!tap_enabled || !SBC_Version::IsRaspberryPi()) {
+		// Not terminating on regular Linux PCs is helpful for testing
 		return false;
-#endif
-	} else {
-		LogTrace("Tap interface created");
 	}
+
+	LogTrace("Tap interface created");
 
 	Reset();
 	SetReady(true);
