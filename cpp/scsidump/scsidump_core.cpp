@@ -205,11 +205,6 @@ int ScsiDump::run(span<char *> args, bool in_process)
         return EXIT_FAILURE;
     }
 
-    if (!in_process && !SBC_Version::IsRaspberryPi()) {
-    	cerr << "Error: No PiSCSI hardware support" << endl;
-    	return EXIT_FAILURE;
-    }
-
     if (!in_process && getuid()) {
     	cerr << "Error: GPIO bus access requires root permissions" << endl;
         return EXIT_FAILURE;
@@ -218,6 +213,11 @@ int ScsiDump::run(span<char *> args, bool in_process)
     if (!Init(in_process)) {
 		cerr << "Error: Can't initialize bus" << endl;
         return EXIT_FAILURE;
+    }
+
+    if (!in_process && !SBC_Version::IsRaspberryPi()) {
+    	cerr << "Error: No PiSCSI hardware support" << endl;
+    	return EXIT_FAILURE;
     }
 
     if (!to_stdout && !SetLogLevel()) {
