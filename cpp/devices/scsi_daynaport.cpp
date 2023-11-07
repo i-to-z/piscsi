@@ -28,6 +28,7 @@
 #include "scsi_command_util.h"
 #include "scsi_daynaport.h"
 #include <sstream>
+#include <iomanip>
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
