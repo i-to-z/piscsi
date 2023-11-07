@@ -82,7 +82,6 @@ private:
     void PinSetSignal(int, bool) override { assert(false); }
     void DrvConfig(uint32_t) override { assert(false); }
 
-    // TODO This method should not exist at all, it pollutes the bus interface
     unique_ptr<DataSample> GetSample(uint64_t) override { assert(false); return nullptr; }
 
     mutex write_locker;

@@ -67,7 +67,6 @@ public:
     static string GetPhaseName(phase_t);
 
     virtual uint32_t Acquire() = 0;
-    // TODO Try to remove
     virtual unique_ptr<DataSample> GetSample(uint64_t= 0) = 0;
     virtual int CommandHandShake(vector<uint8_t> &) = 0;
     virtual int ReceiveHandShake(uint8_t *buf, int) = 0;

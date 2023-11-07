@@ -104,7 +104,6 @@ public:
     }
     static uint32_t bcm_host_get_peripheral_address();
 
-    // TODO Remove
     unique_ptr<DataSample> GetSample(uint64_t timestamp) override
     {
         Acquire();
