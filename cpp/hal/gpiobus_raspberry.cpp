@@ -70,7 +70,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 #endif
 
     // Get the base address
-    baseaddr = (uint32_t)bcm_host_get_peripheral_address();
+    baseaddr = bcm_host_get_peripheral_address();
 
     // Open /dev/mem
     int fd = open("/dev/mem", O_RDWR | O_SYNC);
@@ -121,7 +121,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
             return false;
         }
         gicd = static_cast<uint32_t *>(map);
-        gicc = static_cast<uint32_t *>(map);;
+        gicc = static_cast<uint32_t *>(map);
         gicc += (ARM_GICC_BASE - ARM_GICD_BASE) / sizeof(uint32_t);
     } else {
         gicd = nullptr;
