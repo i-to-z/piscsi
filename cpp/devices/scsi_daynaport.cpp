@@ -53,13 +53,14 @@ bool SCSIDaynaPort::Init(const param_map& params)
 
 	// The Daynaport needs to have a delay after the size/flags field of the read response.
 	// In the MacOS driver, it looks like the driver is doing two "READ" system calls.
-	// TODO Verify this
+	// TODO Verify whether this is needed
 	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
 
 	tap_enabled = tap.Init(GetParams());
 	if (!tap_enabled || !SBC_Version::IsRaspberryPi()) {
 		// Not terminating on regular Linux PCs is helpful for testing
-		return false;
+		LogWarn("Can't create tap interface on non-Pi platforms");
+		return true;
 	}
 
 	LogTrace("Tap interface created");
