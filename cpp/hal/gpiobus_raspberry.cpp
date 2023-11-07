@@ -79,7 +79,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     baseaddr = (uint32_t)bcm_host_get_peripheral_address();
 
     // Open /dev/mem
-    int fd = open("/dev/mem", O_RDWR | O_SYNC);
+    const int fd = open("/dev/mem", O_RDWR | O_SYNC);
     if (fd == -1) {
         spdlog::error("Error: Unable to open /dev/mem");
         return false;
