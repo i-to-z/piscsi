@@ -180,7 +180,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     }
 
     // Event request setting
-    strcpy(selevreq.consumer_label, "PiSCSI");
+    strcpy(selevreq.consumer_label, "PiSCSI"); //NOSONAR Using strcpy is safe
     selevreq.lineoffset  = PIN_SEL;
     selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
 #if SIGNAL_CONTROL_MODE < 2
