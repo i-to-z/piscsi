@@ -485,6 +485,9 @@ bool ScsiDump::GetDeviceInfo(ostream& console)
     	return false;
     }
 
+    // Clear any pending condition, e.g. medium just having being inserted
+    scsi_executor->TestUnitReady();
+
     const auto [capacity, sector_size] = scsi_executor->ReadCapacity();
     if (!capacity || !sector_size) {
     	spdlog::trace("Can't get device capacity");

@@ -24,6 +24,7 @@ public:
 	ScsiExecutor(BUS& bus, int id) { phase_executor = make_unique<PhaseExecutor>(bus, id); }
     ~ScsiExecutor() = default;
 
+    void TestUnitReady() const;
     bool Inquiry(span<uint8_t>);
     pair<uint64_t, uint32_t> ReadCapacity();
     bool ReadWrite(span<uint8_t>, uint32_t, uint32_t, int, bool);
