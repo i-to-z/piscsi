@@ -388,33 +388,26 @@ void GPIOBUS_Raspberry::SetBSY(bool ast)
 {
     SetSignal(PIN_BSY, ast);
 
-    if (IsTarget()) {
-        if (ast) {
-            SetControl(PIN_ACT, true);
+    if (ast) {
+    	SetControl(PIN_ACT, true);
 
-            SetControl(PIN_TAD, TAD_OUT);
+    	SetControl(PIN_TAD, TAD_OUT);
 
-            SetMode(PIN_BSY, OUT);
-            SetMode(PIN_MSG, OUT);
-            SetMode(PIN_CD, OUT);
-            SetMode(PIN_REQ, OUT);
-            SetMode(PIN_IO, OUT);
-        } else {
-            SetControl(PIN_ACT, false);
+    	SetMode(PIN_BSY, OUT);
+    	SetMode(PIN_MSG, OUT);
+    	SetMode(PIN_CD, OUT);
+    	SetMode(PIN_REQ, OUT);
+    	SetMode(PIN_IO, OUT);
+    } else {
+    	SetControl(PIN_ACT, false);
 
-            SetControl(PIN_TAD, TAD_IN);
+    	SetControl(PIN_TAD, TAD_IN);
 
-            SetMode(PIN_BSY, IN);
-            SetMode(PIN_MSG, IN);
-            SetMode(PIN_CD, IN);
-            SetMode(PIN_REQ, IN);
-            SetMode(PIN_IO, IN);
-        }
-    }
-    else {
-    	if (ast) {
-    		SetMode(PIN_BSY, OUT);
-    	}
+    	SetMode(PIN_BSY, IN);
+    	SetMode(PIN_MSG, IN);
+    	SetMode(PIN_CD, IN);
+    	SetMode(PIN_REQ, IN);
+    	SetMode(PIN_IO, IN);
     }
 }
 
