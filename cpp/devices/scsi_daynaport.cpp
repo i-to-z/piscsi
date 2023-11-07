@@ -27,6 +27,7 @@
 #include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsi_daynaport.h"
+#include <sstream>
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
@@ -269,9 +270,7 @@ bool SCSIDaynaPort::Write(cdb_t cdb, span<const uint8_t> buf)
 		LogTrace(fmt::format("Transmitted {} byte(s) (80 format)", data_length));
 	}
 	else {
-		stringstream s;
-		s << "Unknown data format: " << setfill('0') << setw(2) << hex << data_format;
-		LogWarn(s.str());
+		LogWarn(fmt::format("Unknown data format: ${}", data_format));
 	}
 
 	GetController()->SetBlocks(0);
@@ -346,9 +345,7 @@ void SCSIDaynaPort::Write6() const
 		GetController()->SetLength(GetInt16(GetController()->GetCmd(), 3) + 8);
 	}
 	else {
-		stringstream s;
-		s << "Unknown data format: " << setfill('0') << setw(2) << hex << data_format;
-		LogWarn(s.str());
+		LogWarn(fmt::format("Unknown data format: ${}", data_format));
 	}
 
 	LogTrace(fmt::format("Length: {0}, format: ${1:x}", GetController()->GetLength(), data_format));
@@ -418,9 +415,7 @@ void SCSIDaynaPort::SetInterfaceMode() const
 			break;
 
 		default:
-			stringstream s;
-			s << "Unsupported SetInterface command: " << setfill('0') << setw(2) << hex << GetController()->GetCmdByte(5);
-			LogWarn(s.str());
+			LogWarn(fmt::format("Unsupported SetInterface command: ${}", GetController()->GetCmdByte(5)));
 			throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
 			break;
 	}
@@ -430,9 +425,7 @@ void SCSIDaynaPort::SetMcastAddr() const
 {
 	GetController()->SetLength(GetController()->GetCmdByte(4));
 	if (GetController()->GetLength() == 0) {
-		stringstream s;
-		s << "Unsupported SetMcastAddr command: " << setfill('0') << setw(2) << hex << GetController()->GetCmdByte(2);
-		LogWarn(s.str());
+		LogWarn(fmt::format("Unsupported SetMcastAddr command: ${}", GetController()->GetCmdByte(2)));
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
