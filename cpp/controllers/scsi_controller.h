@@ -98,8 +98,7 @@ private:
 	void DataOutNonBlockOriented() const;
 	void Receive();
 
-	// TODO Make non-virtual as soon as SysTimer calls do not segfault anymore on a regular PC, e.g. by using ifdef __arm__.
-	virtual void Execute();
+	void Execute();
 
 	void ProcessCommand();
 	void ParseMessage();

@@ -137,7 +137,6 @@ TEST(ScsiControllerTest, Command)
 	MockScsiController controller(bus, 0);
 
 	controller.SetPhase(phase_t::command);
-	EXPECT_CALL(controller, Status);
 	controller.Command();
 	EXPECT_EQ(phase_t::command, controller.GetPhase());
 
@@ -145,15 +144,6 @@ TEST(ScsiControllerTest, Command)
 	EXPECT_CALL(*bus, SetMSG(false));
 	EXPECT_CALL(*bus, SetCD(true));
 	EXPECT_CALL(*bus, SetIO(false));
-	controller.Command();
-	EXPECT_EQ(phase_t::command, controller.GetPhase());
-
-	controller.SetPhase(phase_t::reserved);
-	ON_CALL(*bus, CommandHandShake).WillByDefault(Return(6));
-	EXPECT_CALL(*bus, SetMSG(false));
-	EXPECT_CALL(*bus, SetCD(true));
-	EXPECT_CALL(*bus, SetIO(false));
-	EXPECT_CALL(controller, Execute);
 	controller.Command();
 	EXPECT_EQ(phase_t::command, controller.GetPhase());
 }
