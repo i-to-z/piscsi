@@ -273,9 +273,6 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 
 void GPIOBUS_Raspberry::CleanUp()
 {
-#if defined(__x86_64__) || defined(__X86__)
-    return;
-#else
     // Release SEL signal interrupt
 #ifdef USE_SEL_EVENT_ENABLE
     close(selevreq.fd);
@@ -302,14 +299,10 @@ void GPIOBUS_Raspberry::CleanUp()
 
     // Set drive strength back to 8mA
     DrvConfig(3);
-#endif // ifdef __x86_64__ || __X86__
 }
 
 void GPIOBUS_Raspberry::Reset()
 {
-#if defined(__x86_64__) || defined(__X86__)
-    return;
-#else
     int i;
     int j;
 
@@ -375,8 +368,7 @@ void GPIOBUS_Raspberry::Reset()
     }
 
     // Initialize all signals
-    signals          = 0;
-#endif
+    signals = 0;
 }
 
 bool GPIOBUS_Raspberry::GetBSY() const
