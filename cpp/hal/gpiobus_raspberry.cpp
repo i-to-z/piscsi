@@ -412,7 +412,9 @@ void GPIOBUS_Raspberry::SetBSY(bool ast)
         }
     }
     else {
-        SetMode(PIN_BSY, OUT);
+    	if (ast) {
+    		SetMode(PIN_BSY, OUT);
+    	}
     }
 }
 
