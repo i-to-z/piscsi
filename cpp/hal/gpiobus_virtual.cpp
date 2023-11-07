@@ -171,7 +171,7 @@ void GPIOBUS_Virtual::Reset()
 
     // Initialize all signals
     signals = 0;
-#endif // ifdef __x86_64__ || __X86__
+#endif
 }
 
 bool GPIOBUS_Virtual::GetBSY() const
