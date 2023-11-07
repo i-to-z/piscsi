@@ -65,12 +65,6 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 {
     GPIOBUS::Init(mode);
 
-#if defined(__x86_64__) || defined(__X86__)
-    (void)baseaddr;
-    (void)gicd;
-    level = new uint32_t();
-    return true;
-#else
     int i;
 #ifdef USE_SEL_EVENT_ENABLE
     epoll_event ev = {};
@@ -269,7 +263,6 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     SetControl(PIN_ENB, ENB_ON);
 
     return true;
-#endif
 }
 
 void GPIOBUS_Raspberry::CleanUp()
