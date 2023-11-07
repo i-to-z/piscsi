@@ -28,8 +28,8 @@ void PhaseExecutor::Reset() const
 
 bool PhaseExecutor::Execute(scsi_command cmd, span<uint8_t> cdb, span<uint8_t> buffer, size_t length)
 {
-    spdlog::trace("Executing " + command_mapping.find(cmd)->second.second
-    		+ " for target " + to_string(target_id) + ":" + to_string(target_lun));
+    spdlog::trace(fmt::format("Executing {0} for target {1}:{2}", command_mapping.find(cmd)->second.second,
+    		target_id, target_lun));
 
     if (!Arbitration()) {
 		bus.Reset();
@@ -123,7 +123,7 @@ bool PhaseExecutor::Arbitration() const
 	Sleep(ARBITRATION_DELAY);
 
 	if (bus.GetDAT() > (1 << initiator_id)) {
-		spdlog::trace("Lost ARBITRATION, competing initiator ID is " + to_string(bus.GetDAT() - (1 << initiator_id)));
+		spdlog::trace(fmt::format("Lost ARBITRATION, competing initiator ID is {}", bus.GetDAT() - (1 << initiator_id)));
 		return false;
 	}
 
