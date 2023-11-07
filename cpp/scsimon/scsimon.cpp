@@ -3,6 +3,8 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
+// Copyright (C) 2022 Uwe Seimet
+//
 //---------------------------------------------------------------------------
 
 #include "scsimon/sm_core.h"
