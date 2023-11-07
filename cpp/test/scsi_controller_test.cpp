@@ -19,7 +19,7 @@ TEST(ScsiControllerTest, GetInitiatorId)
 	const int ID = 2;
 
 	auto bus = make_shared<NiceMock<MockBus>>();
-	MockScsiController controller(bus, 0);
+	NiceMock<MockScsiController> controller(bus, 0);
 
 	controller.Process(ID);
 	EXPECT_EQ(ID, controller.GetInitiatorId());
