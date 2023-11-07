@@ -93,7 +93,7 @@ bool CTapDriver::Init(const param_map& const_params)
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
 	strncpy(ifr.ifr_name, "piscsi0", IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
 
-	spdlog::trace("Going to open " + string(ifr.ifr_name));
+	spdlog::trace("Going to open piscsi0");
 
 	const int ret = ioctl(m_hTAP, TUNSETIFF, (void *)&ifr);
 	if (ret < 0) {
@@ -103,7 +103,7 @@ bool CTapDriver::Init(const param_map& const_params)
 		return false;
 	}
 
-	spdlog::trace("Return code from ioctl was " + to_string(ret));
+	spdlog::trace(fmt::format("Return code from ioctl was {}", ret));
 
 	const int ip_fd = socket(PF_INET, SOCK_DGRAM, 0);
 	if (ip_fd < 0) {
@@ -292,7 +292,7 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 		return "Can't convert '" + netmask + "' into a netmask";
 	}
 
-	spdlog::trace(">ip address add " + s + " dev " + BRIDGE_NAME);
+	spdlog::trace(fmt::format(">ip address add {0} dev {1}", s, BRIDGE_NAME));
 
 	if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
 		return "Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK";
@@ -336,7 +336,7 @@ bool CTapDriver::HasPendingPackets() const
 	fds.events = POLLIN | POLLERR;
 	fds.revents = 0;
 	poll(&fds, 1, 0);
-	spdlog::trace(to_string(fds.revents) + " revents");
+	spdlog::trace(fmt::format("{} revents", fds.revents));
 	return !(fds.revents & POLLIN);
 }
 
@@ -380,9 +380,6 @@ int CTapDriver::Receive(uint8_t *buf) const
 		buf[dwReceived + 1] = (uint8_t)((crc >> 8) & 0xFF);
 		buf[dwReceived + 2] = (uint8_t)((crc >> 16) & 0xFF);
 		buf[dwReceived + 3] = (uint8_t)((crc >> 24) & 0xFF);
-
-		spdlog::trace("CRC is " + to_string(crc) + " - " + to_string(buf[dwReceived+0]) + " " + to_string(buf[dwReceived+1]) +
-				" " + to_string(buf[dwReceived+2]) + " " + to_string(buf[dwReceived+3]));
 
 		// Add FCS size to the received message size
 		dwReceived += 4;
