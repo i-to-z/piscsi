@@ -57,9 +57,14 @@ bool SCSIDaynaPort::Init(const param_map& params)
 	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
 
 	tap_enabled = tap.Init(GetParams());
-	if (!tap_enabled || !SBC_Version::IsRaspberryPi()) {
+
+	if (!SBC_Version::IsRaspberryPi()) {
 		// Not terminating on regular Linux PCs is helpful for testing
 		return true;
+	}
+
+	if (!tap_enabled) {
+		return false;
 	}
 
 	LogTrace("Tap interface created");
