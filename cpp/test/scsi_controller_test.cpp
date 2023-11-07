@@ -144,8 +144,8 @@ TEST(ScsiControllerTest, Command)
 	EXPECT_CALL(*bus, SetMSG(false));
 	EXPECT_CALL(*bus, SetCD(true));
 	EXPECT_CALL(*bus, SetIO(false));
+	EXPECT_CALL(controller, Status());
 	controller.Command();
-	EXPECT_EQ(phase_t::command, controller.GetPhase());
 }
 
 TEST(ScsiControllerTest, MsgIn)
