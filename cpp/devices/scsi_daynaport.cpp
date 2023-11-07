@@ -59,7 +59,6 @@ bool SCSIDaynaPort::Init(const param_map& params)
 	tap_enabled = tap.Init(GetParams());
 	if (!tap_enabled || !SBC_Version::IsRaspberryPi()) {
 		// Not terminating on regular Linux PCs is helpful for testing
-		LogWarn("Can't create tap interface on non-Pi platforms");
 		return true;
 	}
 
