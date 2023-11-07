@@ -411,6 +411,9 @@ void GPIOBUS_Raspberry::SetBSY(bool ast)
             SetMode(PIN_IO, IN);
         }
     }
+    else {
+        SetMode(PIN_BSY, OUT);
+    }
 }
 
 bool GPIOBUS_Raspberry::GetSEL() const
@@ -422,8 +425,6 @@ void GPIOBUS_Raspberry::SetSEL(bool ast)
 {
     if (!IsTarget() && ast) {
         SetControl(PIN_ACT, true);
-
-        SetMode(PIN_BSY, OUT);
     }
 
     SetSignal(PIN_SEL, ast);
