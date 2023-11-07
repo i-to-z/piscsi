@@ -268,7 +268,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     SetControl(PIN_ENB, ENB_ON);
 
     return true;
-#endif // ifdef __x86_64__ || __X86__
+#endif
 }
 
 void GPIOBUS_Raspberry::CleanUp()

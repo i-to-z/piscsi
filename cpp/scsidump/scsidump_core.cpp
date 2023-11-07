@@ -9,6 +9,7 @@
 //---------------------------------------------------------------------------
 
 #include "scsidump/scsidump_core.h"
+#include "hal/sbc_version.h"
 #include "hal/gpiobus_factory.h"
 #include "controllers/controller_manager.h"
 #include "shared/piscsi_exceptions.h"
@@ -204,12 +205,10 @@ int ScsiDump::run(span<char *> args, bool in_process)
         return EXIT_FAILURE;
     }
 
-#if defined(__x86_64__) || defined(__X86__) || !defined(__linux__)
-    if (!in_process) {
+    if (!in_process && !SBC_Version::IsRaspberryPi()) {
     	cerr << "Error: No PiSCSI hardware support" << endl;
     	return EXIT_FAILURE;
     }
-#endif
 
     if (!in_process && getuid()) {
     	cerr << "Error: GPIO bus access requires root permissions" << endl;
