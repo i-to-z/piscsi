@@ -139,7 +139,9 @@ bool PhaseExecutor::Selection() const
 {
 	bus.SetDAT(static_cast<uint8_t>((1 << initiator_id) + (1 << target_id)));
 
-    // Request MESSAGE OUT for IDENTIFY
+	bus.SetSEL(true);
+
+	// Request MESSAGE OUT for IDENTIFY
     bus.SetATN(true);
 
 	Sleep(DESKEW_DELAY);
