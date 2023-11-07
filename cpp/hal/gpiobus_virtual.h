@@ -10,7 +10,6 @@
 
 #pragma once
 
-// TODO A bus should not depend on sample data
 #include "hal/data_sample_raspberry.h"
 #include "hal/gpiobus.h"
 #include "shared/scsi.h"
