@@ -65,7 +65,6 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 {
     GPIOBUS::Init(mode);
 
-    int i;
 #ifdef USE_SEL_EVENT_ENABLE
     epoll_event ev = {};
 #endif
@@ -81,7 +80,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     }
 
     // Map peripheral region memory
-    void *map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
+    void *map = mmap(nullptr, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
     if (map == MAP_FAILED) {
         spdlog::error("Error: Unable to map memory: "+ string(strerror(errno)));
         close(fd);
@@ -98,35 +97,35 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     }
 
     // GPIO
-    gpio = (uint32_t *)map;
+    gpio = static_cast<uint32_t *>(map);
     gpio += GPIO_OFFSET / sizeof(uint32_t);
     level = &gpio[GPIO_LEV_0];
 
     // PADS
-    pads = (uint32_t *)map;
+    pads = static_cast<uint32_t *>(map);
     pads += PADS_OFFSET / sizeof(uint32_t);
 
     // Interrupt controller
-    irpctl = (uint32_t *)map;
+    irpctl = static_cast<uint32_t *>(map);
     irpctl += IRPT_OFFSET / sizeof(uint32_t);
 
     // Quad-A7 control
-    qa7regs = (uint32_t *)map;
+    qa7regs = static_cast<uint32_t *>(map);
     qa7regs += QA7_OFFSET / sizeof(uint32_t);
 
     // Map GIC memory
     if (rpitype == 4) {
-        map = mmap(NULL, 8192, PROT_READ | PROT_WRITE, MAP_SHARED, fd, ARM_GICD_BASE);
+        map = mmap(nullptr, 8192, PROT_READ | PROT_WRITE, MAP_SHARED, fd, ARM_GICD_BASE);
         if (map == MAP_FAILED) {
             close(fd);
             return false;
         }
-        gicd = (uint32_t *)map;
-        gicc = (uint32_t *)map;
+        gicd = static_cast<uint32_t *>(map);
+        gicc = static_cast<uint32_t *>(map);;
         gicc += (ARM_GICC_BASE - ARM_GICD_BASE) / sizeof(uint32_t);
     } else {
-        gicd = NULL;
-        gicc = NULL;
+        gicd = nullptr;
+        gicc = nullptr;
     }
     close(fd);
 
@@ -143,7 +142,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 #endif
 
     // Initialize all signals
-    for (i = 0; SignalTable[i] >= 0; i++) {
+    for (int i = 0; SignalTable[i] >= 0; i++) {
         int j = SignalTable[i];
         PinSetSignal(j, OFF);
         PinConfig(j, GPIO_INPUT);
