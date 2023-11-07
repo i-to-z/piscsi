@@ -303,20 +303,17 @@ void GPIOBUS_Raspberry::CleanUp()
 
 void GPIOBUS_Raspberry::Reset()
 {
-    int i;
-    int j;
-
     // Turn off active signal
     SetControl(PIN_ACT, ACT_OFF);
 
     // Set all signals to off
-    for (i = 0;; i++) {
-        j = SignalTable[i];
-        if (j < 0) {
+    for (int i = 0;; i++) {
+        const int signal = SignalTable[i];
+        if (signal < 0) {
             break;
         }
 
-        SetSignal(j, OFF);
+        SetSignal(signal, OFF);
     }
 
     // Set target signal to input for all modes
