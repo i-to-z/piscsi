@@ -81,7 +81,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     // Open /dev/mem
     int fd = open("/dev/mem", O_RDWR | O_SYNC);
     if (fd == -1) {
-        spdlog::error("Error: Unable to open /dev/mem. Are you running as root?");
+        spdlog::error("Error: Unable to open /dev/mem");
         return false;
     }
 

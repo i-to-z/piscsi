@@ -174,10 +174,9 @@ private:
     // GICC priority setting
     volatile uint32_t giccpmr; // NOSONAR: volatile needed for register access
 
-#if !defined(__x86_64__) && !defined(__X86__)
     // GIC Interrupt distributor register
     volatile uint32_t *gicd = nullptr;
-#endif
+
     // GIC CPU interface register
     volatile uint32_t *gicc = nullptr;
 
