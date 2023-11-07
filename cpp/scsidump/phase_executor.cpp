@@ -127,9 +127,6 @@ bool PhaseExecutor::Arbitration() const
 		return false;
 	}
 
-	// TODO This should be in Selection() only, but then piscsi sometimes does not see the target ID
-	bus.SetDAT(static_cast<uint8_t>((1 << initiator_id) + (1 << target_id)));
-
 	bus.SetSEL(true);
 
 	Sleep(BUS_CLEAR_DELAY);
