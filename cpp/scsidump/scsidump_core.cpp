@@ -40,7 +40,9 @@ void ScsiDump::CleanUp() const
 
 void ScsiDump::TerminationHandler(int)
 {
-    instance->CleanUp();
+	instance->bus->SetRST(true);
+
+	instance->CleanUp();
 
 	// Process will terminate automatically
 }
