@@ -82,6 +82,7 @@ bool ScsiDump::Init(bool in_process)
 	termination_handler.sa_handler = TerminationHandler;
 	sigemptyset(&termination_handler.sa_mask);
 	termination_handler.sa_flags = 0;
+	sigaction(SIGINT, &termination_handler, nullptr);
 	sigaction(SIGTERM, &termination_handler, nullptr);
 	signal(SIGPIPE, SIG_IGN);
 
