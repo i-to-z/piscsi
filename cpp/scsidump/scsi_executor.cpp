@@ -25,7 +25,8 @@ void ScsiExecutor::TestUnitReady() const
 bool ScsiExecutor::Inquiry(span<uint8_t> buffer)
 {
 	vector<uint8_t> cdb(6);
-	cdb[4] = 0xff;
+	cdb[3] = static_cast<uint8_t>(buffer.size() >> 8);
+	cdb[4] = static_cast<uint8_t>(buffer.size());
 
     return phase_executor->Execute(scsi_command::eCmdInquiry, cdb, buffer, buffer.size());
 }
