@@ -235,70 +235,18 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
         for (bytes_sent = 0; bytes_sent < count; bytes_sent++) {
             SetDAT(*buf);
 
-<<<<<<< HEAD
-=======
-            // Wait for ACK to clear
-            bool ret = WaitACK(OFF);
-
-            // Check for timeout waiting for ACK to clear
-            if (!ret) {
-                break;
-            }
-
-            // Already waiting for ACK to clear
-
-            // Assert the REQ signal
-            SetREQ(ON);
-
-            // Wait for ACK
-            ret = WaitACK(ON);
-
-            // Clear REQ signal
-            SetREQ(OFF);
-
-            // Check for timeout waiting for ACK to clear
-            if (!ret) {
-                break;
-            }
-
-            // Advance the data buffer pointer to receive the next byte
-            buf++;
-        }
-
-        // Wait for ACK to clear
-        WaitACK(OFF);
-    } else {
-        // Get Phase
-        Acquire();
-        phase_t phase = GetPhase();
-
-        for (i = 0; i < count; i++) {
-            // Set the DATA signals
-            SetDAT(*buf);
-
-            // Wait for REQ to be asserted
-            bool ret = WaitREQ(ON);
-
->>>>>>> 0ab2f20a (Fix MESSAGE OUT handling for initiator mode (#1283) (#1284))
             // Check for timeout waiting for REQ to be asserted
             if (!WaitREQ(true)) {
                 break;
             }
 
            	// Signal the last MESSAGE OUT byte
-<<<<<<< HEAD
             if (phase == phase_t::msgout && bytes_sent == count - 1) {
             	SetATN(false);
             }
 
 // Assumption: Phase does not change here, but only below
 #ifndef NO_DELAY
-=======
-            if (phase == phase_t::msgout && i == count - 1) {
-            	SetATN(false);
-            }
-
->>>>>>> 0ab2f20a (Fix MESSAGE OUT handling for initiator mode (#1283) (#1284))
             // Phase error
             if (GetPhase() != phase) {
                 break;
@@ -335,10 +283,6 @@ bool GPIOBUS::WaitForSelectEvent()
 		return false;
 	}
 #else
-<<<<<<< HEAD
-=======
-    GPIO_FUNCTION_TRACE
->>>>>>> 0ab2f20a (Fix MESSAGE OUT handling for initiator mode (#1283) (#1284))
     errno = 0;
 
     if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
