@@ -30,7 +30,10 @@ public:
     	// Nothing to do
     }
 
-    uint32_t Acquire() override { return dat; }
+    uint32_t Acquire() override
+    {
+        return dat;
+    }
 
     bool GetBSY() const override
     {
@@ -195,9 +198,15 @@ public:
 
     void Reset() override;
 
-    void CleanUp() override { bus.CleanUp(); }
+    void CleanUp() override
+    {
+        bus.CleanUp();
+    }
 
-    uint32_t Acquire() override { return bus.Acquire(); }
+    uint32_t Acquire() override
+    {
+        return bus.Acquire();
+    }
 
     bool WaitREQ(bool state) override
     {
