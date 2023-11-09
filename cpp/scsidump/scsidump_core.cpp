@@ -326,12 +326,12 @@ bool ScsiDump::DisplayInquiry(ostream &console, bool check_type)
     }
 
     console << "Removable:   " << (((static_cast<byte>(buf[1]) & byte { 0x80 }) == byte { 0x80 }) ? "Yes" : "No")
-    << "\n";
+        << "\n";
 
     if (check_type && type != static_cast<byte>(device_type::direct_access) &&
         type != static_cast<byte>(device_type::cd_rom) && type != static_cast<byte>(device_type::optical_memory)) {
         cerr << "Error: Invalid device type, supported types for dump/restore are DIRECT ACCESS,"
-        << " CD-ROM/DVD/BD and OPTICAL MEMORY" << endl;
+            << " CD-ROM/DVD/BD and OPTICAL MEMORY" << endl;
         return false;
     }
 
@@ -364,7 +364,7 @@ string ScsiDump::DumpRestore(ostream &console)
     }
 
     console << "Starting " << (restore ? "restore" : "dump") << ", buffer size is " << buffer.size()
-    << " bytes\n\n" << flush;
+        << " bytes\n\n" << flush;
 
     int sector_offset = 0;
 
@@ -394,8 +394,8 @@ string ScsiDump::DumpRestore(ostream &console)
         sector_offset += sector_count;
         remaining -= byte_count;
 
-        console << setw(3) << (effective_size - remaining) * 100 / effective_size << "% ("
-        << effective_size - remaining << "/" << effective_size << ")\n" << flush;
+        console << setw(3) << (effective_size - remaining) * 100 / effective_size << "% (" << effective_size - remaining
+            << "/" << effective_size << ")\n" << flush;
     }
 
     auto duration = chrono::duration_cast<chrono::seconds>(chrono::high_resolution_clock::now()
@@ -413,7 +413,7 @@ string ScsiDump::DumpRestore(ostream &console)
     console << "Transferred " << effective_size / 1024 / 1024 << " MiB (" << effective_size << " bytes)\n";
     console << "Total time: " << duration << " seconds (" << duration / 60 << " minutes)\n";
     console << "Average transfer rate: " << effective_size / duration << " bytes per second ("
-    << effective_size / 1024 / duration << " KiB per second)\n";
+        << effective_size / 1024 / duration << " KiB per second)\n";
     console << DIVIDER << "\n" << flush;
 
     if (create_properties_file && !restore) {
@@ -470,10 +470,10 @@ long ScsiDump::CalculateEffectiveSize(ostream &console) const
         console << "Restore image file size: " << size << " bytes\n" << flush;
         if (size > disk_size) {
             console << "Warning: Image file size of " << size
-            << " byte(s) is larger than disk size of " << disk_size << " bytes(s)\n" << flush;
+                << " byte(s) is larger than disk size of " << disk_size << " bytes(s)\n" << flush;
         } else if (size < disk_size) {
             console << "Warning: Image file size of " << size
-            << " byte(s) is smaller than disk size of " << disk_size << " bytes(s)\n" << flush;
+                << " byte(s) is smaller than disk size of " << disk_size << " bytes(s)\n" << flush;
         }
     } else {
         effective_size = disk_size;
@@ -503,11 +503,11 @@ bool ScsiDump::GetDeviceInfo(ostream &console)
     inq_info.sector_size = sector_size;
 
     console << "Sectors:     " << capacity << "\n"
-    << "Sector size: " << sector_size << " bytes\n"
-    << "Capacity:    " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
-    << " bytes)\n"
-    << DIVIDER << "\n\n"
-    << flush;
+        << "Sector size: " << sector_size << " bytes\n"
+        << "Capacity:    " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
+        << " bytes)\n"
+        << DIVIDER << "\n\n"
+        << flush;
 
     return true;
 }
@@ -517,9 +517,9 @@ void ScsiDump::inquiry_info::GeneratePropertiesFile(ostream &console, const stri
     ofstream prop(properties_file);
 
     prop << "{\n"
-    << "    \"vendor\": \"" << vendor << "\",\n"
-    << "    \"product\": \"" << product << "\",\n"
-    << "    \"revision\": \"" << revision << "\"";
+        << "    \"vendor\": \"" << vendor << "\",\n"
+        << "    \"product\": \"" << product << "\",\n"
+        << "    \"revision\": \"" << revision << "\"";
     if (sector_size) {
         prop << ",\n    \"block_size\": \"" << sector_size << "\"";
     }
