@@ -16,8 +16,8 @@ class ScsiMmcCommands
 
 public:
 
-	ScsiMmcCommands() = default;
-	virtual ~ScsiMmcCommands() = default;
+    ScsiMmcCommands() = default;
+    virtual ~ScsiMmcCommands() = default;
 
-	virtual void ReadToc() = 0;
+    virtual void ReadToc() = 0;
 };

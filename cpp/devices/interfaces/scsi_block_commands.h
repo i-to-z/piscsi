@@ -16,15 +16,15 @@ class ScsiBlockCommands
 
 public:
 
-	ScsiBlockCommands() = default;
-	virtual ~ScsiBlockCommands() = default;
+    ScsiBlockCommands() = default;
+    virtual ~ScsiBlockCommands() = default;
 
-	// Mandatory commands
-	virtual void FormatUnit() = 0;
-	virtual void ReadCapacity10() = 0;
-	virtual void ReadCapacity16() = 0;
-	virtual void Read10() = 0;
-	virtual void Read16() = 0;
-	virtual void Write10() = 0;
-	virtual void Write16() = 0;
+    // Mandatory commands
+    virtual void FormatUnit() = 0;
+    virtual void ReadCapacity10() = 0;
+    virtual void ReadCapacity16() = 0;
+    virtual void Read10() = 0;
+    virtual void Read16() = 0;
+    virtual void Write10() = 0;
+    virtual void Write16() = 0;
 };
