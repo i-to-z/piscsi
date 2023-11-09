@@ -17,18 +17,18 @@ using namespace std;
 
 unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode, bool in_process)
 {
-	unique_ptr<BUS> bus;
+    unique_ptr<BUS> bus;
 
-	if (in_process) {
-		bus = make_unique<DelegatingInProcessBus>(in_process_bus, true);
-	}
-	else {
-		SBC_Version::Init();
+    if (in_process) {
+        bus = make_unique<DelegatingInProcessBus>(in_process_bus, true);
+    }
+    else {
+        SBC_Version::Init();
         if (SBC_Version::IsRaspberryPi()) {
-        	if (getuid()) {
-        		spdlog::error("GPIO bus access requires root permissions");
-        		return nullptr;
-        	}
+            if (getuid()) {
+                spdlog::error("GPIO bus access requires root permissions");
+                return nullptr;
+            }
 
             bus = make_unique<GPIOBUS_Raspberry>();
         } else {
@@ -37,7 +37,7 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode, bool in_process)
     }
 
     if (bus && bus->Init(mode)) {
-    	bus->Reset();
+        bus->Reset();
     }
 
     return bus;

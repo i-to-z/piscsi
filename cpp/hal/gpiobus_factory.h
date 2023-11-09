@@ -18,13 +18,13 @@ class GPIOBUS_Factory
 
 public:
 
-	GPIOBUS_Factory() = default;
-	~GPIOBUS_Factory() = default;
+    GPIOBUS_Factory() = default;
+    ~GPIOBUS_Factory() = default;
 
-	static unique_ptr<BUS> Create(BUS::mode_e, bool = false);
+    static unique_ptr<BUS> Create(BUS::mode_e, bool = false);
 
 private:
 
-	// Bus instance shared by initiator and target
-	inline static InProcessBus in_process_bus;
+    // Bus instance shared by initiator and target
+    inline static InProcessBus in_process_bus;
 };
