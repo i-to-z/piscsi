@@ -21,7 +21,10 @@ class ScsiExecutor
 
 public:
 
-	ScsiExecutor(BUS& bus, int id) { phase_executor = make_unique<PhaseExecutor>(bus, id); }
+    ScsiExecutor(BUS &bus, int id)
+    {
+        phase_executor = make_unique<PhaseExecutor>(bus, id);
+    }
     ~ScsiExecutor() = default;
 
     void TestUnitReady() const;
@@ -31,7 +34,10 @@ public:
     void SynchronizeCache();
     set<int> ReportLuns();
 
-    void SetTarget(int id, int lun) { phase_executor->SetTarget(id, lun); }
+    void SetTarget(int id, int lun)
+    {
+        phase_executor->SetTarget(id, lun);
+    }
 
 private:
 
