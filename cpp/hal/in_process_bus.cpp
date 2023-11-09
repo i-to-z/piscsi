@@ -39,7 +39,7 @@ bool InProcessBus::WaitSignal(int pin, bool state)
 
         if (signals[PIN_RST]) {
         	return false;
-         }
+        }
     } while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3);
 
     return false;
