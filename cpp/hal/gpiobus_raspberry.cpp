@@ -17,7 +17,6 @@
 
 #include <spdlog/spdlog.h>
 #include "hal/gpiobus_raspberry.h"
-#include "hal/gpiobus.h"
 #include <map>
 #include <cstring>
 #ifdef USE_SEL_EVENT_ENABLE
@@ -34,7 +33,6 @@
 //---------------------------------------------------------------------------
 uint32_t GPIOBUS_Raspberry::get_dt_ranges(const char *filename, uint32_t offset)
 {
-    GPIO_FUNCTION_TRACE
     uint32_t address = ~0;
     if (FILE *fp = fopen(filename, "rb"); fp) {
         fseek(fp, offset, SEEK_SET);
@@ -48,7 +46,6 @@ uint32_t GPIOBUS_Raspberry::get_dt_ranges(const char *filename, uint32_t offset)
 
 uint32_t GPIOBUS_Raspberry::bcm_host_get_peripheral_address()
 {
-    GPIO_FUNCTION_TRACE
 #ifdef __linux__
     uint32_t address = get_dt_ranges("/proc/device-tree/soc/ranges", 4);
     if (address == 0) {
@@ -65,14 +62,9 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 {
     GPIOBUS::Init(mode);
 
-#ifdef USE_SEL_EVENT_ENABLE
-    epoll_event ev = {};
-#endif
-
     // Get the base address
     baseaddr = bcm_host_get_peripheral_address();
 
-    // Open /dev/mem
     int fd = open("/dev/mem", O_RDWR | O_SYNC);
     if (fd == -1) {
         spdlog::error("Error: Unable to open /dev/mem");
@@ -181,13 +173,13 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 
     // Event request setting
     strcpy(selevreq.consumer_label, "PiSCSI"); //NOSONAR Using strcpy is safe
-    selevreq.lineoffset  = PIN_SEL;
+    selevreq.lineoffset = PIN_SEL;
     selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
 #if SIGNAL_CONTROL_MODE < 2
-    selevreq.eventflags  = GPIOEVENT_REQUEST_FALLING_EDGE;
+    selevreq.eventflags = GPIOEVENT_REQUEST_FALLING_EDGE;
 #else
     selevreq.eventflags = GPIOEVENT_REQUEST_RISING_EDGE;
-#endif // SIGNAL_CONTROL_MODE
+#endif
 
     // Get event request
     if (ioctl(fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
@@ -200,8 +192,9 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     close(fd);
 
     // epoll initialization
-    epfd       = epoll_create(1);
-    ev.events  = EPOLLIN | EPOLLPRI;
+    epfd = epoll_create(1);
+    epoll_event ev = { };
+    ev.events = EPOLLIN | EPOLLPRI;
     ev.data.fd = selevreq.fd;
     epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev);
 #else
@@ -210,7 +203,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     gpio[GPIO_AREN_0] = 1 << PIN_SEL;
 #else
     gpio[GPIO_AFEN_0] = 1 << PIN_SEL;
-#endif // SIGNAL_CONTROL_MODE
+#endif
 
     // Clear event - GPIO Pin Event Detect Status
     gpio[GPIO_EDS_0] = 1 << PIN_SEL;
@@ -226,12 +219,12 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
         // Route all interupts to core 0
         for (i = 0; i < 8; i++) {
             gicd[GICD_ICENABLER0 + i] = 0xffffffff;
-            gicd[GICD_ICPENDR0 + i]   = 0xffffffff;
+            gicd[GICD_ICPENDR0 + i] = 0xffffffff;
             gicd[GICD_ICACTIVER0 + i] = 0xffffffff;
         }
         for (i = 0; i < 64; i++) {
             gicd[GICD_IPRIORITYR0 + i] = 0xa0a0a0a0;
-            gicd[GICD_ITARGETSR0 + i]  = 0x01010101;
+            gicd[GICD_ITARGETSR0 + i] = 0x01010101;
         }
 
         // Set all interrupts as level triggers
@@ -243,7 +236,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
         gicd[GICD_CTLR] = 1;
 
         // Enable CPU interface for core 0
-        gicc[GICC_PMR]  = 0xf0;
+        gicc[GICC_PMR] = 0xf0;
         gicc[GICC_CTLR] = 1;
 
         // Enable interrupts
