@@ -152,6 +152,22 @@ ifeq ($(CONNECT_TYPE), FULLSPEC)
 	MAN_PAGES += $(MAN_PAGE_DIR)/scsidump.1
 endif
 
+BINARIES = $(USR_LOCAL_BIN)/$(SCSICTL) \
+	$(USR_LOCAL_BIN)/$(PISCSI) \
+	$(USR_LOCAL_BIN)/$(SCSIMON) \
+	$(USR_LOCAL_BIN)/$(SCSILOOP)
+ifeq ($(CONNECT_TYPE), FULLSPEC)
+	BINARIES += $(USR_LOCAL_BIN)/$(SCSIDUMP)
+endif
+
+MAN_PAGES = $(MAN_PAGE_DIR)/piscsi.1 \
+	$(MAN_PAGE_DIR)/scsictl.1 \
+	$(MAN_PAGE_DIR)/scsimon.1 \
+	$(MAN_PAGE_DIR)/scsiloop.1
+ifeq ($(CONNECT_TYPE), FULLSPEC)
+	MAN_PAGES += $(MAN_PAGE_DIR)/scsidump.1
+endif
+
 GENERATED_DIR := generated
 
 # For the unit tests, the following functions will be "wrapped" by the linker, meaning the
