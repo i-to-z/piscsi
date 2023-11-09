@@ -27,9 +27,10 @@ public:
     ScsiDump() = default;
     ~ScsiDump() = default;
 
-    int run(span<char *>, bool = false);
+    int run(span<char*>, bool = false);
 
-    struct inquiry_info {
+    struct inquiry_info
+    {
         string vendor;
         string product;
         string revision;
@@ -42,9 +43,9 @@ public:
 
 private:
 
-    bool Banner(ostream&, span<char *>) const;
+    bool Banner(ostream&, span<char*>) const;
     bool Init(bool);
-    void ParseArguments(span<char *>);
+    void ParseArguments(span<char*>);
     void DisplayBoardId(ostream&) const;
     string ReadWrite(ostream&, fstream&, int, uint32_t, int);
     long CalculateEffectiveSize(ostream&) const;
@@ -89,35 +90,35 @@ private:
     bool create_properties_file = false;
 
     // Required for the termination handler
-	static inline ScsiDump *instance;
+    static inline ScsiDump *instance;
 
-	static const int MINIMUM_BUFFER_SIZE = 1024 * 64;
+    static const int MINIMUM_BUFFER_SIZE = 1024 * 64;
     static const int DEFAULT_BUFFER_SIZE = 1024 * 1024;
 
     static inline const string DIVIDER = "----------------------------------------";
 
     static inline const unordered_map<byte, string> DEVICE_TYPES = {
-    		{ byte{0}, "Direct Access" },
-			{ byte{1}, "Sequential Access" },
-			{ byte{2}, "Printer" },
-			{ byte{3}, "Processor" },
-			{ byte{4}, "Write-Once" },
-			{ byte{5}, "CD-ROM/DVD/BD/DVD-RAM" },
-			{ byte{6}, "Scanner" },
-			{ byte{7}, "Optical Memory" },
-			{ byte{8}, "Media Changer" },
-			{ byte{9}, "Communications" },
-			{ byte{10}, "Graphic Arts Pre-Press" },
-			{ byte{11}, "Graphic Arts Pre-Press" },
-			{ byte{12}, "Storage Array Controller" },
-			{ byte{13}, "Enclosure Services" },
-			{ byte{14}, "Simplified Direct Access" },
-			{ byte{15}, "Optical Card Reader/Writer" },
-			{ byte{16}, "Bridge Controller" },
-			{ byte{17}, "Object-based Storage" },
-			{ byte{18}, "Automation/Drive Interface" },
-			{ byte{19}, "Security Manager" },
-			{ byte{20}, "Host Managed Zoned Block" },
-			{ byte{30}, "Well Known Logical Unit" }
+        { byte { 0 }, "Direct Access" },
+        { byte { 1 }, "Sequential Access" },
+        { byte { 2 }, "Printer" },
+        { byte { 3 }, "Processor" },
+        { byte { 4 }, "Write-Once" },
+        { byte { 5 }, "CD-ROM/DVD/BD/DVD-RAM" },
+        { byte { 6 }, "Scanner" },
+        { byte { 7 }, "Optical Memory" },
+        { byte { 8 }, "Media Changer" },
+        { byte { 9 }, "Communications" },
+        { byte { 10 }, "Graphic Arts Pre-Press" },
+        { byte { 11 }, "Graphic Arts Pre-Press" },
+        { byte { 12 }, "Storage Array Controller" },
+        { byte { 13 }, "Enclosure Services" },
+        { byte { 14 }, "Simplified Direct Access" },
+        { byte { 15 }, "Optical Card Reader/Writer" },
+        { byte { 16 }, "Bridge Controller" },
+        { byte { 17 }, "Object-based Storage" },
+        { byte { 18 }, "Automation/Drive Interface" },
+        { byte { 19 }, "Security Manager" },
+        { byte { 20 }, "Host Managed Zoned Block" },
+        { byte { 30 }, "Well Known Logical Unit" }
     };
 };
