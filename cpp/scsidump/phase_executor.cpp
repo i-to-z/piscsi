@@ -175,7 +175,7 @@ void PhaseExecutor::Command(scsi_command cmd, span<uint8_t> cdb) const
     }
 
     if (static_cast<int>(cdb.size()) !=
-    bus.SendHandShake(cdb.data(), static_cast<int>(cdb.size()))) {
+        bus.SendHandShake(cdb.data(), static_cast<int>(cdb.size()))) {
 
         throw phase_exception(command_mapping.find(cmd)->second.second + string(" failed"));
     }
