@@ -32,33 +32,102 @@ public:
 
     uint32_t Acquire() override { return dat; }
 
-    bool GetBSY() const override { return GetSignal(PIN_BSY); }
-    void SetBSY(bool state) override { SetSignal(PIN_BSY, state); }
-    bool GetSEL() const override { return GetSignal(PIN_SEL); }
-    void SetSEL(bool state) override { SetSignal(PIN_SEL, state);}
-    bool GetATN() const override { return GetSignal(PIN_ATN); }
-    void SetATN(bool state) override { SetSignal(PIN_ATN, state); }
-    bool GetACK() const override { return GetSignal(PIN_ACK); }
-    void SetACK(bool state) override { SetSignal(PIN_ACK, state); }
-    bool GetRST() const override { return GetSignal(PIN_RST); }
-    void SetRST(bool state) override { SetSignal(PIN_RST, state); };
-    bool GetMSG() const override { return GetSignal(PIN_MSG); };
-    void SetMSG(bool state) override { SetSignal(PIN_MSG, state);};
-    bool GetCD() const override { return GetSignal(PIN_CD); }
-    void SetCD(bool state) override { SetSignal(PIN_CD, state);}
-    bool GetIO() override { return GetSignal(PIN_IO); }
-    void SetIO(bool state) override { SetSignal(PIN_IO, state); }
-    bool GetREQ() const override { return GetSignal(PIN_REQ); }
-    void SetREQ(bool state) override { SetSignal(PIN_REQ, state); }
+    bool GetBSY() const override
+    {
+        return GetSignal(PIN_BSY);
+    }
+    void SetBSY(bool state) override
+    {
+        SetSignal(PIN_BSY, state);
+    }
+    bool GetSEL() const override
+    {
+        return GetSignal(PIN_SEL);
+    }
+    void SetSEL(bool state) override
+    {
+        SetSignal(PIN_SEL, state);
+    }
+    bool GetATN() const override
+    {
+        return GetSignal(PIN_ATN);
+    }
+    void SetATN(bool state) override
+    {
+        SetSignal(PIN_ATN, state);
+    }
+    bool GetACK() const override
+    {
+        return GetSignal(PIN_ACK);
+    }
+    void SetACK(bool state) override
+    {
+        SetSignal(PIN_ACK, state);
+    }
+    bool GetRST() const override
+    {
+        return GetSignal(PIN_RST);
+    }
+    void SetRST(bool state) override
+    {
+        SetSignal(PIN_RST, state);
+    }
+    ;
+    bool GetMSG() const override
+    {
+        return GetSignal(PIN_MSG);
+    }
+    ;
+    void SetMSG(bool state) override
+    {
+        SetSignal(PIN_MSG, state);
+    }
+    ;
+    bool GetCD() const override
+    {
+        return GetSignal(PIN_CD);
+    }
+    void SetCD(bool state) override
+    {
+        SetSignal(PIN_CD, state);
+    }
+    bool GetIO() override
+    {
+        return GetSignal(PIN_IO);
+    }
+    void SetIO(bool state) override
+    {
+        SetSignal(PIN_IO, state);
+    }
+    bool GetREQ() const override
+    {
+        return GetSignal(PIN_REQ);
+    }
+    void SetREQ(bool state) override
+    {
+        SetSignal(PIN_REQ, state);
+    }
 
     bool WaitSignal(int, bool) override;
 
-    bool WaitREQ(bool state) override { return WaitSignal(PIN_REQ, state); }
+    bool WaitREQ(bool state) override
+    {
+        return WaitSignal(PIN_REQ, state);
+    }
 
-    bool WaitACK(bool state) override { return WaitSignal(PIN_ACK, state); }
+    bool WaitACK(bool state) override
+    {
+        return WaitSignal(PIN_ACK, state);
+    }
 
-    uint8_t GetDAT() override { return dat; }
-    void SetDAT(uint8_t d) override { dat = d; }
+    uint8_t GetDAT() override
+    {
+        return dat;
+    }
+    void SetDAT(uint8_t d) override
+    {
+        dat = d;
+    }
 
     bool GetSignal(int pin) const override;
     void SetSignal(int, bool) override;
@@ -74,15 +143,40 @@ private:
     	// Nothing to do }
     }
 
-    void MakeTable() override { assert(false); }
-    void SetControl(int, bool) override { assert(false); }
-    void SetMode(int, int) override{ assert(false); }
-    void PinConfig(int, int) override { assert(false); }
-    void PullConfig(int, int) override { assert(false); }
-    void PinSetSignal(int, bool) override { assert(false); }
-    void DrvConfig(uint32_t) override { assert(false); }
+    void MakeTable() override
+    {
+        assert(false);
+    }
+    void SetControl(int, bool) override
+    {
+        assert(false);
+    }
+    void SetMode(int, int) override
+    {
+        assert(false);
+    }
+    void PinConfig(int, int) override
+    {
+        assert(false);
+    }
+    void PullConfig(int, int) override
+    {
+        assert(false);
+    }
+    void PinSetSignal(int, bool) override
+    {
+        assert(false);
+    }
+    void SetSignalDriveStrength(uint32_t) override
+    {
+        assert(false);
+    }
 
-    unique_ptr<DataSample> GetSample(uint64_t) override { assert(false); return nullptr; }
+    unique_ptr<DataSample> GetSample(uint64_t) override
+    {
+        assert(false);
+        return nullptr;
+    }
 
     mutex write_locker;
 
@@ -91,7 +185,7 @@ private:
     array<bool, 28> signals = {};
 };
 
-class DelegatingInProcessBus : public InProcessBus
+class DelegatingInProcessBus: public InProcessBus
 {
 
 public:
@@ -105,12 +199,24 @@ public:
 
     uint32_t Acquire() override { return bus.Acquire(); }
 
-    bool WaitREQ(bool state) override { return bus.WaitSignal(PIN_REQ, state); }
+    bool WaitREQ(bool state) override
+    {
+        return bus.WaitSignal(PIN_REQ, state);
+    }
 
-    bool WaitACK(bool state) override { return bus.WaitSignal(PIN_ACK, state); }
+    bool WaitACK(bool state) override
+    {
+        return bus.WaitSignal(PIN_ACK, state);
+    }
 
-    uint8_t GetDAT() override { return bus.GetDAT(); }
-    void SetDAT(uint8_t dat) override { bus.SetDAT(dat); }
+    uint8_t GetDAT() override
+    {
+        return bus.GetDAT();
+    }
+    void SetDAT(uint8_t dat) override
+    {
+        bus.SetDAT(dat);
+    }
 
     bool GetSignal(int) const override;
     void SetSignal(int, bool) override;
@@ -118,7 +224,10 @@ public:
 
 private:
 
-    string GetMode() const { return IsTarget() ? "target" :"initiator"; }
+    string GetMode() const
+    {
+        return IsTarget() ? "target" : "initiator";
+    }
 
     string GetSignalName(int) const;
 

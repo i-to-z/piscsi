@@ -122,7 +122,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     close(fd);
 
     // Set Drive Strength to 16mA
-    DrvConfig(7);
+    SetSignalDriveStrength(7);
 
     // Set pull up/pull down
 #if SIGNAL_CONTROL_MODE == 0
@@ -284,7 +284,7 @@ void GPIOBUS_Raspberry::CleanUp()
     }
 
     // Set drive strength back to 8mA
-    DrvConfig(3);
+    SetSignalDriveStrength(3);
 }
 
 void GPIOBUS_Raspberry::Reset()
@@ -587,13 +587,13 @@ void GPIOBUS_Raspberry::MakeTable(void)
 
     // Create parity table
     for (uint32_t i = 0; i < 0x100; i++) {
-        uint32_t bits   = i;
+        uint32_t bits = i;
         uint32_t parity = 0;
         for (int j = 0; j < 8; j++) {
             parity ^= bits & 1;
             bits >>= 1;
         }
-        parity       = ~parity;
+        parity = ~parity;
         tblParity[i] = parity & 1;
     }
 
@@ -689,7 +689,7 @@ void GPIOBUS_Raspberry::SetMode(int pin, int mode)
     if (mode == OUT) {
         return;
     }
-#endif // SIGNAL_CONTROL_MODE
+#endif
 
     const int index = pin / 10;
     const int shift = (pin % 10) * 3;
@@ -859,14 +859,8 @@ void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
 void GPIOBUS_Raspberry::PinSetSignal(int pin, bool ast)
 {
     // Check for invalid pin
-    if (pin < 0) {
-        return;
-    }
-
-    if (ast) {
-        gpio[GPIO_SET_0] = 0x1 << pin;
-    } else {
-        gpio[GPIO_CLR_0] = 0x1 << pin;
+    if (pin <= 0) {
+        gpio[ast ? GPIO_SET_0 : GPIO_CLR_0] = 1 << pin;
     }
 }
 
@@ -875,7 +869,7 @@ void GPIOBUS_Raspberry::PinSetSignal(int pin, bool ast)
 //	Set the signal drive strength
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::DrvConfig(uint32_t drive)
+void GPIOBUS_Raspberry::SetSignalDriveStrength(uint32_t drive)
 {
     const uint32_t data = pads[PAD_0_27];
     pads[PAD_0_27] = (0xFFFFFFF8 & data) | drive | 0x5a000000;

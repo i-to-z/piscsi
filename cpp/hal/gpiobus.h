@@ -192,7 +192,7 @@ protected:
     // Set GPIO output signal
     virtual void PinSetSignal(int, bool) = 0;
     // Set GPIO drive strength
-    virtual void DrvConfig(uint32_t) = 0;
+    virtual void SetSignalDriveStrength(uint32_t) = 0;
 
     virtual bool IsTarget() const { return operation_mode == mode_e::TARGET; }
 

@@ -133,9 +133,7 @@ private:
 
     // Interrupt control
     void DisableIRQ() override;
-    // IRQ Disabled
     void EnableIRQ() override;
-    // IRQ Enabled
 
     //  GPIO pin functionality settings
     void PinConfig(int pin, int mode) override;
@@ -144,7 +142,7 @@ private:
     // GPIO pin pull up/down resistor setting
     void PinSetSignal(int pin, bool ast) override;
     // Set GPIO output signal
-    void DrvConfig(uint32_t drive) override;
+    void SetSignalDriveStrength(uint32_t drive) override;
     // Set GPIO drive strength
 
     static uint32_t get_dt_ranges(const char *filename, uint32_t offset);
