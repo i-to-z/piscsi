@@ -16,12 +16,12 @@ class ScsiPrinterCommands
 
 public:
 
-	ScsiPrinterCommands() = default;
-	virtual ~ScsiPrinterCommands() = default;
+    ScsiPrinterCommands() = default;
+    virtual ~ScsiPrinterCommands() = default;
 
-	// Mandatory commands
-	virtual void Print() = 0;
-	virtual void ReleaseUnit() = 0;
-	virtual void ReserveUnit() = 0;
-	virtual void SendDiagnostic() = 0;
+    // Mandatory commands
+    virtual void Print() = 0;
+    virtual void ReleaseUnit() = 0;
+    virtual void ReserveUnit() = 0;
+    virtual void SendDiagnostic() = 0;
 };
