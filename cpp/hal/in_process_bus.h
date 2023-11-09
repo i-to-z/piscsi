@@ -16,18 +16,19 @@
 #include <mutex>
 #include <atomic>
 
-class InProcessBus : public GPIOBUS
+class InProcessBus: public GPIOBUS
 {
 
 public:
 
-	InProcessBus() = default;
-	~InProcessBus() override = default;
+    InProcessBus() = default;
+    ~InProcessBus() override = default;
 
     void Reset() override;
 
-    void CleanUp() override {
-    	// Nothing to do
+    void CleanUp() override
+    {
+        // Nothing to do
     }
 
     uint32_t Acquire() override
@@ -139,11 +140,13 @@ public:
 
 private:
 
-    void DisableIRQ() override {
-    	// Nothing to do
+    void DisableIRQ() override
+    {
+        // Nothing to do
     }
-    void EnableIRQ() override {
-    	// Nothing to do }
+    void EnableIRQ() override
+    {
+        // Nothing to do }
     }
 
     void MakeTable() override
@@ -185,7 +188,7 @@ private:
 
     atomic<uint8_t> dat = 0;
 
-    array<bool, 28> signals = {};
+    array<bool, 28> signals = { };
 };
 
 class DelegatingInProcessBus: public InProcessBus
@@ -193,7 +196,9 @@ class DelegatingInProcessBus: public InProcessBus
 
 public:
 
-	DelegatingInProcessBus(InProcessBus& b, bool l) : bus(b), log_signals(l) {}
+    DelegatingInProcessBus(InProcessBus &b, bool l) : bus(b), log_signals(l)
+    {
+    }
     ~DelegatingInProcessBus() override = default;
 
     void Reset() override;
@@ -240,19 +245,19 @@ private:
 
     string GetSignalName(int) const;
 
-    InProcessBus& bus;
+    InProcessBus &bus;
 
     bool log_signals = true;
 
     inline static const unordered_map<int, string> SIGNALS {
-       	{ PIN_BSY, "BSY" },
-       	{ PIN_SEL, "SEL" },
-       	{ PIN_ATN, "ATN" },
-       	{ PIN_ACK, "ACK" },
-       	{ PIN_RST, "RST" },
-       	{ PIN_MSG, "MSG" },
-       	{ PIN_CD, "CD" },
-       	{ PIN_IO, "IO" },
-    	{ PIN_REQ, "REQ" }
+        { PIN_BSY, "BSY" },
+        { PIN_SEL, "SEL" },
+        { PIN_ATN, "ATN" },
+        { PIN_ACK, "ACK" },
+        { PIN_RST, "RST" },
+        { PIN_MSG, "MSG" },
+        { PIN_CD, "CD" },
+        { PIN_IO, "IO" },
+        { PIN_REQ, "REQ" }
     };
 };
