@@ -200,7 +200,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int daynaport_delay_after_by
 
     if (IsTarget()) {
         for (bytes_sent = 0; bytes_sent < count; bytes_sent++) {
-           	// TODO Try to get rid of this
+            // TODO Try to get rid of this, check whether nanosleep works
         	if (bytes_sent == daynaport_delay_after_bytes) {
         		const timespec ts = {.tv_sec = 0, .tv_nsec = SCSI_DELAY_SEND_DATA_DAYNAPORT_NS};
         		nanosleep(&ts, nullptr);
