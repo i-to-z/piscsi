@@ -38,7 +38,7 @@ private:
 
 	callback execute;
 
-	jthread service_thread;
+	thread service_thread;
 
 	int service_socket = -1;
 };

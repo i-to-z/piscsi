@@ -14,7 +14,7 @@ CXX = $(CROSS_COMPILE)g++
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	# Debug compiler flags
-	CXXFLAGS += -O0 -g -Wall -Wextra -DDEBUG
+	CXXFLAGS += -I/usr/local/include -O0 -DDEBUG
 else
 	# Release compiler flags
 	CXXFLAGS += -O3 -Wall -Werror -Wextra -DNDEBUG
@@ -28,7 +28,6 @@ CXXFLAGS += -std=c++20 -iquote . -D_FILE_OFFSET_BITS=64 -DFMT_HEADER_ONLY -DSPDL
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CXXFLAGS += $(EXTRA_FLAGS)
-
 
 ##   CONNECT_TYPE=FULLSPEC : Specify the type of PiSCSI board type
 ##              that you are using. The typical options are 
@@ -206,22 +205,16 @@ docs: $(DOC_DIR)/piscsi_man_page.txt $(DOC_DIR)/scsictl_man_page.txt $(DOC_DIR)/
 $(SRC_PISCSI_CORE) $(SRC_SCSICTL_CORE) : $(OBJ_GENERATED)
 
 $(BINDIR)/$(PISCSI): $(OBJ_GENERATED) $(OBJ_PISCSI_CORE) $(OBJ_PISCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(OBJ_PISCSI_CORE) $(OBJ_PISCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf
 
 $(BINDIR)/$(SCSICTL): $(OBJ_GENERATED) $(OBJ_SCSICTL_CORE) $(OBJ_SCSICTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(OBJ_SCSICTL_CORE) $(OBJ_SCSICTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lprotobuf
 
 $(BINDIR)/$(SCSIDUMP): $(OBJ_SCSIDUMP) $(OBJ_SHARED) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(OBJ_SCSIDUMP) $(OBJ_SHARED)
 
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) $(OBJ_SHARED) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(OBJ_SCSIMON) $(OBJ_SHARED)
 
 $(BINDIR)/$(SCSILOOP): $(OBJ_SHARED) $(OBJ_SCSILOOP) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@  $(OBJ_SHARED) $(OBJ_SCSILOOP)
 
 $(BINDIR)/$(PISCSI_TEST): $(OBJ_GENERATED) $(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI_TEST) $(OBJ_SCSICTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(TEST_WRAPS) -o $@ $(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf -lgmock -lgtest
 
 # Phony rules for building individual utilities
 .PHONY: $(PISCSI) $(SCSICTL) $(SCSIDUMP) $(SCSIMON) $(PISCSI_TEST) $(SCSILOOP)

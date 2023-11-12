@@ -1,0 +1,34 @@
+on:
+  workflow_call:
+    inputs:
+      connect-type:
+        required: true
+        type: string
+      # Debug flag indicates whether to build a debug build (no optimization, debugger symbols)
+      debug-flag:
+        required: false
+        type: boolean
+
+jobs:
+  build_macos:
+    runs-on: macos-13
+    defaults:
+      run:
+        working-directory: cpp
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Homebrew
+        run: bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+      - name: Install packages
+        run: brew install protobuf spdlog
+
+      - name: Build debug strings
+        if: ${{ inputs.debug-flag }}
+        run: |
+          echo "debug_flag_compile=DEBUG\=1" >> $GITHUB_ENV
+          echo "debug_flag_filename=debug-" >> $GITHUB_ENV
+
+      - name: Compile
+        run: make all -j 6 CONNECT_TYPE=${{ inputs.connect-type }} ${{ env.debug_flag_compile }}
