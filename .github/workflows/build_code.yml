@@ -9,7 +9,7 @@ on:
 
 jobs:
   debug-fullspec:
-    uses: PiSCSI/piscsi/.github/workflows/macos_compile.yml@testing_macos_compile
+    uses: PiSCSI/piscsi/.github/workflows/macos_compile.yml
     with:
       connect-type: "FULLSPEC"
       debug-flag: true
