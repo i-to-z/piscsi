@@ -29,7 +29,6 @@ CXXFLAGS += -std=c++20 -iquote . -D_FILE_OFFSET_BITS=64 -DFMT_HEADER_ONLY -DSPDL
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CXXFLAGS += $(EXTRA_FLAGS)
 
-
 ##   CONNECT_TYPE=FULLSPEC : Specify the type of PiSCSI board type
 ##              that you are using. The typical options are 
 ##              STANDARD or FULLSPEC. The default is FULLSPEC
