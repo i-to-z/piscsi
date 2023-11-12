@@ -1,4 +1,4 @@
-name: Build macos binaries
+name: Compile on macos
 
 on:
   workflow_dispatch:
