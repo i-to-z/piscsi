@@ -376,6 +376,8 @@ void GPIOBUS_Raspberry::SetBSY(bool ast)
     } else {
     	SetControl(PIN_ACT, false);
 
+        SetControl(PIN_ACT, ACT_OFF);
+
     	SetControl(PIN_TAD, TAD_IN);
 
     	SetMode(PIN_BSY, IN);
