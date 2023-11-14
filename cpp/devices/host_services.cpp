@@ -35,18 +35,9 @@ bool HostServices::Init(const param_map& params)
 {
 	ModePageDevice::Init(params);
 
-    AddCommand(scsi_command::eCmdTestUnitReady, [this]
-        {
-            TestUnitReady();
-        });
-    AddCommand(scsi_command::eCmdStartStop, [this]
-        {
-            StartStopUnit();
-        });
-    AddCommand(scsi_command::eCmdExecute, [this]
-        {
-            Execute();
-        });
+    AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
+    AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
+    AddCommand(scsi_command::eCmdExecute, [this] { Execute(); });
 
 	SetReady(true);
 
