@@ -194,6 +194,9 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         return false;
     }
 
+    // TODO ReadByteSequence()
+    //EnterDataInPhase();
+
     return true;
 }
 
