@@ -16,7 +16,6 @@
 #include "shared/piscsi_version.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_logger.h"
-#include "devices/device_factory.h"
 #include "devices/storage_device.h"
 #include "hal/sbc_version.h"
 #include "hal/gpiobus_factory.h"
