@@ -121,8 +121,8 @@ void HostServices::Execute()
 {
     const int formats = GetController()->GetCmdByte(1);
     json_in = formats & 0x01;
-    const bool bin_in = formats & 0x02;
     json_out = formats & 0x04;
+    const bool bin_in = formats & 0x02;
     const bool bin_out = formats & 0x08;
 
     if (!formats || !(json_in || bin_in) || !(json_out || bin_out) || (json_in && bin_in) || (json_out && bin_out)) {
