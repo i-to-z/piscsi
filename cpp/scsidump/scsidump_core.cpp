@@ -351,7 +351,7 @@ void ScsiDump::Execute()
         cerr << "json received:\n" << result << endl;
     }
     else {
-        PbResult result;
+        PbMappingInfo result;
         if (!result.ParseFromArray(buffer.data(), length)) {
             assert(false);
         }

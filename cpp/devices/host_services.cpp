@@ -120,9 +120,9 @@ void HostServices::Execute()
     json_in = formats & 0x01;
     json_out = formats & 0x04;
     const bool bin_in = formats & 0x02;
-    const bool bin_out = formats & 0x08;
 
-    if (!formats || !(json_in || bin_in) || !(json_out || bin_out) || (json_in && bin_in) || (json_out && bin_out)) {
+    if (const bool bin_out = formats & 0x08;
+        !formats || !(json_in || bin_in) || !(json_out || bin_out) || (json_in && bin_in) || (json_out && bin_out)) {
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
 
@@ -370,7 +370,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         string json;
         status = MessageToJsonString(result, &json).ok();
         if (status) {
-            size = min(allocation_length, json.size());
+            size = static_cast<int>(min(allocation_length, json.size()));
             memcpy(GetController()->GetBuffer().data(), json.data(), size);
         }
     }

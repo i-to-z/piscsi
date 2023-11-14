@@ -64,7 +64,7 @@ private:
 
     PiscsiImage piscsi_image;
 
-    PiscsiResponse response;
+    [[no_unique_address]] PiscsiResponse response;
 
     bool json_in = false;
     bool json_out = false;
