@@ -311,11 +311,10 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
     }
 
-    CommandContext context(command, "", "");
+    // TODO Set default folder
+    CommandContext context(command, "", protobuf_util::GetParam(command, "locale"));
     PbResult result;
-    if (!ExecuteCommand(context, result)) {
-        throw scsi_exception(sense_key::aborted_command);
-    }
+    ExecuteCommand(context, result);
 
     string json;
     if (MessageToJsonString(result, &json).ok()) {
