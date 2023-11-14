@@ -88,7 +88,7 @@ void HostServices::Execute()
     json_out = formats & 0x04;
     bin_out = formats & 0x08;
 
-    if ((json_in && bin_in) || (json_out && bin_out)) {
+    if (!formats || (json_in && bin_in) || (json_out && bin_out)) {
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
 

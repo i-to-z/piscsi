@@ -63,6 +63,17 @@ TEST(HostServicesTest, StartStopUnit)
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 }
 
+TEST(HostServicesTest, Execute)
+{
+    auto [controller, services] = CreateDevice(SCHS);
+    // Required by the bullseye clang++ compiler
+    auto s = services;
+
+    EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdExecute); }, Throws<scsi_exception>(AllOf(
+            Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+            Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
+}
+
 TEST(HostServicesTest, ModeSense6)
 {
 	auto [controller, services] = CreateDevice(SCHS);
@@ -110,7 +121,7 @@ TEST(HostServicesTest, ModeSense10)
 	auto [controller, services] = CreateDevice(SCHS);
 	// Required by the bullseye clang++ compiler
 	auto s = services;
-	
+
 	EXPECT_TRUE(services->Init({}));
 
 	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
