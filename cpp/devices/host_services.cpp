@@ -69,9 +69,6 @@ using namespace protobuf_util;
 
 bool HostServices::Init(const param_map& params)
 {
-    // The custom SCSI Execute command supports transfers of up to 65535 bytes
-    GetController()->AllocateBuffer(65536);
-
     ModePageDevice::Init(params);
 
     AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
@@ -133,6 +130,9 @@ void HostServices::Execute()
     if (!length) {
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
+
+    // The custom SCSI Execute command supports transfers of up to 65535 bytes
+    GetController()->AllocateBuffer(65536);
 
     GetController()->SetLength(length);
     GetController()->SetByteTransfer(true);
