@@ -36,8 +36,6 @@ protected:
 
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 
-    bool WriteByteSequence(span<const uint8_t>) override;
-
 private:
 
 	using mode_page_datetime = struct __attribute__((packed)) {

@@ -100,19 +100,30 @@ void HostServices::Execute()
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
 
-    LogTrace("Expecting to receive " + to_string(length) + " byte(s)");
+    string json((const char *)(&(GetController()->GetBuffer()[10])), length);
 
-    if (length > GetController()->GetBuffer().size()) {
-        LogError("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
-            " bytes, " + to_string(length) + " bytes expected");
+    spdlog::trace("Received json:\n" + json);
 
+    PbCommand command;
+    if (!JsonStringToMessage(json, &command).ok()) {
+        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
+    }
+
+    CommandContext context(command, "", "");
+    PbResult result;
+    if (!ExecuteCommand(context, result)) {
+        // TODO Wrong ASC
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
 
-    GetController()->SetLength(length);
-    GetController()->SetByteTransfer(true);
+    if (MessageToJsonString(result, &json).ok()) {
+        GetController()->SetLength(json.size());
 
-    EnterDataOutPhase();
+        EnterDataInPhase();
+    }
+    else {
+        EnterStatusPhase();
+    }
 }
 
 int HostServices::ModeSense6(cdb_t cdb, vector<uint8_t>& buf) const
@@ -181,29 +192,6 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 
 		memcpy(&pages[32][2], &datetime, sizeof(datetime));
 	}
-}
-
-bool HostServices::WriteByteSequence(span<const uint8_t> buf)
-{
-    string json((const char *)buf.data(), buf.size());
-
-    spdlog::trace("Received json:\n" + json);
-
-    PbCommand command;
-    if (!JsonStringToMessage(json, &command).ok()) {
-        return false;
-    }
-
-    CommandContext context(command, "", "");
-    PbResult result;
-    if (!ExecuteCommand(context, result)) {
-        return false;
-    }
-
-    // TODO ReadByteSequence()
-    //EnterDataInPhase();
-
-    return true;
 }
 
 bool HostServices::ExecuteCommand(const CommandContext& context, PbResult& result)

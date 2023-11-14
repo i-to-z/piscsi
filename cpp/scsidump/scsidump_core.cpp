@@ -307,7 +307,7 @@ void ScsiDump::Inquiry()
 void ScsiDump::Execute()
 {
     vector<uint8_t> cdb(10);
-    cdb[1] = 0x00;
+    cdb[1] = 0x05;
     Command(scsi_command::eCmdExecute, cdb);
 
     DataIn(256);
