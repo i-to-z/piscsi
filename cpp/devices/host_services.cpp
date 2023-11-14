@@ -304,10 +304,10 @@ bool HostServices::ExecuteCommand(const CommandContext& context, PbResult& resul
 bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 {
     const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
-    string json((const char *)buf.data(), length);
+    string cmd((const char *)buf.data(), length);
 
     PbCommand command;
-    if (!JsonStringToMessage(json, &command).ok()) {
+    if (!JsonStringToMessage(cmd, &command).ok()) {
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
     }
 
@@ -317,6 +317,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         throw scsi_exception(sense_key::aborted_command);
     }
 
+    string json;
     if (MessageToJsonString(result, &json).ok()) {
         const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
 

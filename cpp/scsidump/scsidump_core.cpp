@@ -330,7 +330,7 @@ void ScsiDump::Execute()
 
     string result((const char *)buffer.data(), length);
 
-    cerr << "json received: " << length << "\n" << result << endl;
+    cerr << "json received\n" << result << endl;
 
     Status();
 
