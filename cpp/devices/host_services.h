@@ -60,6 +60,8 @@ private:
 
 	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
 
+	bool WriteByteSequence(span<const uint8_t>) override;
+
     PiscsiImage piscsi_image;
 
     PiscsiResponse response;

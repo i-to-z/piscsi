@@ -311,7 +311,6 @@ void ScsiDump::Execute()
     stringstream buf;
     buf << in.rdbuf();
     const string json = buf.str();
-    cerr << json << endl;
 
     vector<uint8_t> cdb(10 + json.size());
     cdb[1] = 0x05;
@@ -321,6 +320,8 @@ void ScsiDump::Execute()
     cdb[8] = static_cast<uint8_t>(4096);
     memcpy(&cdb[10], json.c_str(), json.size());
     Command(scsi_command::eCmdExecute, cdb);
+
+    DataOut(json.size());
 
     DataIn(4096);
 

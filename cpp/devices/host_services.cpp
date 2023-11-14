@@ -99,31 +99,10 @@ void HostServices::Execute()
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
 
-    string json((const char *)GetController()->GetBuffer().data() + 10, length);
+    GetController()->SetLength(length);
+    GetController()->SetByteTransfer(true);
 
-    spdlog::trace("Received {0} bytes json:\n{1}", length, json);
-
-    PbCommand command;
-    if (!JsonStringToMessage(json, &command).ok()) {
-        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
-    }
-
-    CommandContext context(command, "", "");
-    PbResult result;
-    if (!ExecuteCommand(context, result)) {
-        throw scsi_exception(sense_key::aborted_command);
-    }
-
-    if (MessageToJsonString(result, &json).ok()) {
-        const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
-
-        GetController()->SetLength(min(allocation_length, json.size()));
-
-        EnterDataInPhase();
-    }
-    else {
-        throw scsi_exception(sense_key::aborted_command);
-    }
+    EnterDataOutPhase();
 }
 
 int HostServices::ModeSense6(cdb_t cdb, vector<uint8_t>& buf) const
@@ -317,6 +296,38 @@ bool HostServices::ExecuteCommand(const CommandContext& context, PbResult& resul
         // The remaining commands may only be executed when the target is idle
         // TODO
         return context.ReturnErrorStatus("TODO");
+    }
+
+    return true;
+}
+
+bool HostServices::WriteByteSequence(span<const uint8_t> buf)
+{
+    const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
+    string json((const char *)buf.data(), length);
+
+    spdlog::trace("Received {0} bytes json:\n{1}", length, json);
+
+    PbCommand command;
+    if (!JsonStringToMessage(json, &command).ok()) {
+        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
+    }
+
+    CommandContext context(command, "", "");
+    PbResult result;
+    if (!ExecuteCommand(context, result)) {
+        throw scsi_exception(sense_key::aborted_command);
+    }
+
+    if (MessageToJsonString(result, &json).ok()) {
+        const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
+
+        GetController()->SetLength(min(allocation_length, json.size()));
+
+        EnterDataInPhase();
+    }
+    else {
+        throw scsi_exception(sense_key::aborted_command);
     }
 
     return true;
