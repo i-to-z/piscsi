@@ -14,6 +14,7 @@
 #include <string>
 #include <unordered_map>
 #include "generated/piscsi_interface.pb.h"
+#include "shared/piscsi_util.h"
 
 using namespace std;
 using namespace piscsi_interface;

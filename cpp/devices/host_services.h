@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "controllers/controller_manager.h"
+#include "piscsi/piscsi_executor.h"
 #include "piscsi/command_context.h"
 #include "piscsi/piscsi_image.h"
 #include "piscsi/piscsi_response.h"
@@ -33,7 +33,7 @@ public:
 	vector<uint8_t> InquiryInternal() const override;
 	void TestUnitReady() override;
 
-	void SetControllerManager(shared_ptr<ControllerManager> m) { controller_manager = m; }
+	void SetExecutor(shared_ptr<PiscsiExecutor> e) { executor = e; }
 
 protected:
 
@@ -65,7 +65,7 @@ private:
 
 	bool WriteByteSequence(span<const uint8_t>) override;
 
-	shared_ptr<ControllerManager> controller_manager;
+	shared_ptr<PiscsiExecutor> executor;
 
 	PiscsiImage piscsi_image;
 

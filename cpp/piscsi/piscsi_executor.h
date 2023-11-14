@@ -19,7 +19,7 @@ class PrimaryDevice;
 class StorageDevice;
 class CommandContext;
 
-class PiscsiExecutor
+class PiscsiExecutor : public enable_shared_from_this<PiscsiExecutor>
 {
 public:
 
@@ -53,6 +53,8 @@ public:
 	static bool ValidateOperationAgainstDevice(const CommandContext&, const PrimaryDevice&, PbOperation);
 	static bool ValidateIdAndLun(const CommandContext&, int, int);
 	static bool SetProductData(const CommandContext&, const PbDeviceDefinition&, PrimaryDevice&);
+
+	auto GetAllDevices() const { return controller_manager->GetAllDevices(); }
 
 private:
 

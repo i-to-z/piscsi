@@ -264,7 +264,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	if (auto host_services = dynamic_pointer_cast<HostServices>(device); host_services != nullptr) {
-	    host_services->SetControllerManager(controller_manager);
+	    host_services->SetExecutor(shared_from_this());
 	}
 
 	if (storage_device != nullptr && !storage_device->IsRemoved()) {

@@ -237,7 +237,7 @@ bool HostServices::ExecuteCommand(const CommandContext& context, PbResult& resul
         break;
 
     case DEVICES_INFO:
-        response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+        response.GetDevicesInfo(executor->GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
         return context.WriteSuccessResult(result);
 
     case DEVICE_TYPES_INFO:
@@ -290,7 +290,7 @@ bool HostServices::ExecuteCommand(const CommandContext& context, PbResult& resul
         return context.WriteSuccessResult(result);
 
     case STATISTICS_INFO:
-        response.GetStatisticsInfo(*result.mutable_statistics_info(), controller_manager->GetAllDevices());
+        response.GetStatisticsInfo(*result.mutable_statistics_info(), executor->GetAllDevices());
         return context.WriteSuccessResult(result);
 
     case OPERATION_INFO:
@@ -298,8 +298,8 @@ bool HostServices::ExecuteCommand(const CommandContext& context, PbResult& resul
         return context.WriteSuccessResult(result);
 
     case RESERVED_IDS_INFO:
-        // TODO
-        return context.ReturnErrorStatus("TODO");
+        response.GetReservedIds(*result.mutable_reserved_ids_info(), executor->GetReservedIds());
+        return context.WriteSuccessResult(result);
 
     case SHUT_DOWN:
         // TODO
