@@ -382,7 +382,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         throw scsi_exception(sense_key::aborted_command);
     }
 
-    GetController()->SetLength(size);
+    GetController()->SetLength(static_cast<uint32_t>(size));
 
     EnterDataInPhase();
 

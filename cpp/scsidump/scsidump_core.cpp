@@ -309,22 +309,36 @@ void ScsiDump::Inquiry()
 
 void ScsiDump::Execute()
 {
-    ifstream in("test.json");
-    assert(!in.fail());
-    stringstream buf;
-    buf << in.rdbuf();
-    const string json = buf.str();
-    memcpy(buffer.data(), json.c_str(), json.size());
+    const string file = restore ? "test.bin" : "test.json";
+
+    // restore means binary
+    int size = 0;
+    if (!restore) {
+        ifstream in(file);
+        assert(!in.fail());
+        stringstream buf;
+        buf << in.rdbuf();
+        const string json = buf.str();
+        memcpy(buffer.data(), json.data(), json.size());
+        size = json.size();
+    }
+    else {
+        ifstream in(file, ios::binary);
+        assert(!in.fail());
+        vector<char> b(file_size(file));
+        in.read(b.data(), b.size());
+        memcpy(buffer.data(), b.data(), b.size());
+    }
 
     vector<uint8_t> cdb(10);
-    cdb[1] = 0x05;
-    cdb[5] = static_cast<uint8_t>(json.size() >> 8);
-    cdb[6] = static_cast<uint8_t>(json.size());
+    cdb[1] = restore ? 0x06 : 0x05;
+    cdb[5] = static_cast<uint8_t>(size >> 8);
+    cdb[6] = static_cast<uint8_t>(size);
     cdb[7] = static_cast<uint8_t>(4096 >> 8);
     cdb[8] = static_cast<uint8_t>(4096);
     Command(scsi_command::eCmdExecute, cdb);
 
-    DataOut(json.size());
+    DataOut(size);
 
     const int length = DataIn(4096);
 
