@@ -11,6 +11,9 @@
 
 #pragma once
 
+#include "piscsi/command_context.h"
+#include "piscsi/piscsi_image.h"
+#include "piscsi/piscsi_response.h"
 #include "mode_page_device.h"
 #include <span>
 #include <vector>
@@ -52,11 +55,16 @@ private:
 
 	void StartStopUnit() const;
     void Execute();
+    bool ExecuteCommand(const CommandContext&, PbResult&);
 
     int ModeSense6(cdb_t, vector<uint8_t>&) const override;
 	int ModeSense10(cdb_t, vector<uint8_t>&) const override;
 
 	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
+
+    PiscsiImage piscsi_image;
+
+    PiscsiResponse response;
 
     bool json_in = false;
     bool json_out = false;
