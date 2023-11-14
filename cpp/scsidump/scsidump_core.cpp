@@ -352,10 +352,12 @@ void ScsiDump::Execute()
     }
     else {
         PbResult result;
-        result.ParseFromArray(buffer.data(), length);
+        if (!result.ParseFromArray(buffer.data(), length)) {
+            assert(false);
+        }
         string json;
         google::protobuf::util::MessageToJsonString(result, &json);
-        cerr << "json received:\n" << json << endl;
+        cerr << length << " json (converted from binary) received:\n" << json << endl;
    }
 
     Status();

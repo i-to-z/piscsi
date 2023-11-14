@@ -126,13 +126,10 @@ void HostServices::Execute()
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
 
-    const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
-    if (!length) {
-        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
-    }
-
     // The custom SCSI Execute command supports transfers of up to 65535 bytes
     GetController()->AllocateBuffer(65536);
+
+    const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
 
     GetController()->SetLength(length);
     GetController()->SetByteTransfer(true);
