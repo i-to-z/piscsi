@@ -353,7 +353,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     }
 
     if (!status) {
-        LogTrace("Error deserializing protobuf data");
+        LogTrace("Error deserializing protobuf input data");
 
         // TODO Find better error codes
         throw scsi_exception(sense_key::aborted_command);
@@ -375,13 +375,14 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         }
     }
     else {
-        const string data = command.SerializeAsString();
+        const string data = result.SerializeAsString();
+        size = static_cast<int>(min(allocation_length, data.size()));
         memcpy(GetController()->GetBuffer().data(), data.data(), size);
         status = true;
     }
 
     if (!status) {
-        LogTrace("Error serializing protobuf data");
+        LogTrace("Error serializing protobuf output data");
 
         // TODO Find better error codes
         throw scsi_exception(sense_key::aborted_command);

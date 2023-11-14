@@ -347,11 +347,11 @@ void ScsiDump::Execute()
     const int length = DataIn(65535);
 
     if (!restore) {
-        const string result((const char *)buffer.data(), length);
-        cerr << "json received:\n" << result << endl;
+        const string json((const char *)buffer.data(), length);
+        cerr << "json received:\n" << json << endl;
     }
     else {
-        PbMappingInfo result;
+        PbResult result;
         if (!result.ParseFromArray(buffer.data(), length)) {
             assert(false);
         }
