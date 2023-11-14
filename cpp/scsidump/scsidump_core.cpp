@@ -304,6 +304,21 @@ void ScsiDump::Inquiry()
     BusFree();
 }
 
+void ScsiDump::Execute()
+{
+    vector<uint8_t> cdb(10);
+    cdb[1] = 0x00;
+    Command(scsi_command::eCmdExecute, cdb);
+
+    DataIn(256);
+
+    Status();
+
+    MessageIn();
+
+    BusFree();
+}
+
 pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
 {
     vector<uint8_t> cdb(10);
@@ -442,18 +457,10 @@ int ScsiDump::run(span<char *> args)
     }
 
     try {
-    	if (scan_bus) {
-    		ScanBus();
-    	}
-    	else if (inquiry) {
-    		DisplayBoardId();
+        DisplayBoardId();
 
-    		inquiry_info_t inq_info;
-    		DisplayInquiry(inq_info, false);
-    	}
-    	else {
-    		DumpRestore();
-    	}
+        inquiry_info_t inq_info;
+        DisplayInquiry(inq_info, false);
     }
     catch (const phase_exception& e) {
     	cerr << "Error: " << e.what() << endl;
@@ -497,7 +504,7 @@ void ScsiDump::ScanBus()
 	}
 }
 
-bool ScsiDump::DisplayInquiry(ScsiDump::inquiry_info_t& inq_info, bool check_type)
+bool ScsiDump::DisplayInquiry(ScsiDump::inquiry_info_t& inq_info, bool)
 {
     // Assert RST for 1 ms
     bus->SetRST(true);
@@ -539,116 +546,11 @@ bool ScsiDump::DisplayInquiry(ScsiDump::inquiry_info_t& inq_info, bool check_typ
 
     cout << "Removable:   " << (((static_cast<byte>(buffer[1]) & byte{0x80}) == byte{0x80}) ? "Yes" : "No") << "\n";
 
-    if (check_type && type != static_cast<byte>(device_type::direct_access) &&
-    		type != static_cast<byte>(device_type::cd_rom) && type != static_cast<byte>(device_type::optical_memory)) {
-    	cerr << "Invalid device type, supported types for dump/restore are DIRECT ACCESS, CD-ROM/DVD/BD and OPTICAL MEMORY" << endl;
-    	return false;
-    }
+    Execute();
 
     return true;
 }
 
-int ScsiDump::DumpRestore()
-{
-	inquiry_info_t inq_info;
-    if (!GetDeviceInfo(inq_info)) {
-    	return EXIT_FAILURE;
-    }
-
-    fstream fs;
-    fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
-
-    if (fs.fail()) {
-        throw parser_exception("Can't open image file '" + filename + "'");
-    }
-
-    if (restore) {
-        cout << "Starting restore\n" << flush;
-
-        off_t size;
-        try {
-        	size = file_size(path(filename));
-        }
-        catch (const filesystem_error& e) {
-        	throw parser_exception(string("Can't determine file size: ") + e.what());
-        }
-
-        cout << "Restore file size: " << size << " bytes\n";
-        if (size > (off_t)(inq_info.sector_size * inq_info.capacity)) {
-            cout << "WARNING: File size is larger than disk size\n" << flush;
-        } else if (size < (off_t)(inq_info.sector_size * inq_info.capacity)) {
-            throw parser_exception("File size is smaller than disk size");
-        }
-    } else {
-        cout << "Starting dump\n" << flush;
-    }
-
-    // Dump by buffer size
-    auto dsiz = static_cast<int>(buffer.size());
-    const int duni = dsiz / inq_info.sector_size;
-    auto dnum = static_cast<int>((inq_info.capacity * inq_info.sector_size) / dsiz);
-
-    const auto start_time = chrono::high_resolution_clock::now();
-
-    int i;
-    for (i = 0; i < dnum; i++) {
-        if (restore) {
-            fs.read((char*)buffer.data(), dsiz);
-            Write10(i * duni, duni, dsiz);
-        } else {
-            Read10(i * duni, duni, dsiz);
-            fs.write((const char*)buffer.data(), dsiz);
-        }
-
-        if (fs.fail()) {
-            throw parser_exception("File I/O failed");
-        }
-
-        cout << ((i + 1) * 100 / dnum) << "%"
-             << " (" << (i + 1) * duni << "/" << inq_info.capacity << ")\n"
-             << flush;
-    }
-
-    // Rounding on capacity
-    dnum = inq_info.capacity % duni;
-    dsiz = dnum * inq_info.sector_size;
-    if (dnum > 0) {
-        if (restore) {
-            fs.read((char*)buffer.data(), dsiz);
-            if (!fs.fail()) {
-                Write10(i * duni, dnum, dsiz);
-            }
-        } else {
-            Read10(i * duni, dnum, dsiz);
-            fs.write((const char*)buffer.data(), dsiz);
-        }
-
-        if (fs.fail()) {
-            throw parser_exception("File I/O failed");
-        }
-
-        cout << "100% (" << inq_info.capacity << "/" << inq_info.capacity << ")\n" << flush;
-    }
-
-    const auto stop_time = chrono::high_resolution_clock::now();
-
-    const auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
-
-    cout << DIVIDER << "\n";
-    cout << "Transfered : " << inq_info.capacity * inq_info.sector_size << " bytes ["
-         << inq_info.capacity * inq_info.sector_size / 1024 / 1024 << "MiB]\n";
-    cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes\n";
-    cout << "Average transfer rate: " << (inq_info.capacity * inq_info.sector_size / 8) / duration
-         << " bytes per second (" << (inq_info.capacity * inq_info.sector_size / 8) / duration / 1024
-         << " KiB per second)\n";
-    cout << DIVIDER << "\n";
-
-    if (properties_file && !restore) {
-        inq_info.GeneratePropertiesFile(filename + ".properties");
-    }
-
-    return EXIT_SUCCESS;
-}
 
 bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
 {
@@ -661,17 +563,6 @@ bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
     TestUnitReady();
 
     RequestSense();
-
-    const auto [capacity, sector_size] = ReadCapacity();
-    inq_info.capacity = capacity;
-    inq_info.sector_size = sector_size;
-
-    cout << "Sectors:     " << capacity << "\n"
-         << "Sector size: " << sector_size << " bytes\n"
-         << "Capacity:    " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
-         << " bytes)\n"
-         << DIVIDER << "\n\n"
-         << flush;
 
     return true;
 }
