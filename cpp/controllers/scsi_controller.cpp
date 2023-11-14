@@ -661,6 +661,10 @@ void ScsiController::ReceiveBytes()
 			ProcessMessage();
 			break;
 
+        case phase_t::datain:
+            DataIn();
+            break;
+
 		case phase_t::dataout:
 			Status();
 			break;
