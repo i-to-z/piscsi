@@ -328,15 +328,15 @@ void ScsiDump::Execute()
 
     const int length = DataIn(4096);
 
+    string result((const char *)buffer.data(), length);
+
+    cerr << "json received: " << length << "\n" << result << endl;
+
     Status();
 
     MessageIn();
 
     BusFree();
-
-    string result((const char *)buffer.data(), length);
-
-    cerr << "json received:\n" << result << endl;
 }
 
 pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()

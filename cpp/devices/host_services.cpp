@@ -320,6 +320,8 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     if (MessageToJsonString(result, &json).ok()) {
         const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
 
+        memcpy(GetController()->GetBuffer().data(), json.c_str(), allocation_length);
+
         GetController()->SetLength(min(allocation_length, json.size()));
 
         EnterDataInPhase();
