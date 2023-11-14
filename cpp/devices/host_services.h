@@ -68,6 +68,4 @@ private:
 
     bool json_in = false;
     bool json_out = false;
-    bool bin_in = false;
-    bool bin_out = false;
 };

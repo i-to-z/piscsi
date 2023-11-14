@@ -121,9 +121,9 @@ void HostServices::Execute()
 {
     const int formats = GetController()->GetCmdByte(1);
     json_in = formats & 0x01;
-    bin_in = formats & 0x02;
+    const bool bin_in = formats & 0x02;
     json_out = formats & 0x04;
-    bin_out = formats & 0x08;
+    const bool bin_out = formats & 0x08;
 
     if (!formats || !(json_in || bin_in) || !(json_out || bin_out) || (json_in && bin_in) || (json_out && bin_out)) {
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
