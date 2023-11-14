@@ -179,7 +179,7 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 
 bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 {
-    string json(reinterpret_cast<const char*>(buf.data()), buf.size()); //NOSONAR reinterpret cast is required
+    string json((const char *)buf.data(), buf.size());
 
     spdlog::trace("Received json:\n" + json);
 
