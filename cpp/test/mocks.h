@@ -157,6 +157,7 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(ScsiDaynaportTest, SetMcastAddr);
 	FRIEND_TEST(ScsiDaynaportTest, EnableInterface);
 	FRIEND_TEST(HostServicesTest, StartStopUnit);
+	FRIEND_TEST(HostServicesTest, Execute);
 	FRIEND_TEST(HostServicesTest, ModeSense6);
 	FRIEND_TEST(HostServicesTest, ModeSense10);
 	FRIEND_TEST(HostServicesTest, SetUpModePages);
