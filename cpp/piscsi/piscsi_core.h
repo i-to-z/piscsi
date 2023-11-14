@@ -73,7 +73,7 @@ private:
 
 	unique_ptr<PiscsiExecutor> executor;
 
-	ControllerManager controller_manager;
+	shared_ptr<ControllerManager> controller_manager;
 
 	unique_ptr<BUS> bus;
 

@@ -71,6 +71,8 @@ bool Piscsi::InitBus()
 		return false;
 	}
 
+	controller_manager = make_shared<ControllerManager>();
+
 	executor = make_unique<PiscsiExecutor>(*bus, controller_manager);
 
 	return true;
@@ -86,7 +88,6 @@ void Piscsi::CleanUp()
 
 	// TODO Check why there are rare cases where bus is NULL on a remote interface shutdown
 	// even though it is never set to NULL anywhere
-	assert(bus);
 	if (bus) {
 		bus->Cleanup();
 	}
@@ -351,7 +352,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case DEVICES_INFO:
-			response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+			response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
 			context.WriteResult(result);
 			break;
 
@@ -360,7 +361,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			return context.WriteSuccessResult(result);
 
 		case SERVER_INFO:
-			response.GetServerInfo(*result.mutable_server_info(), command, controller_manager.GetAllDevices(),
+			response.GetServerInfo(*result.mutable_server_info(), command, controller_manager->GetAllDevices(),
 					executor->GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
 			context.WriteSuccessResult(result);
 			break;
@@ -406,7 +407,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			return context.WriteSuccessResult(result);
 
 		case STATISTICS_INFO:
-			response.GetStatisticsInfo(*result.mutable_statistics_info(), controller_manager.GetAllDevices());
+			response.GetStatisticsInfo(*result.mutable_statistics_info(), controller_manager->GetAllDevices());
 			context.WriteSuccessResult(result);
 			break;
 
@@ -468,7 +469,7 @@ bool Piscsi::HandleDeviceListChange(const CommandContext& context, PbOperation o
 		// A command with an empty device list is required here in order to return data for all devices
 		PbCommand command;
 		PbResult result;
-		response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+		response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
 		context.WriteResult(result);
 		return result.status();
 	}
@@ -541,7 +542,7 @@ int Piscsi::run(span<char *> args)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	response.GetDevices(controller_manager.GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
+	response.GetDevices(controller_manager->GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
 	const vector<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -607,7 +608,7 @@ void Piscsi::Process()
 			scoped_lock<mutex> lock(execution_locker);
 
 			// Process command on the responsible controller based on the current initiator and target ID
-			if (const auto shutdown_mode = controller_manager.ProcessOnController(bus->GetDAT());
+			if (const auto shutdown_mode = controller_manager->ProcessOnController(bus->GetDAT());
 				shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
 				// When the bus is free PiSCSI or the Pi may be shut down.
 				ShutDown(shutdown_mode);

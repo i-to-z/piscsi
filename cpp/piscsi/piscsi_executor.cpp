@@ -10,6 +10,7 @@
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
+#include "devices/host_services.h"
 #include "devices/disk.h"
 #include "localizer.h"
 #include "command_context.h"
@@ -39,7 +40,7 @@ bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 		return false;
 	}
 
-	auto device = controller_manager.GetDeviceForIdAndLun(id, lun);
+	auto device = controller_manager->GetDeviceForIdAndLun(id, lun);
 
 	if (!ValidateOperationAgainstDevice(context, *device, operation)) {
 		return false;
@@ -199,7 +200,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 				to_string(ControllerManager::GetScsiLunMax()));
 	}
 
-	if (controller_manager.HasDeviceForIdAndLun(id, lun)) {
+	if (controller_manager->HasDeviceForIdAndLun(id, lun)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_DUPLICATE_ID, to_string(id), to_string(lun));
 	}
 
@@ -258,8 +259,12 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, device->GetIdentifier());
 	}
 
-	if (!controller_manager.AttachToController(bus, id, device)) {
+	if (!controller_manager->AttachToController(bus, id, device)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SCSI_CONTROLLER);
+	}
+
+	if (auto host_services = dynamic_pointer_cast<HostServices>(device); host_services != nullptr) {
+	    host_services->SetControllerManager(controller_manager);
 	}
 
 	if (storage_device != nullptr && !storage_device->IsRemoved()) {
@@ -325,7 +330,7 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 
 bool PiscsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
 {
-	auto controller = controller_manager.FindController(device.GetId());
+	auto controller = controller_manager->FindController(device.GetId());
 	if (controller == nullptr) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 	}
@@ -344,7 +349,7 @@ bool PiscsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 		}
 
 		// If no LUN is left also delete the controller
-		if (!controller->GetLunCount() && !controller_manager.DeleteController(*controller)) {
+		if (!controller->GetLunCount() && !controller_manager->DeleteController(*controller)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
 
@@ -356,7 +361,7 @@ bool PiscsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 
 void PiscsiExecutor::DetachAll()
 {
-	controller_manager.DeleteAllControllers();
+	controller_manager->DeleteAllControllers();
 
 	spdlog::info("Detached all devices");
 }
@@ -373,7 +378,7 @@ string PiscsiExecutor::SetReservedIds(string_view ids)
     		return "Invalid ID " + id;
     	}
 
-    	if (controller_manager.HasController(res_id)) {
+    	if (controller_manager->HasController(res_id)) {
     		return "ID " + id + " is currently in use";
     	}
 
@@ -487,7 +492,7 @@ string PiscsiExecutor::EnsureLun0(const PbCommand& command) const
 	}
 
 	// Collect LUN bit vectors of existing devices
-	for (const auto& device : controller_manager.GetAllDevices()) {
+	for (const auto& device : controller_manager->GetAllDevices()) {
 		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 
@@ -497,11 +502,11 @@ string PiscsiExecutor::EnsureLun0(const PbCommand& command) const
 
 bool PiscsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int id, int lun) const
 {
-	if (!controller_manager.HasController(id)) {
+	if (!controller_manager->HasController(id)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
 	}
 
-	if (!controller_manager.HasDeviceForIdAndLun(id, lun)) {
+	if (!controller_manager->HasDeviceForIdAndLun(id, lun)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(lun));
 	}
 

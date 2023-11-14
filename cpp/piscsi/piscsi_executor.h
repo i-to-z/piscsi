@@ -23,7 +23,8 @@ class PiscsiExecutor
 {
 public:
 
-	PiscsiExecutor(BUS& bus, ControllerManager& controller_manager) : bus(bus), controller_manager(controller_manager) {}
+	PiscsiExecutor(BUS& bus, shared_ptr<ControllerManager> controller_manager)
+	    : bus(bus), controller_manager(controller_manager) {}
 	~PiscsiExecutor() = default;
 
 	// TODO At least some of these methods should be private, currently they are directly called by the unit tests
@@ -59,7 +60,7 @@ private:
 
 	BUS& bus;
 
-	ControllerManager& controller_manager;
+	shared_ptr<ControllerManager> controller_manager;
 
 	[[no_unique_address]] const DeviceFactory device_factory;
 
