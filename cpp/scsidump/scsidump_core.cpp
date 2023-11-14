@@ -328,6 +328,7 @@ void ScsiDump::Execute()
         vector<char> b(file_size(file));
         in.read(b.data(), b.size());
         memcpy(buffer.data(), b.data(), b.size());
+        size = b.size();
     }
 
     vector<uint8_t> cdb(10);
@@ -344,7 +345,7 @@ void ScsiDump::Execute()
 
     string result((const char *)buffer.data(), length);
 
-    cerr << "json received\n" << result << endl;
+    cerr << "json received:\n" << result << endl;
 
     Status();
 

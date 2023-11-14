@@ -227,6 +227,7 @@ bool HostServices::ExecuteCommand(const CommandContext& context, PbResult& resul
         return context.ReturnErrorStatus("TODO");
 
     case DEFAULT_FOLDER:
+        // TODO This is not the same piscsi_image as in the piscsi core
         if (const string error = piscsi_image.SetDefaultFolder(protobuf_util::GetParam(command, "folder")); !error.empty()) {
             context.ReturnErrorStatus(error);
         }
@@ -342,6 +343,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 
     PbCommand command;
     bool status;
+
     if (json_in) {
         string cmd((const char *)buf.data(), length);
         status = JsonStringToMessage(cmd, &command).ok();
@@ -351,12 +353,13 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     }
 
     if (!status) {
+        LogTrace("Error deserializing protobuf data");
+
         // TODO Find better error codes
         throw scsi_exception(sense_key::aborted_command);
     }
 
-    // TODO Set default folder
-    CommandContext context(command, "", protobuf_util::GetParam(command, "locale"));
+    CommandContext context(command, piscsi_image.GetDefaultFolder(), protobuf_util::GetParam(command, "locale"));
     PbResult result;
     ExecuteCommand(context, result);
 
@@ -378,6 +381,8 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     }
 
     if (!status) {
+        LogTrace("Error serializing protobuf data");
+
         // TODO Find better error codes
         throw scsi_exception(sense_key::aborted_command);
     }
