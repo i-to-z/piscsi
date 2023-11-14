@@ -95,14 +95,13 @@ void HostServices::Execute()
     }
 
     const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
-    const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
-    if (!length || !allocation_length) {
+    if (!length) {
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
 
-    string json((const char *)(&(GetController()->GetBuffer()[10])), length);
+    string json((const char *)GetController()->GetBuffer().data() + 10, length);
 
-    spdlog::trace("Received json:\n" + json);
+    spdlog::trace("Received {0} bytes json:\n{1}", length, json);
 
     PbCommand command;
     if (!JsonStringToMessage(json, &command).ok()) {
@@ -112,18 +111,18 @@ void HostServices::Execute()
     CommandContext context(command, "", "");
     PbResult result;
     if (!ExecuteCommand(context, result)) {
-        // TODO Wrong ASC?
-        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
+        throw scsi_exception(sense_key::aborted_command);
     }
 
     if (MessageToJsonString(result, &json).ok()) {
-        GetController()->SetLength(json.size());
+        const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
+
+        GetController()->SetLength(min(allocation_length, json.size()));
 
         EnterDataInPhase();
     }
     else {
-        // TODO Wrong ASC
-        throw scsi_exception(sense_key::illegal_request, asc::read_fault);
+        throw scsi_exception(sense_key::aborted_command);
     }
 }
 
