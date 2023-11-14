@@ -245,8 +245,9 @@ bool HostServices::ExecuteCommand(const CommandContext& context, PbResult& resul
         return context.WriteSuccessResult(result);
 
     case SERVER_INFO:
-        // TODO
-        return context.ReturnErrorStatus("TODO");
+        response.GetServerInfo(*result.mutable_server_info(), command, executor->GetAllDevices(),
+            executor->GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
+         return context.WriteSuccessResult(result);
 
     case VERSION_INFO:
         response.GetVersionInfo(*result.mutable_version_info());
