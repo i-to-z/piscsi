@@ -549,34 +549,32 @@ bool GPIOBUS_Raspberry::GetIO()
 
 void GPIOBUS_Raspberry::SetIO(bool ast)
 {
+    assert(actmode == mode_e::TARGET);
+
     SetSignal(PIN_IO, ast);
 
-    if (actmode == mode_e::TARGET) {
-        // Change the data input/output direction by IO signal
-        if (ast) {
-            SetControl(PIN_DTD, DTD_OUT);
-            SetDAT(0);
-            SetMode(PIN_DT0, OUT);
-            SetMode(PIN_DT1, OUT);
-            SetMode(PIN_DT2, OUT);
-            SetMode(PIN_DT3, OUT);
-            SetMode(PIN_DT4, OUT);
-            SetMode(PIN_DT5, OUT);
-            SetMode(PIN_DT6, OUT);
-            SetMode(PIN_DT7, OUT);
-            SetMode(PIN_DP, OUT);
-        } else {
-            SetControl(PIN_DTD, DTD_IN);
-            SetMode(PIN_DT0, IN);
-            SetMode(PIN_DT1, IN);
-            SetMode(PIN_DT2, IN);
-            SetMode(PIN_DT3, IN);
-            SetMode(PIN_DT4, IN);
-            SetMode(PIN_DT5, IN);
-            SetMode(PIN_DT6, IN);
-            SetMode(PIN_DT7, IN);
-            SetMode(PIN_DP, IN);
-        }
+    // Change the data input/output direction by IO signal
+    if (ast) {
+        SetControl(PIN_DTD, DTD_OUT);
+        SetDAT(0);
+        SetMode(PIN_DT0, OUT);
+        SetMode(PIN_DT1, OUT);
+        SetMode(PIN_DT2, OUT);
+        SetMode(PIN_DT3, OUT);
+        SetMode(PIN_DT4, OUT);
+        SetMode(PIN_DT5, OUT);
+        SetMode(PIN_DT6, OUT);
+        SetMode(PIN_DT7, OUT);
+    } else {
+        SetControl(PIN_DTD, DTD_IN);
+        SetMode(PIN_DT0, IN);
+        SetMode(PIN_DT1, IN);
+        SetMode(PIN_DT2, IN);
+        SetMode(PIN_DT3, IN);
+        SetMode(PIN_DT4, IN);
+        SetMode(PIN_DT5, IN);
+        SetMode(PIN_DT6, IN);
+        SetMode(PIN_DT7, IN);
     }
 }
 
