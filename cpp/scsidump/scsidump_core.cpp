@@ -311,14 +311,14 @@ void ScsiDump::Execute()
     stringstream buf;
     buf << in.rdbuf();
     const string json = buf.str();
+    memcpy(buffer.data(), json.c_str(), json.size());
 
-    vector<uint8_t> cdb(10 + json.size());
+    vector<uint8_t> cdb(10);
     cdb[1] = 0x05;
     cdb[5] = static_cast<uint8_t>(json.size() >> 8);
     cdb[6] = static_cast<uint8_t>(json.size());
     cdb[7] = static_cast<uint8_t>(4096 >> 8);
     cdb[8] = static_cast<uint8_t>(4096);
-    memcpy(&cdb[10], json.c_str(), json.size());
     Command(scsi_command::eCmdExecute, cdb);
 
     DataOut(json.size());
