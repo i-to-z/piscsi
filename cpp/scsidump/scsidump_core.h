@@ -57,7 +57,7 @@ class ScsiDump
     void WaitForPhase(phase_t) const;
     void Selection() const;
     void Command(scsi_defs::scsi_command, vector<uint8_t>&) const;
-    void DataIn(int);
+    int DataIn(int);
     void DataOut(int);
     void Status() const;
     void MessageIn() const;

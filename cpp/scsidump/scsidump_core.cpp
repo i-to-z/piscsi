@@ -221,13 +221,16 @@ void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
     }
 }
 
-void ScsiDump::DataIn(int length)
+int ScsiDump::DataIn(int length)
 {
     WaitForPhase(phase_t::datain);
 
-    if (!bus->ReceiveHandShake(buffer.data(), length)) {
+    const int received = bus->ReceiveHandShake(buffer.data(), length);
+    if (!received) {
         throw phase_exception("DATA IN failed");
     }
+
+    return received;
 }
 
 void ScsiDump::DataOut(int length)
@@ -323,13 +326,17 @@ void ScsiDump::Execute()
 
     DataOut(json.size());
 
-    DataIn(4096);
+    const int length = DataIn(4096);
 
     Status();
 
     MessageIn();
 
     BusFree();
+
+    string result((const char *)buffer.data(), length);
+
+    cerr << "json received:\n" << result << endl;
 }
 
 pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()

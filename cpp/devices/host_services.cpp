@@ -306,8 +306,6 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
     string json((const char *)buf.data(), length);
 
-    spdlog::trace("Received {0} bytes json:\n{1}", length, json);
-
     PbCommand command;
     if (!JsonStringToMessage(json, &command).ok()) {
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
