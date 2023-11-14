@@ -35,8 +35,18 @@ bool HostServices::Init(const param_map& params)
 {
 	ModePageDevice::Init(params);
 
-	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
-	AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
+    AddCommand(scsi_command::eCmdTestUnitReady, [this]
+        {
+            TestUnitReady();
+        });
+    AddCommand(scsi_command::eCmdStartStop, [this]
+        {
+            StartStopUnit();
+        });
+    AddCommand(scsi_command::eCmdExecute, [this]
+        {
+            Execute();
+        });
 
 	SetReady(true);
 
@@ -75,6 +85,19 @@ void HostServices::StartStopUnit() const
 	}
 
 	EnterStatusPhase();
+}
+
+void HostServices::Execute() const
+{
+    const int formats = GetController()->GetCmdByte(1);
+    const bool json_in = formats & 0x01;
+    const bool bin_in = formats & 0x02;
+    const bool json_out = formats & 0x04;
+    const bool bin_out = formats & 0x08;
+
+    if ((json_in && bin_in) || (json_out && bin_out)) {
+        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+    }
 }
 
 int HostServices::ModeSense6(cdb_t cdb, vector<uint8_t>& buf) const

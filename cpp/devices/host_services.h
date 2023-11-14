@@ -49,7 +49,9 @@ private:
 	};
 
 	void StartStopUnit() const;
-	int ModeSense6(cdb_t, vector<uint8_t>&) const override;
+    void Execute() const;
+
+    int ModeSense6(cdb_t, vector<uint8_t>&) const override;
 	int ModeSense10(cdb_t, vector<uint8_t>&) const override;
 
 	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
