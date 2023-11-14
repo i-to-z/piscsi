@@ -19,6 +19,38 @@
 //   b) !start && load (EJECT): Shut down the Raspberry Pi
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
+// 3. Remote command execution via SCSI, using this custom SCSI command:
+//
+// +==============================================================================
+// |  Bit|   7    |   6    |   5    |   4    |   3    |   2    |   1    |   0    |
+// |Byte |        |        |        |        |        |        |        |        |
+// |=====+========================================================================
+// | 0   |                           Operation code (c0h)                        |
+// |-----+-----------------------------------------------------------------------|
+// | 1   | Logical unit number      |        |  B_OUT |  J_OUT |  B_IN  |  J_IN  |
+// |-----+-----------------------------------------------------------------------|
+// | 2   |                           Reserved                                    |
+// |-----+-----------------------------------------------------------------------|
+// | 3   |                           Reserved                                    |
+// |-----+-----------------------------------------------------------------------|
+// | 4   |                           Reserved                                    |
+// |-----+-----------------------------------------------------------------------|
+// | 5   | (MSB)                                                                 |
+// |-----+---                        Input data length                           |
+// | 6   |                                                                 (LSB) |
+// |-----+-----------------------------------------------------------------------|
+// | 7   | (MSB)                                                                 |
+// |-----+---                        Allocation length                           |
+// | 8   |                                                                 (LSB) |
+// |-----+-----------------------------------------------------------------------|
+// | 9   |                           Control                                     |
+// +==============================================================================
+//
+// J_IN, B_IN, J_OUT and B_OUT control the input and output formats.
+// There can only be one input and one output format. These formats do not have to be identical.
+// Note that this command requires both a DATA OUT (input data length) and a DATA IN (allocation length) phase,
+// which is unusual.
+//
 
 #include "shared/piscsi_exceptions.h"
 #include "shared/protobuf_util.h"
