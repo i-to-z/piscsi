@@ -181,9 +181,10 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 {
     string json(reinterpret_cast<const char*>(buf.data()), buf.size()); //NOSONAR reinterpret cast is required
 
+    spdlog::trace("Received json:\n" + json);
+
     PbCommand command;
-    JsonParseOptions options;
-    JsonStringToMessage(json, &command, options);
+    JsonStringToMessage(json, &command);
 
     return true;
 }
