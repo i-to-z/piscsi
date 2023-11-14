@@ -360,19 +360,31 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     PbResult result;
     ExecuteCommand(context, result);
 
-    string json;
-    if (MessageToJsonString(result, &json).ok()) {
-        const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
+    const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
 
-        memcpy(GetController()->GetBuffer().data(), json.c_str(), allocation_length);
-
-        GetController()->SetLength(min(allocation_length, json.size()));
-
-        EnterDataInPhase();
+    int size = 0;
+    if (json_out) {
+        string json;
+        status = MessageToJsonString(result, &json).ok();
+        if (status) {
+            size = min(allocation_length, json.size());
+            memcpy(GetController()->GetBuffer().data(), json.data(), size);
+        }
     }
     else {
+        const string data = command.SerializeAsString();
+        memcpy(GetController()->GetBuffer().data(), data.data(), size);
+        status = true;
+    }
+
+    if (!status) {
+        // TODO Find better error codes
         throw scsi_exception(sense_key::aborted_command);
     }
+
+    GetController()->SetLength(size);
+
+    EnterDataInPhase();
 
     return true;
 }
