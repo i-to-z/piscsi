@@ -20,6 +20,8 @@
 #include "controllers/controller_manager.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_util.h"
+#include "generated/piscsi_interface.pb.h"
+#include <google/protobuf/util/json_util.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <chrono>
@@ -36,6 +38,7 @@ using namespace filesystem;
 using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_util;
+using namespace piscsi_interface;
 
 void ScsiDump::CleanUp()
 {
@@ -343,9 +346,14 @@ void ScsiDump::Execute()
 
     const int length = DataIn(4096);
 
-    string result((const char *)buffer.data(), length);
-
-    cerr << "json received:\n" << result << endl;
+    if (!restore) {
+        string result((const char *)buffer.data(), length);
+        cerr << "json received:\n" << result << endl;
+    }
+    else {
+        PbCommand command;
+        command.ParseFromArray(buffer.data(), length);
+    }
 
     Status();
 
