@@ -184,7 +184,7 @@ bool HostServices::ExecuteCommand(const CommandContext& context, PbResult& resul
         return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION, to_string(operation));
     }
 
-    spdlog::trace("Received " + PbOperation_Name(operation) + " command");
+    LogTrace("Received " + PbOperation_Name(operation) + " command");
 
     switch (operation) {
     case LOG_LEVEL:
