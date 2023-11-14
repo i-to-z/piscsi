@@ -69,7 +69,10 @@ using namespace protobuf_util;
 
 bool HostServices::Init(const param_map& params)
 {
-	ModePageDevice::Init(params);
+    // The custom SCSI Execute command supports transfers of up to 65535 bytes
+    GetController()->AllocateBuffer(65536);
+
+    ModePageDevice::Init(params);
 
     AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
     AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
@@ -336,11 +339,20 @@ bool HostServices::ExecuteCommand(const CommandContext& context, PbResult& resul
 bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 {
     const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
-    string cmd((const char *)buf.data(), length);
 
     PbCommand command;
-    if (!JsonStringToMessage(cmd, &command).ok()) {
-        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
+    bool status;
+    if (json_in) {
+        string cmd((const char *)buf.data(), length);
+        status = JsonStringToMessage(cmd, &command).ok();
+    }
+    else {
+        status = command.ParseFromArray(buf.data(), length);
+    }
+
+    if (!status) {
+        // TODO Find better error codes
+        throw scsi_exception(sense_key::aborted_command);
     }
 
     // TODO Set default folder
