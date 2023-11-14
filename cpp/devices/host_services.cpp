@@ -190,7 +190,9 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     spdlog::trace("Received json:\n" + json);
 
     PbCommand command;
-    JsonStringToMessage(json, &command);
+    if (!JsonStringToMessage(json, &command).ok()) {
+        return false;
+    }
 
     CommandContext context(command, "", "");
     PbResult result;
