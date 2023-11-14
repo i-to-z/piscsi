@@ -345,7 +345,6 @@ void ScsiDump::Execute()
     DataOut(size);
 
     const int length = DataIn(65535);
-    cerr << "Length: " << length << endl;
 
     if (!restore) {
         const string result((const char *)buffer.data(), length);
