@@ -338,22 +338,25 @@ void ScsiDump::Execute()
     cdb[1] = restore ? 0x06 : 0x05;
     cdb[5] = static_cast<uint8_t>(size >> 8);
     cdb[6] = static_cast<uint8_t>(size);
-    cdb[7] = static_cast<uint8_t>(4096 >> 8);
-    cdb[8] = static_cast<uint8_t>(4096);
+    cdb[7] = static_cast<uint8_t>(65535 >> 8);
+    cdb[8] = static_cast<uint8_t>(65535);
     Command(scsi_command::eCmdExecute, cdb);
 
     DataOut(size);
 
-    const int length = DataIn(4096);
+    const int length = DataIn(65535);
 
     if (!restore) {
-        string result((const char *)buffer.data(), length);
+        const string result((const char *)buffer.data(), length);
         cerr << "json received:\n" << result << endl;
     }
     else {
-        PbCommand command;
-        command.ParseFromArray(buffer.data(), length);
-    }
+        PbResult result;
+        result.ParseFromArray(buffer.data(), length);
+        string json;
+        google::protobuf::util::MessageToJsonString(result, &json);
+        cerr << "json received:\n" << json << endl;
+   }
 
     Status();
 
