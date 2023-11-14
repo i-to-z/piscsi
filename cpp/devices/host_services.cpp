@@ -100,7 +100,7 @@ void HostServices::Execute()
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
 
-    LogTrace("Expecting to receive " + to_string(length) + " byte(s) to be printed");
+    LogTrace("Expecting to receive " + to_string(length) + " byte(s)");
 
     if (length > GetController()->GetBuffer().size()) {
         LogError("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
