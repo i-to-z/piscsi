@@ -134,7 +134,7 @@ void HostServices::Execute()
     // The custom SCSI Execute command supports transfers of up to 65535 bytes
     GetController()->AllocateBuffer(65536);
 
-    GetController()->SetLength(length);
+    GetController()->SetLength(static_cast<uint32_t>(length));
     GetController()->SetByteTransfer(true);
 
     EnterDataOutPhase();
@@ -349,7 +349,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         status = JsonStringToMessage(cmd, &command).ok();
     }
     else {
-        status = command.ParseFromArray(buf.data(), length);
+        status = command.ParseFromArray(buf.data(), static_cast<int>(length));
     }
 
     if (!status) {
