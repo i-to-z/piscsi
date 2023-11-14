@@ -112,8 +112,8 @@ void HostServices::Execute()
     CommandContext context(command, "", "");
     PbResult result;
     if (!ExecuteCommand(context, result)) {
-        // TODO Wrong ASC
-        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+        // TODO Wrong ASC?
+        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
     }
 
     if (MessageToJsonString(result, &json).ok()) {
@@ -122,7 +122,8 @@ void HostServices::Execute()
         EnterDataInPhase();
     }
     else {
-        EnterStatusPhase();
+        // TODO Wrong ASC
+        throw scsi_exception(sense_key::illegal_request, asc::read_fault);
     }
 }
 

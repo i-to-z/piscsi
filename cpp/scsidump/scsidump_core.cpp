@@ -306,11 +306,16 @@ void ScsiDump::Inquiry()
 
 void ScsiDump::Execute()
 {
-    vector<uint8_t> cdb(10);
+    ifstream in("test.json");
+    stringstream buf;
+    buf << in.rdbuf();
+    string json = buf.str();
+
+    vector<uint8_t> cdb(10 + json.size());
     cdb[1] = 0x05;
     Command(scsi_command::eCmdExecute, cdb);
 
-    DataIn(256);
+    DataIn(4096);
 
     Status();
 
