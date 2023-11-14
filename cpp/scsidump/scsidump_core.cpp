@@ -335,7 +335,7 @@ void ScsiDump::Execute()
     }
 
     vector<uint8_t> cdb(10);
-    cdb[1] = restore ? 0x06 : 0x05;
+    cdb[1] = restore ? 0x0a : 0x05;
     cdb[5] = static_cast<uint8_t>(size >> 8);
     cdb[6] = static_cast<uint8_t>(size);
     cdb[7] = static_cast<uint8_t>(65535 >> 8);
