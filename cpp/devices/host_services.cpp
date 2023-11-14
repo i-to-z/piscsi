@@ -95,6 +95,10 @@ void HostServices::Execute()
     }
 
     const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
+    const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
+    if (!length || !allocation_length) {
+        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+    }
 
     LogTrace("Expecting to receive " + to_string(length) + " byte(s) to be printed");
 
