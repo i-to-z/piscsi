@@ -33,6 +33,8 @@ protected:
 
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 
+    bool WriteByteSequence(span<const uint8_t>) override;
+
 private:
 
 	using mode_page_datetime = struct __attribute__((packed)) {
@@ -49,10 +51,15 @@ private:
 	};
 
 	void StartStopUnit() const;
-    void Execute() const;
+    void Execute();
 
     int ModeSense6(cdb_t, vector<uint8_t>&) const override;
 	int ModeSense10(cdb_t, vector<uint8_t>&) const override;
 
 	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
+
+    bool json_in = false;
+    bool json_out = false;
+    bool bin_in = false;
+    bool bin_out = false;
 };

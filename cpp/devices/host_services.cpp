@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2022-2023 Uwe Seimet
 //
-// Host Services with realtime clock and shutdown support
+// Host Services with support for realtime clock, shutdown and command execution
 //
 //---------------------------------------------------------------------------
 
@@ -24,10 +24,12 @@
 #include "controllers/scsi_controller.h"
 #include "scsi_command_util.h"
 #include "host_services.h"
+#include <google/protobuf/util/json_util.h>
 #include <algorithm>
 #include <chrono>
 
 using namespace std::chrono;
+using namespace google::protobuf::util;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
@@ -78,17 +80,33 @@ void HostServices::StartStopUnit() const
 	EnterStatusPhase();
 }
 
-void HostServices::Execute() const
+void HostServices::Execute()
 {
     const int formats = GetController()->GetCmdByte(1);
-    const bool json_in = formats & 0x01;
-    const bool bin_in = formats & 0x02;
-    const bool json_out = formats & 0x04;
-    const bool bin_out = formats & 0x08;
+    json_in = formats & 0x01;
+    bin_in = formats & 0x02;
+    json_out = formats & 0x04;
+    bin_out = formats & 0x08;
 
     if ((json_in && bin_in) || (json_out && bin_out)) {
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
+
+    const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
+
+    LogTrace("Expecting to receive " + to_string(length) + " byte(s) to be printed");
+
+    if (length > GetController()->GetBuffer().size()) {
+        LogError("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
+            " bytes, " + to_string(length) + " bytes expected");
+
+        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+    }
+
+    GetController()->SetLength(length);
+    GetController()->SetByteTransfer(true);
+
+    EnterDataOutPhase();
 }
 
 int HostServices::ModeSense6(cdb_t cdb, vector<uint8_t>& buf) const
@@ -157,4 +175,15 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 
 		memcpy(&pages[32][2], &datetime, sizeof(datetime));
 	}
+}
+
+bool HostServices::WriteByteSequence(span<const uint8_t> buf)
+{
+    string json(reinterpret_cast<const char*>(buf.data()), buf.size()); //NOSONAR reinterpret cast is required
+
+    PbCommand command;
+    JsonParseOptions options;
+    JsonStringToMessage(json, &command, options);
+
+    return true;
 }
