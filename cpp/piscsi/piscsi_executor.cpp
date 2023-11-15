@@ -323,7 +323,7 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	return true;
 }
 
-bool PiscsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
+bool PiscsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun) const
 {
 	auto controller = controller_manager->FindController(device.GetId());
 	if (controller == nullptr) {
@@ -354,7 +354,7 @@ bool PiscsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 	return true;
 }
 
-void PiscsiExecutor::DetachAll()
+void PiscsiExecutor::DetachAll() const
 {
 	controller_manager->DeleteAllControllers();
 

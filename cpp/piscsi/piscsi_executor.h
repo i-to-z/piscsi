@@ -41,8 +41,8 @@ public:
 	bool Unprotect(PrimaryDevice&, bool) const;
 	bool Attach(const CommandContext&, const PbDeviceDefinition&, bool);
 	bool Insert(const CommandContext&, const PbDeviceDefinition&, const shared_ptr<PrimaryDevice>&, bool) const;
-	bool Detach(const CommandContext&, PrimaryDevice&, bool);
-	void DetachAll();
+	bool Detach(const CommandContext&, PrimaryDevice&, bool) const;
+	void DetachAll() const;
 	string SetReservedIds(string_view);
 	bool ValidateImageFile(const CommandContext&, StorageDevice&, const string&) const;
 	string PrintCommand(const PbCommand&, const PbDeviceDefinition&) const;

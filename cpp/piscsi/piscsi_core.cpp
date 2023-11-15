@@ -475,17 +475,16 @@ void Piscsi::Process()
 
 			// Process command on the responsible controller based on the current initiator and target ID
 			if (const auto shutdown_mode = controller_manager->ProcessOnController(bus->GetDAT());
-				shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
-				// When the bus is free PiSCSI or the Pi may be shut down.
-				if (dispatcher->ShutDown(shutdown_mode)) {
-				    CleanUp();
-				}
+			    shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE &&
+			    dispatcher->ShutDown(shutdown_mode)) {
+			    // When the bus is free PiSCSI or the Pi may be shut down.
+			    CleanUp();
 			}
 		}
 	}
 }
 
-bool Piscsi::ExecuteCommand(CommandContext& context)
+bool Piscsi::ExecuteCommand(CommandContext& context) const
 {
     if (!access_token.empty() && access_token != GetParam(context.GetCommand(), "token")) {
         return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
