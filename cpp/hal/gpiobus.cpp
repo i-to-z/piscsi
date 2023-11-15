@@ -35,10 +35,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
     bool ack = WaitACK(true);
 
-#ifndef NO_DELAY
     // Wait until the signal line stabilizes
     SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
-#endif
 
     buf[0] = GetDAT();
 
@@ -64,9 +62,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
         ack = WaitACK(true);
 
-#ifndef NO_DELAY
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
-#endif
 
         // Get the actual SCSI command
         buf[0] = GetDAT();
@@ -98,10 +94,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
         ack = WaitACK(true);
 
-#ifndef NO_DELAY
         // Wait until the signal line stabilizes
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
-#endif
 
         buf[offset] = GetDAT();
 
@@ -131,10 +125,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 
             const bool ack = WaitACK(true);
 
-#ifndef NO_DELAY
             // Wait until the signal line stabilizes
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
-#endif
 
             *buf = GetDAT();
 
@@ -164,10 +156,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
             }
 #endif
 
-#ifndef NO_DELAY
             // Wait until the signal line stabilizes
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
-#endif
 
             *buf = GetDAT();
 
@@ -309,7 +299,7 @@ bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
 	const auto now = chrono::steady_clock::now();
 
-    // Wait 3 s
+    // Wait up to 3 s
     do {
         Acquire();
 
