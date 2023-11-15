@@ -235,11 +235,6 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     dispatcher->DispatchCommand(context, result);
 
     const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
-    if (!allocation_length) {
-        EnterStatusPhase();
-
-        return true;
-    }
 
     int size = 0;
     if (json_out) {
@@ -264,9 +259,14 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         throw scsi_exception(sense_key::aborted_command);
     }
 
-    GetController()->SetLength(static_cast<uint32_t>(size));
+    if (!allocation_length) {
+        EnterStatusPhase();
+    }
+    else {
+        GetController()->SetLength(static_cast<uint32_t>(size));
 
-    EnterDataInPhase();
+        EnterDataInPhase();
+    }
 
     return true;
 }
