@@ -382,12 +382,16 @@ bool GPIOBUS::PollSelectEvent()
     errno = 0;
 
     if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
-        spdlog::warn("epoll_wait failed");
+        if (errno != EINTR) {
+            spdlog::warn("epoll_wait failed");
+        }
         return false;
     }
 
     if (gpioevent_data gpev; read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
-        spdlog::warn("read failed");
+        if (errno != EINTR) {
+            spdlog::warn("read failed");
+        }
         return false;
     }
 
