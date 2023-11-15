@@ -44,14 +44,13 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 			break;
 
 		case DEFAULT_FOLDER:
-		    // TODO
-//			if (const string error = piscsi_image.SetDefaultFolder(GetParam(command, "folder")); !error.empty()) {
-//				context.ReturnErrorStatus(error);
-//			}
-//			else {
-//				context.ReturnSuccessStatus();
-//			}
-			break;
+		    if (const string error = piscsi_image.SetDefaultFolder(GetParam(command, "folder")); !error.empty()) {
+		        context.WriteResult(result);
+		        return false;
+			}
+			else {
+			    return context.WriteSuccessResult(result);
+			}
 
 		case DEVICES_INFO:
 			response.GetDevicesInfo(executor.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
