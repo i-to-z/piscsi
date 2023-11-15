@@ -13,7 +13,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    vector<char*> args(argv, argv + argc);
+	vector<char *> args(argv, argv + argc);
 
-    return ScsiDump().run(args);
+	return ScsiDump().run(args);
 }
