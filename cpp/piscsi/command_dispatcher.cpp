@@ -179,7 +179,8 @@ bool CommandDispatcher::HandleDeviceListChange(const CommandContext& context, Pb
 
 // TODO Exit piscsi
 // Shutdown on a remote interface command
-bool CommandDispatcher::ShutDown(const CommandContext& context, const string& m) {
+bool CommandDispatcher::ShutDown(const CommandContext& context, const string& m) const
+{
     if (m.empty()) {
         return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
     }
@@ -211,7 +212,7 @@ bool CommandDispatcher::ShutDown(const CommandContext& context, const string& m)
 }
 
 // Shutdown on a SCSI command
-bool CommandDispatcher::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode) const
+bool CommandDispatcher::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 {
     switch(shutdown_mode) {
     case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
