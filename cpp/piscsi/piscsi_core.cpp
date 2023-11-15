@@ -369,13 +369,7 @@ int Piscsi::run(span<char *> args)
 	}
 
 	if (const string error = service.Init([this] (CommandContext& context) {
-	    if (!access_token.empty() && access_token != GetParam(context.GetCommand(), "token")) {
-	        return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
-	    }
-
-	    context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
-			PbResult result;
-			return dispatcher->DispatchCommand(context, result);
+	    return ExecuteCommand(context);
 		}, port); !error.empty()) {
 		cerr << "Error: " << error << endl;
 
@@ -487,6 +481,17 @@ void Piscsi::Process()
 			}
 		}
 	}
+}
+
+bool Piscsi::ExecuteCommand(CommandContext& context)
+{
+    if (!access_token.empty() && access_token != GetParam(context.GetCommand(), "token")) {
+        return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
+    }
+
+    context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
+    PbResult result;
+    return dispatcher->DispatchCommand(context, result);
 }
 
 // Shutdown on a remote interface command
