@@ -669,6 +669,10 @@ void ScsiController::ReceiveBytes()
 			Status();
 			break;
 
+		case phase_t::status:
+            Status();
+            break;
+
 		default:
 			assert(false);
 			break;

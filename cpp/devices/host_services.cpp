@@ -40,7 +40,7 @@
 // | 6   |                                                                 (LSB) |
 // |-----+-----------------------------------------------------------------------|
 // | 7   | (MSB)                                                                 |
-// |-----+---                        Allocation length                           |
+// |-----+---                        Byte transfer length                        |
 // | 8   |                                                                 (LSB) |
 // |-----+-----------------------------------------------------------------------|
 // | 9   |                           Control                                     |
@@ -48,7 +48,7 @@
 //
 // J_IN, B_IN, J_OUT and B_OUT control the input and output formats.
 // There can only be one input and one output format. These formats do not have to be identical.
-// Note that this command requires both a DATA OUT (input data length) and a DATA IN (allocation length) phase,
+// Note that this command requires both a DATA OUT (input data length) and a DATA IN (byte transfer length) phase,
 // which is unusual.
 //
 
@@ -235,6 +235,11 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     dispatcher->DispatchCommand(context, result);
 
     const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
+    if (!allocation_length) {
+        EnterStatusPhase();
+
+        return true;
+    }
 
     int size = 0;
     if (json_out) {
