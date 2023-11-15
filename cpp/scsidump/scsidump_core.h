@@ -53,11 +53,12 @@ class ScsiDump
     void DisplayBoardId() const;
     void ScanBus();
     bool DisplayInquiry(inquiry_info_t&, bool);
+    int DumpRestore();
     bool GetDeviceInfo(inquiry_info_t&);
     void WaitForPhase(phase_t) const;
     void Selection() const;
     void Command(scsi_defs::scsi_command, vector<uint8_t>&) const;
-    int DataIn(int);
+    void DataIn(int);
     void DataOut(int);
     void Status() const;
     void MessageIn() const;
@@ -65,7 +66,6 @@ class ScsiDump
     void TestUnitReady() const;
     void RequestSense();
     void Inquiry();
-    void Execute();
     pair<uint64_t, uint32_t> ReadCapacity();
     void Read10(uint32_t, uint32_t, uint32_t);
     void Write10(uint32_t, uint32_t, uint32_t);

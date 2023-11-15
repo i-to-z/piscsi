@@ -20,8 +20,6 @@
 #include "controllers/controller_manager.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_util.h"
-#include "generated/piscsi_interface.pb.h"
-#include <google/protobuf/util/json_util.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <chrono>
@@ -38,7 +36,6 @@ using namespace filesystem;
 using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_util;
-using namespace piscsi_interface;
 
 void ScsiDump::CleanUp()
 {
@@ -224,16 +221,13 @@ void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
     }
 }
 
-int ScsiDump::DataIn(int length)
+void ScsiDump::DataIn(int length)
 {
     WaitForPhase(phase_t::datain);
 
-    const int received = bus->ReceiveHandShake(buffer.data(), length);
-    if (!received) {
+    if (!bus->ReceiveHandShake(buffer.data(), length)) {
         throw phase_exception("DATA IN failed");
     }
-
-    return received;
 }
 
 void ScsiDump::DataOut(int length)
@@ -302,63 +296,6 @@ void ScsiDump::Inquiry()
     Command(scsi_command::eCmdInquiry, cdb);
 
     DataIn(256);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
-}
-
-void ScsiDump::Execute()
-{
-    const string file = restore ? "test.bin" : "test.json";
-
-    // restore means binary
-    int size = 0;
-    if (!restore) {
-        ifstream in(file);
-        assert(!in.fail());
-        stringstream buf;
-        buf << in.rdbuf();
-        const string json = buf.str();
-        memcpy(buffer.data(), json.data(), json.size());
-        size = json.size();
-    }
-    else {
-        ifstream in(file, ios::binary);
-        assert(!in.fail());
-        vector<char> b(file_size(file));
-        in.read(b.data(), b.size());
-        memcpy(buffer.data(), b.data(), b.size());
-        size = b.size();
-    }
-
-    vector<uint8_t> cdb(10);
-    cdb[1] = restore ? 0x0a : 0x05;
-    cdb[5] = static_cast<uint8_t>(size >> 8);
-    cdb[6] = static_cast<uint8_t>(size);
-    cdb[7] = static_cast<uint8_t>(65535 >> 8);
-    cdb[8] = static_cast<uint8_t>(65535);
-    Command(scsi_command::eCmdExecute, cdb);
-
-    DataOut(size);
-
-    const int length = DataIn(65535);
-
-    if (!restore) {
-        const string json((const char *)buffer.data(), length);
-        cerr << "json received:\n" << json << endl;
-    }
-    else {
-        PbResult result;
-        if (!result.ParseFromArray(buffer.data(), length)) {
-            assert(false);
-        }
-        string json;
-        google::protobuf::util::MessageToJsonString(result, &json);
-        cerr << "json (converted from binary) received:\n" << json << endl;
-   }
 
     Status();
 
@@ -505,10 +442,18 @@ int ScsiDump::run(span<char *> args)
     }
 
     try {
-        DisplayBoardId();
+    	if (scan_bus) {
+    		ScanBus();
+    	}
+    	else if (inquiry) {
+    		DisplayBoardId();
 
-        inquiry_info_t inq_info;
-        DisplayInquiry(inq_info, false);
+    		inquiry_info_t inq_info;
+    		DisplayInquiry(inq_info, false);
+    	}
+    	else {
+    		DumpRestore();
+    	}
     }
     catch (const phase_exception& e) {
     	cerr << "Error: " << e.what() << endl;
@@ -552,7 +497,7 @@ void ScsiDump::ScanBus()
 	}
 }
 
-bool ScsiDump::DisplayInquiry(ScsiDump::inquiry_info_t& inq_info, bool)
+bool ScsiDump::DisplayInquiry(ScsiDump::inquiry_info_t& inq_info, bool check_type)
 {
     // Assert RST for 1 ms
     bus->SetRST(true);
@@ -594,11 +539,116 @@ bool ScsiDump::DisplayInquiry(ScsiDump::inquiry_info_t& inq_info, bool)
 
     cout << "Removable:   " << (((static_cast<byte>(buffer[1]) & byte{0x80}) == byte{0x80}) ? "Yes" : "No") << "\n";
 
-    Execute();
+    if (check_type && type != static_cast<byte>(device_type::direct_access) &&
+    		type != static_cast<byte>(device_type::cd_rom) && type != static_cast<byte>(device_type::optical_memory)) {
+    	cerr << "Invalid device type, supported types for dump/restore are DIRECT ACCESS, CD-ROM/DVD/BD and OPTICAL MEMORY" << endl;
+    	return false;
+    }
 
     return true;
 }
 
+int ScsiDump::DumpRestore()
+{
+	inquiry_info_t inq_info;
+    if (!GetDeviceInfo(inq_info)) {
+    	return EXIT_FAILURE;
+    }
+
+    fstream fs;
+    fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
+
+    if (fs.fail()) {
+        throw parser_exception("Can't open image file '" + filename + "'");
+    }
+
+    if (restore) {
+        cout << "Starting restore\n" << flush;
+
+        off_t size;
+        try {
+        	size = file_size(path(filename));
+        }
+        catch (const filesystem_error& e) {
+        	throw parser_exception(string("Can't determine file size: ") + e.what());
+        }
+
+        cout << "Restore file size: " << size << " bytes\n";
+        if (size > (off_t)(inq_info.sector_size * inq_info.capacity)) {
+            cout << "WARNING: File size is larger than disk size\n" << flush;
+        } else if (size < (off_t)(inq_info.sector_size * inq_info.capacity)) {
+            throw parser_exception("File size is smaller than disk size");
+        }
+    } else {
+        cout << "Starting dump\n" << flush;
+    }
+
+    // Dump by buffer size
+    auto dsiz = static_cast<int>(buffer.size());
+    const int duni = dsiz / inq_info.sector_size;
+    auto dnum = static_cast<int>((inq_info.capacity * inq_info.sector_size) / dsiz);
+
+    const auto start_time = chrono::high_resolution_clock::now();
+
+    int i;
+    for (i = 0; i < dnum; i++) {
+        if (restore) {
+            fs.read((char*)buffer.data(), dsiz);
+            Write10(i * duni, duni, dsiz);
+        } else {
+            Read10(i * duni, duni, dsiz);
+            fs.write((const char*)buffer.data(), dsiz);
+        }
+
+        if (fs.fail()) {
+            throw parser_exception("File I/O failed");
+        }
+
+        cout << ((i + 1) * 100 / dnum) << "%"
+             << " (" << (i + 1) * duni << "/" << inq_info.capacity << ")\n"
+             << flush;
+    }
+
+    // Rounding on capacity
+    dnum = inq_info.capacity % duni;
+    dsiz = dnum * inq_info.sector_size;
+    if (dnum > 0) {
+        if (restore) {
+            fs.read((char*)buffer.data(), dsiz);
+            if (!fs.fail()) {
+                Write10(i * duni, dnum, dsiz);
+            }
+        } else {
+            Read10(i * duni, dnum, dsiz);
+            fs.write((const char*)buffer.data(), dsiz);
+        }
+
+        if (fs.fail()) {
+            throw parser_exception("File I/O failed");
+        }
+
+        cout << "100% (" << inq_info.capacity << "/" << inq_info.capacity << ")\n" << flush;
+    }
+
+    const auto stop_time = chrono::high_resolution_clock::now();
+
+    const auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
+
+    cout << DIVIDER << "\n";
+    cout << "Transfered : " << inq_info.capacity * inq_info.sector_size << " bytes ["
+         << inq_info.capacity * inq_info.sector_size / 1024 / 1024 << "MiB]\n";
+    cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes\n";
+    cout << "Average transfer rate: " << (inq_info.capacity * inq_info.sector_size / 8) / duration
+         << " bytes per second (" << (inq_info.capacity * inq_info.sector_size / 8) / duration / 1024
+         << " KiB per second)\n";
+    cout << DIVIDER << "\n";
+
+    if (properties_file && !restore) {
+        inq_info.GeneratePropertiesFile(filename + ".properties");
+    }
+
+    return EXIT_SUCCESS;
+}
 
 bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
 {
@@ -611,6 +661,17 @@ bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
     TestUnitReady();
 
     RequestSense();
+
+    const auto [capacity, sector_size] = ReadCapacity();
+    inq_info.capacity = capacity;
+    inq_info.sector_size = sector_size;
+
+    cout << "Sectors:     " << capacity << "\n"
+         << "Sector size: " << sector_size << " bytes\n"
+         << "Capacity:    " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
+         << " bytes)\n"
+         << DIVIDER << "\n\n"
+         << flush;
 
     return true;
 }
