@@ -49,11 +49,9 @@ string BUS::GetPhaseName(phase_t phase) {
 	return it != phase_names.end() ? it->second : "????";
 }
 
-//---------------------------------------------------------------------------
-//
-//	Phase Table
-//    Reference Table 8: https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-06.html
-//  This determines the phase based upon the Msg, C/D and I/O signals.
+// Phase Table
+// Reference Table 8: https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-06.html
+// This determines the phase based upon the Msg, C/D and I/O signals.
 //
 // |MSG|C/D|I/O| Phase
 // | 0 | 0 | 0 | DATA OUT
@@ -65,16 +63,15 @@ string BUS::GetPhaseName(phase_t phase) {
 // | 1 | 1 | 0 | MESSAGE OUT
 // | 1 | 1 | 1 | MESSAGE IN
 //
-//---------------------------------------------------------------------------
 const array<phase_t, 8> BUS::phase_table = {
-	phase_t::dataout,
-	phase_t::datain,
-	phase_t::command,
-	phase_t::status,
-	phase_t::reserved,
-	phase_t::reserved,
-	phase_t::msgout,
-	phase_t::msgin
+    phase_t::dataout,
+    phase_t::datain,
+    phase_t::command,
+    phase_t::status,
+    phase_t::reserved,
+    phase_t::reserved,
+    phase_t::msgout,
+    phase_t::msgin
 };
 
 const unordered_map<phase_t, string> BUS::phase_names = {
