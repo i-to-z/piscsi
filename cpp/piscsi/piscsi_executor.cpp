@@ -10,7 +10,6 @@
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
-#include "devices/host_services.h"
 #include "devices/disk.h"
 #include "localizer.h"
 #include "command_context.h"
@@ -261,10 +260,6 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	if (!controller_manager->AttachToController(bus, id, device)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SCSI_CONTROLLER);
-	}
-
-	if (auto host_services = dynamic_pointer_cast<HostServices>(device); host_services != nullptr) {
-	    host_services->SetExecutor(shared_from_this());
 	}
 
 	if (storage_device != nullptr && !storage_device->IsRemoved()) {

@@ -19,7 +19,7 @@ using namespace piscsi_interface;
 using namespace piscsi_util;
 using namespace protobuf_util;
 
-bool CommandDispatcher::DispatchCommand(const CommandContext& context)
+bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult& result)
 {
 	const PbCommand& command = context.GetCommand();
 	const PbOperation operation = command.operation();
@@ -36,8 +36,6 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context)
 	}
 
 	spdlog::trace("Received " + PbOperation_Name(operation) + " command");
-
-	PbResult result;
 
 	switch(operation) {
 		case LOG_LEVEL:

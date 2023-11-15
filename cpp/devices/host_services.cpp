@@ -208,136 +208,6 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 	}
 }
 
-bool HostServices::ExecuteCommand(const CommandContext& context, PbResult& result)
-{
-    const PbCommand& command = context.GetCommand();
-    const PbOperation operation = command.operation();
-
-    if (!PbOperation_IsValid(operation)) {
-        spdlog::trace("Ignored unknown command with operation opcode " + to_string(operation));
-
-        return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION, to_string(operation));
-    }
-
-    LogDebug("Received " + PbOperation_Name(operation) + " command");
-
-    switch (operation) {
-    case LOG_LEVEL:
-        // TODO
-        return context.ReturnErrorStatus("TODO");
-
-    case DEFAULT_FOLDER:
-        // TODO This is not the same piscsi_image as in the piscsi core
-        if (const string error = piscsi_image.SetDefaultFolder(protobuf_util::GetParam(command, "folder")); !error.empty()) {
-            context.ReturnErrorStatus(error);
-        }
-        else {
-            context.ReturnSuccessStatus();
-        }
-        break;
-
-    case DEVICES_INFO:
-        response.GetDevicesInfo(executor->GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
-        return context.WriteSuccessResult(result);
-
-    case DEVICE_TYPES_INFO:
-        response.GetDeviceTypesInfo(*result.mutable_device_types_info());
-        return context.WriteSuccessResult(result);
-
-    case SERVER_INFO:
-        response.GetServerInfo(*result.mutable_server_info(), command, executor->GetAllDevices(),
-            executor->GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
-         return context.WriteSuccessResult(result);
-
-    case VERSION_INFO:
-        response.GetVersionInfo(*result.mutable_version_info());
-        return context.WriteSuccessResult(result);
-
-    case LOG_LEVEL_INFO:
-        response.GetLogLevelInfo(*result.mutable_log_level_info());
-        return context.WriteSuccessResult(result);
-
-    case DEFAULT_IMAGE_FILES_INFO:
-        response.GetImageFilesInfo(*result.mutable_image_files_info(), piscsi_image.GetDefaultFolder(),
-            protobuf_util::GetParam(command, "folder_pattern"),
-            protobuf_util::GetParam(command, "file_pattern"), piscsi_image.GetDepth());
-        return context.WriteSuccessResult(result);
-
-    case IMAGE_FILE_INFO:
-        if (string filename = protobuf_util::GetParam(command, "file"); filename.empty()) {
-            context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME);
-        }
-        else {
-            auto image_file = make_unique<PbImageFile>();
-            const bool status = response.GetImageFile(*image_file.get(), piscsi_image.GetDefaultFolder(),
-                filename);
-            if (status) {
-                result.set_allocated_image_file_info(image_file.get());
-                result.set_status(true);
-                context.WriteResult(result);
-            }
-            else {
-                context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_FILE_INFO);
-            }
-        }
-        break;
-
-    case NETWORK_INTERFACES_INFO:
-        response.GetNetworkInterfacesInfo(*result.mutable_network_interfaces_info());
-        return context.WriteSuccessResult(result);
-
-    case MAPPING_INFO:
-        response.GetMappingInfo(*result.mutable_mapping_info());
-        return context.WriteSuccessResult(result);
-
-    case STATISTICS_INFO:
-        response.GetStatisticsInfo(*result.mutable_statistics_info(), executor->GetAllDevices());
-        return context.WriteSuccessResult(result);
-
-    case OPERATION_INFO:
-        response.GetOperationInfo(*result.mutable_operation_info(), piscsi_image.GetDepth());
-        return context.WriteSuccessResult(result);
-
-    case RESERVED_IDS_INFO:
-        response.GetReservedIds(*result.mutable_reserved_ids_info(), executor->GetReservedIds());
-        return context.WriteSuccessResult(result);
-
-    case SHUT_DOWN:
-        // TODO
-        return context.ReturnErrorStatus("TODO");
-
-    case NO_OPERATION:
-        return context.ReturnSuccessStatus();
-
-    case CREATE_IMAGE:
-        return piscsi_image.CreateImage(context);
-
-    case DELETE_IMAGE:
-        return piscsi_image.DeleteImage(context);
-
-    case RENAME_IMAGE:
-        return piscsi_image.RenameImage(context);
-
-    case COPY_IMAGE:
-        return piscsi_image.CopyImage(context);
-
-    case PROTECT_IMAGE:
-        case UNPROTECT_IMAGE:
-        return piscsi_image.SetImagePermissions(context);
-
-    case RESERVE_IDS:
-        // TODO
-        return context.ReturnErrorStatus("TODO");
-
-    default:
-        // The remaining commands may only be executed when the target is idle
-        // TODO
-        return context.ReturnErrorStatus("TODO");
-    }
-
-    return true;
-}
-
 bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 {
     const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
@@ -362,7 +232,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 
     CommandContext context(command, piscsi_image.GetDefaultFolder(), protobuf_util::GetParam(command, "locale"));
     PbResult result;
-    ExecuteCommand(context, result);
+    dispatcher->DispatchCommand(context, result);
 
     const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
 

@@ -25,9 +25,10 @@ public:
 	CommandDispatcher(shared_ptr<PiscsiExecutor> e) : executor(e) { }
 	~CommandDispatcher() = default;
 
+	bool DispatchCommand(const CommandContext&, PbResult&);
+
 private:
 
-	bool DispatchCommand(const CommandContext&);
 	bool ExecuteWithLock(const CommandContext&);
 	bool HandleDeviceListChange(const CommandContext&, PbOperation) const;
 

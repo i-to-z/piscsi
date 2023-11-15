@@ -20,7 +20,7 @@ class PrimaryDevice;
 class StorageDevice;
 class CommandContext;
 
-class PiscsiExecutor : public enable_shared_from_this<PiscsiExecutor>
+class PiscsiExecutor
 {
 public:
 

@@ -11,6 +11,7 @@
 
 #include "controllers/controller_manager.h"
 #include "piscsi/command_context.h"
+#include "piscsi/command_dispatcher.h"
 #include "piscsi/piscsi_service.h"
 #include "piscsi/piscsi_image.h"
 #include "piscsi/piscsi_response.h"
@@ -70,6 +71,8 @@ private:
 	PiscsiService service;
 
 	shared_ptr<PiscsiExecutor> executor;
+
+	shared_ptr<CommandDispatcher> dispatcher;
 
 	shared_ptr<ControllerManager> controller_manager;
 

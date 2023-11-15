@@ -11,8 +11,8 @@
 
 #pragma once
 
-#include "piscsi/piscsi_executor.h"
 #include "piscsi/command_context.h"
+#include "piscsi/command_dispatcher.h"
 #include "piscsi/piscsi_image.h"
 #include "piscsi/piscsi_response.h"
 #include "mode_page_device.h"
@@ -33,7 +33,7 @@ public:
 	vector<uint8_t> InquiryInternal() const override;
 	void TestUnitReady() override;
 
-	void SetExecutor(shared_ptr<PiscsiExecutor> e) { executor = e; }
+	void SetDispatcher(shared_ptr<CommandDispatcher> d) { dispatcher = d; }
 
 protected:
 
@@ -56,7 +56,6 @@ private:
 
 	void StartStopUnit() const;
     void Execute();
-    bool ExecuteCommand(const CommandContext&, PbResult&);
 
     int ModeSense6(cdb_t, vector<uint8_t>&) const override;
 	int ModeSense10(cdb_t, vector<uint8_t>&) const override;
@@ -65,7 +64,7 @@ private:
 
 	bool WriteByteSequence(span<const uint8_t>) override;
 
-	shared_ptr<PiscsiExecutor> executor;
+	shared_ptr<CommandDispatcher> dispatcher;
 
 	PiscsiImage piscsi_image;
 
