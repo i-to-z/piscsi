@@ -242,12 +242,22 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         status = MessageToJsonString(result, &json).ok();
         if (status) {
             size = static_cast<int>(min(allocation_length, json.size()));
+            if (size > 65535) {
+                // TODO Find better error codes
+                throw scsi_exception(sense_key::aborted_command);
+             }
+
             memcpy(GetController()->GetBuffer().data(), json.data(), size);
         }
     }
     else {
         const string data = result.SerializeAsString();
         size = static_cast<int>(min(allocation_length, data.size()));
+        if (size > 65535) {
+            // TODO Find better error codes
+            throw scsi_exception(sense_key::aborted_command);
+         }
+
         memcpy(GetController()->GetBuffer().data(), data.data(), size);
         status = true;
     }
