@@ -34,7 +34,7 @@ private:
 
 	bool ExecuteWithLock(const CommandContext&);
 	bool HandleDeviceListChange(const CommandContext&, PbOperation) const;
-	bool ShutDown(const CommandContext&, const string&);
+	bool ShutDown(const CommandContext&, const string&) const;
 
 	PiscsiImage& piscsi_image;
 
