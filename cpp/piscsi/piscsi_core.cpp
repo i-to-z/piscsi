@@ -20,7 +20,6 @@
 #include "devices/storage_device.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
-#include "hal/systimer.h"
 #include "piscsi/piscsi_core.h"
 #include <spdlog/spdlog.h>
 #include <netinet/in.h>
@@ -29,6 +28,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <chrono>
 
 using namespace std;
 using namespace filesystem;
@@ -686,10 +686,8 @@ bool Piscsi::IsNotBusy() const
     // Wait until BSY is released as there is a possibility for the
 	// initiator to assert it while setting the ID (for up to 3 seconds)
 	if (bus->GetBSY()) {
-		const uint32_t now = SysTimer::GetTimerLow();
-
-		// Wait for 3s
-		while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
+		const auto now = chrono::steady_clock::now();
+	    while ((chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - now).count()) < 3) {
 			bus->Acquire();
 
 			if (!bus->GetBSY()) {

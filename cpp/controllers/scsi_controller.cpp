@@ -57,6 +57,8 @@ bool ScsiController::Process(int id)
 
 		Reset();
 
+		BusFree();
+
 		return false;
 	}
 
@@ -534,7 +536,6 @@ void ScsiController::Receive()
 	bool result = true;
 
 	// Processing after receiving data (by phase)
-	LogTrace("Phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
 		case phase_t::dataout:
 			if (!HasBlocks()) {
@@ -623,7 +624,6 @@ void ScsiController::ReceiveBytes()
 	bool result = true;
 
 	// Processing after receiving data (by phase)
-	LogTrace("Phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
 		case phase_t::dataout:
 			result = XferOut(false);

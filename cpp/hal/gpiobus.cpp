@@ -10,7 +10,6 @@
 //---------------------------------------------------------------------------
 
 #include "hal/gpiobus.h"
-#include "hal/sbc_version.h"
 #include "hal/systimer.h"
 #include <spdlog/spdlog.h>
 #include <sys/ioctl.h>
@@ -27,23 +26,14 @@ bool GPIOBUS::Init(mode_e mode)
 {
     GPIO_FUNCTION_TRACE
 
-    // Save operation mode
     actmode = mode;
 
     return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Receive command handshake
-//
-//---------------------------------------------------------------------------
-int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
+int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 {
-    // Only works in TARGET mode
-	assert(actmode == mode_e::TARGET);
-
-	GPIO_FUNCTION_TRACE
+    assert(actmode == mode_e::TARGET);
 
     DisableIRQ();
 
@@ -160,15 +150,15 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 
 //---------------------------------------------------------------------------
 //
-//	Data reception handshake
+//	Handshake for DATA IN and MESSAGE IN
 //
 //---------------------------------------------------------------------------
 int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 {
     GPIO_FUNCTION_TRACE
-    int i;
 
-    // Disable IRQs
+	int i;
+
     DisableIRQ();
 
     if (actmode == mode_e::TARGET) {
@@ -255,7 +245,6 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
         }
     }
 
-    // Re-enable IRQ
     EnableIRQ();
 
     // Return the number of bytes received
@@ -264,15 +253,15 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 
 //---------------------------------------------------------------------------
 //
-//	Data transmission handshake
+//	Handshake for DATA OUT and MESSAGE OUT
 //
 //---------------------------------------------------------------------------
 int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 {
     GPIO_FUNCTION_TRACE
-    int i;
 
-    // Disable IRQs
+	int i;
+
     DisableIRQ();
 
     if (actmode == mode_e::TARGET) {
@@ -320,7 +309,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
         // Wait for ACK to clear
         WaitACK(OFF);
     } else {
-        // Get Phase
         Acquire();
         phase_t phase = GetPhase();
 
@@ -374,7 +362,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
         }
     }
 
-    // Re-enable IRQ
     EnableIRQ();
 
     // Return number of transmissions
@@ -410,9 +397,8 @@ bool GPIOBUS::PollSelectEvent()
 
 bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
+    // Wait 3 s
     const auto now = chrono::steady_clock::now();
-
-    // Wait up to 3 s
     do {
         Acquire();
 

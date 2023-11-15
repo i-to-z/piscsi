@@ -81,8 +81,9 @@ vector<uint8_t> SCSIDaynaPort::InquiryInternal() const
 {
 	vector<uint8_t> buf = HandleInquiry(device_type::processor, scsi_level::scsi_2, false);
 
-	// The Daynaport driver for the Mac expects 37 bytes: Increase additional length and
-	// add a vendor-specific byte in order to satisfy this driver.
+	// The Daynaport driver for the Mac requests 37 bytes and expects all of them to be delivered.
+	// https://github.com/PiSCSI/piscsi/issues/1098 shows that this work-around is required.
+	// It does not negatively affect other platforms.
 	buf[4]++;
 	buf.push_back(0);
 

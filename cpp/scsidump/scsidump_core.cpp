@@ -3,23 +3,17 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Powered by XM6 TypeG Technology.
-// Copyright (C) 2016-2020 GIMONS
 // Copyright (C) 2022 akuker
 // Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-// TODO Evaluate CHECK CONDITION after sending a command
-// TODO Send IDENTIFY message in order to support LUNS > 7
-// TODO Get rid of some fields in favor of method arguments
-
 #include "scsidump/scsidump_core.h"
 #include "hal/gpiobus_factory.h"
-#include "hal/systimer.h"
 #include "controllers/controller_manager.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_util.h"
+#include <unistd.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <chrono>
@@ -27,9 +21,8 @@
 #include <cstddef>
 #include <cstring>
 #include <fstream>
-#include <iostream>
-#include <sstream>
-#include <unistd.h>
+#include <iomanip>
+#include <array>
 
 using namespace std;
 using namespace filesystem;
@@ -37,7 +30,7 @@ using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_util;
 
-void ScsiDump::CleanUp()
+void ScsiDump::CleanUp() const
 {
     if (bus != nullptr) {
         bus->Cleanup();
@@ -46,30 +39,35 @@ void ScsiDump::CleanUp()
 
 void ScsiDump::TerminationHandler(int)
 {
-    CleanUp();
+    instance->bus->SetRST(true);
 
-	// Process will terminate automatically
+    instance->CleanUp();
+
+    // Process will terminate automatically
 }
 
-bool ScsiDump::Banner(span<char *> args) const
+bool ScsiDump::Banner(ostream &console, span<char*> args) const
 {
-    cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
+    console << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE] [-p] [-I] [-S]\n"
-             << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
-             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
-			 << " Default is 0.\n"
-             << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
-             << " FILE is the dump file path.\n"
-             << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
-             << " bytes. Default is 1 MiB.\n"
-             << " -v Enable verbose logging.\n"
-             << " -r Restore instead of dump.\n"
-             << " -p Generate .properties file to be used with the PiSCSI web interface. Only valid for dump mode.\n"
-			 << " -I Display INQUIRY data of ID[:LUN].\n"
-			 << " -S Scan SCSI bus for devices.\n"
-             << flush;
+        console << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] [-f FILE] [-a] [-r] [-b BUFFER_SIZE]"
+            << " [-L log_level] [-p] [-I] [-s]\n"
+            << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
+            << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() - 1) << ")."
+            << " Default is 0.\n"
+            << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
+            << " FILE is the image file path. Only needed when not dumping to stdout and no property file is"
+            << " requested.\n"
+            << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
+            << " bytes. Default is 1 MiB.\n"
+            << " -a Scan all potential LUNs during bus scan, default is LUN 0 only.\n"
+            << " -r Restore instead of dump.\n"
+            << " -p Generate .properties file to be used with the PiSCSI web interface."
+            << " Only valid for dump and inquiry mode.\n"
+            << " -I Display INQUIRY data of ID[:LUN].\n"
+            << " -s Scan SCSI bus for devices.\n"
+            << flush;
 
         return false;
     }
@@ -77,29 +75,34 @@ bool ScsiDump::Banner(span<char *> args) const
     return true;
 }
 
-bool ScsiDump::Init() const
+bool ScsiDump::Init()
 {
-	// Signal handler for cleaning up
-	struct sigaction termination_handler;
-	termination_handler.sa_handler = TerminationHandler;
-	sigemptyset(&termination_handler.sa_mask);
-	termination_handler.sa_flags = 0;
-	sigaction(SIGTERM, &termination_handler, nullptr);
-	signal(SIGPIPE, SIG_IGN);
+    instance = this;
+    // Signal handler for cleaning up
+    struct sigaction termination_handler;
+    termination_handler.sa_handler = TerminationHandler;
+    sigemptyset(&termination_handler.sa_mask);
+    termination_handler.sa_flags = 0;
+    sigaction(SIGINT, &termination_handler, nullptr);
+    sigaction(SIGTERM, &termination_handler, nullptr);
+    signal(SIGPIPE, SIG_IGN);
 
     bus = GPIOBUS_Factory::Create(BUS::mode_e::INITIATOR);
+
+    if (bus != nullptr) {
+        scsi_executor = make_unique<ScsiExecutor>(*bus, initiator_id);
+    }
 
     return bus != nullptr;
 }
 
-void ScsiDump::ParseArguments(span<char *> args)
+void ScsiDump::ParseArguments(span<char*> args)
 {
-    int opt;
-
     int buffer_size = DEFAULT_BUFFER_SIZE;
 
+    int opt;
     opterr = 0;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rvpIS")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:b:t:L:arspI")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -112,19 +115,20 @@ void ScsiDump::ParseArguments(span<char *> args)
             break;
 
         case 'I':
-        	inquiry = true;
-        	break;
+            run_inquiry = true;
+            break;
 
-        case 's':
+        case 'b':
             if (!GetAsUnsignedInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
-                throw parser_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + " KiB");
+                throw parser_exception(
+                    "Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + " KiB");
             }
 
             break;
 
-        case 'S':
-        	scan_bus = true;
-        	break;
+        case 's':
+            run_bus_scan = true;
+            break;
 
         case 't':
             if (const string error = ProcessId(optarg, target_id, target_lun); !error.empty()) {
@@ -132,8 +136,12 @@ void ScsiDump::ParseArguments(span<char *> args)
             }
             break;
 
-        case 'v':
-            set_level(level::debug);
+        case 'L':
+            log_level = optarg;
+            break;
+
+        case 'a':
+            scan_all_luns = true;
             break;
 
         case 'r':
@@ -141,7 +149,7 @@ void ScsiDump::ParseArguments(span<char *> args)
             break;
 
         case 'p':
-            properties_file = true;
+            create_properties_file = true;
             break;
 
         default:
@@ -149,318 +157,92 @@ void ScsiDump::ParseArguments(span<char *> args)
         }
     }
 
-    if (!scan_bus && !inquiry && filename.empty()) {
-        throw parser_exception("Missing filename");
-    }
-
-    if (!scan_bus && target_id == -1) {
-    	throw parser_exception("Missing target ID");
-    }
-
-    if (target_id == initiator_id) {
-        throw parser_exception("Target ID and PiSCSI board ID must not be identical");
-    }
-
     if (target_lun == -1) {
-    	target_lun = 0;
+        target_lun = 0;
     }
 
-    if (scan_bus) {
-    	inquiry = false;
+    if (run_bus_scan) {
+        run_inquiry = false;
     }
 
     buffer = vector<uint8_t>(buffer_size);
 }
 
-void ScsiDump::WaitForPhase(phase_t phase) const
+int ScsiDump::run(span<char*> args)
 {
-    spdlog::debug(string("Waiting for ") + BUS::GetPhaseStrRaw(phase) + " phase");
+    to_stdout = !isatty(STDOUT_FILENO);
 
-    // Timeout (3000ms)
-    const uint32_t now = SysTimer::GetTimerLow();
-    while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
-        bus->Acquire();
-        if (bus->GetREQ() && bus->GetPhase() == phase) {
-            return;
-        }
+    // Prevent any logging when dumping to stdout
+    if (to_stdout) {
+        spdlog::set_level(level::off);
     }
 
-    throw phase_exception("Expected " + string(BUS::GetPhaseStrRaw(phase)) + " phase, actual phase is " +
-    		string(BUS::GetPhaseStrRaw(bus->GetPhase())));
-}
+    // When dumping to stdout use stderr instead of stdout for console output
+    ostream &console = to_stdout ? cerr : cout;
 
-void ScsiDump::Selection() const
-{
-    // Set initiator and target ID
-    auto data = static_cast<byte>(1 << initiator_id);
-    data |= static_cast<byte>(1 << target_id);
-    bus->SetDAT(static_cast<uint8_t>(data));
-
-    bus->SetSEL(true);
-
-    WaitForBusy();
-
-    bus->SetSEL(false);
-}
-
-void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
-{
-    spdlog::debug("Executing " + command_mapping.find(cmd)->second.second);
-
-    Selection();
-
-    WaitForPhase(phase_t::command);
-
-    cdb[0] = static_cast<uint8_t>(cmd);
-    cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
-    if (static_cast<int>(cdb.size()) !=
-        bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
-        BusFree();
-
-        throw phase_exception(command_mapping.find(cmd)->second.second + string(" failed"));
-    }
-}
-
-void ScsiDump::DataIn(int length)
-{
-    WaitForPhase(phase_t::datain);
-
-    if (!bus->ReceiveHandShake(buffer.data(), length)) {
-        throw phase_exception("DATA IN failed");
-    }
-}
-
-void ScsiDump::DataOut(int length)
-{
-    WaitForPhase(phase_t::dataout);
-
-    if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
-        throw phase_exception("DATA OUT failed");
-    }
-}
-
-void ScsiDump::Status() const
-{
-    WaitForPhase(phase_t::status);
-
-    if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
-        throw phase_exception("STATUS failed");
-    }
-}
-
-void ScsiDump::MessageIn() const
-{
-    WaitForPhase(phase_t::msgin);
-
-    if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
-        throw phase_exception("MESSAGE IN failed");
-    }
-}
-
-void ScsiDump::BusFree() const
-{
-    bus->Reset();
-}
-
-void ScsiDump::TestUnitReady() const
-{
-    vector<uint8_t> cdb(6);
-    Command(scsi_command::eCmdTestUnitReady, cdb);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
-}
-
-void ScsiDump::RequestSense()
-{
-    vector<uint8_t> cdb(6);
-    cdb[4] = 0xff;
-    Command(scsi_command::eCmdRequestSense, cdb);
-
-    DataIn(256);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
-}
-
-void ScsiDump::Inquiry()
-{
-    vector<uint8_t> cdb(6);
-    cdb[4] = 0xff;
-    Command(scsi_command::eCmdInquiry, cdb);
-
-    DataIn(256);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
-}
-
-pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
-{
-    vector<uint8_t> cdb(10);
-    Command(scsi_command::eCmdReadCapacity10, cdb);
-
-    DataIn(8);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
-
-    uint64_t capacity = (static_cast<uint32_t>(buffer[0]) << 24) | (static_cast<uint32_t>(buffer[1]) << 16) |
-                        (static_cast<uint32_t>(buffer[2]) << 8) | static_cast<uint32_t>(buffer[3]);
-
-    int sector_size_offset = 4;
-
-    if (static_cast<int32_t>(capacity) == -1) {
-        cdb.resize(16);
-        // READ CAPACITY(16), not READ LONG(16)
-        cdb[1] = 0x10;
-        Command(scsi_command::eCmdReadCapacity16_ReadLong16, cdb);
-
-        DataIn(14);
-
-        Status();
-
-        MessageIn();
-
-        BusFree();
-
-        capacity = (static_cast<uint64_t>(buffer[0]) << 56) | (static_cast<uint64_t>(buffer[1]) << 48) |
-                   (static_cast<uint64_t>(buffer[2]) << 40) | (static_cast<uint64_t>(buffer[3]) << 32) |
-                   (static_cast<uint64_t>(buffer[4]) << 24) | (static_cast<uint64_t>(buffer[5]) << 16) |
-                   (static_cast<uint64_t>(buffer[6]) << 8) | static_cast<uint64_t>(buffer[7]);
-
-        sector_size_offset = 8;
-    }
-
-    const uint32_t sector_size = (static_cast<uint32_t>(buffer[sector_size_offset]) << 24) |
-                                 (static_cast<uint32_t>(buffer[sector_size_offset + 1]) << 16) |
-                                 (static_cast<uint32_t>(buffer[sector_size_offset + 2]) << 8) |
-                                 static_cast<uint32_t>(buffer[sector_size_offset + 3]);
-
-    return { capacity, sector_size };
-}
-
-void ScsiDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
-{
-    vector<uint8_t> cdb(10);
-    cdb[2] = (uint8_t)(bstart >> 24);
-    cdb[3] = (uint8_t)(bstart >> 16);
-    cdb[4] = (uint8_t)(bstart >> 8);
-    cdb[5] = (uint8_t)bstart;
-    cdb[7] = (uint8_t)(blength >> 8);
-    cdb[8] = (uint8_t)blength;
-    Command(scsi_command::eCmdRead10, cdb);
-
-    DataIn(length);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
-}
-
-void ScsiDump::Write10(uint32_t bstart, uint32_t blength, uint32_t length)
-{
-    vector<uint8_t> cdb(10);
-    cdb[2] = (uint8_t)(bstart >> 24);
-    cdb[3] = (uint8_t)(bstart >> 16);
-    cdb[4] = (uint8_t)(bstart >> 8);
-    cdb[5] = (uint8_t)bstart;
-    cdb[7] = (uint8_t)(blength >> 8);
-    cdb[8] = (uint8_t)blength;
-    Command(scsi_command::eCmdWrite10, cdb);
-
-    DataOut(length);
-
-    Status();
-
-    MessageIn();
-
-    BusFree();
-}
-
-void ScsiDump::WaitForBusy() const
-{
-    // Wait for busy for up to 2 s
-    int count = 10000;
-    do {
-        // Wait 20 ms
-        const timespec ts = {.tv_sec = 0, .tv_nsec = 20 * 1000};
-        nanosleep(&ts, nullptr);
-        bus->Acquire();
-        if (bus->GetBSY()) {
-            break;
-        }
-    } while (count--);
-
-    // Success if the target is busy
-    if (!bus->GetBSY()) {
-    	throw phase_exception("SELECTION failed");
-    }
-}
-
-int ScsiDump::run(span<char *> args)
-{
-    if (!Banner(args)) {
+    if (!Banner(console, args)) {
         return EXIT_SUCCESS;
     }
 
     try {
         ParseArguments(args);
     }
-    catch (const parser_exception& e) {
+    catch (const parser_exception &e) {
         cerr << "Error: " << e.what() << endl;
         return EXIT_FAILURE;
     }
 
-    if (getuid()) {
-    	cerr << "Error: GPIO bus access requires root permissions. Are you running as root?" << endl;
+    if (!run_bus_scan && target_id == -1) {
+        cerr << "Missing target ID" << endl;
         return EXIT_FAILURE;
     }
 
-#ifndef USE_SEL_EVENT_ENABLE
+    if (target_id == initiator_id) {
+        cerr << "Target ID and PiSCSI board ID must not be identical" << endl;
+        return EXIT_FAILURE;
+    }
+
+    if ((filename.empty() && !run_bus_scan && !run_inquiry && !to_stdout) || create_properties_file) {
+        cerr << "Missing filename" << endl;
+        return EXIT_FAILURE;
+    }
+
+#if defined(__x86_64__) || defined(__X86__) || !defined(__linux__)
     cerr << "Error: No PiSCSI hardware support" << endl;
     return EXIT_FAILURE;
 #endif
 
-    if (!Init()) {
-		cerr << "Error: Can't initialize bus" << endl;
+    if (getuid()) {
+        cerr << "Error: GPIO bus access requires root permissions" << endl;
         return EXIT_FAILURE;
     }
 
-    try {
-    	if (scan_bus) {
-    		ScanBus();
-    	}
-    	else if (inquiry) {
-    		DisplayBoardId();
-
-    		inquiry_info_t inq_info;
-    		DisplayInquiry(inq_info, false);
-    	}
-    	else {
-    		DumpRestore();
-    	}
+    if (!Init()) {
+        cerr << "Error: Can't initialize bus" << endl;
+        return EXIT_FAILURE;
     }
-    catch (const phase_exception& e) {
-    	cerr << "Error: " << e.what() << endl;
 
-    	CleanUp();
+    if (!to_stdout && !SetLogLevel()) {
+        cerr << "Error: Invalid log level '" + log_level + "'";
+        return EXIT_FAILURE;
+    }
 
-    	return EXIT_FAILURE;
+    if (run_bus_scan) {
+        ScanBus(console);
+    }
+    else if (run_inquiry) {
+        DisplayBoardId(console);
+
+        if (DisplayInquiry(console, false) && create_properties_file && !filename.empty()) {
+            inq_info.GeneratePropertiesFile(console, filename + ".properties");
+        }
+    }
+    else {
+        if (const string error = DumpRestore(console); !error.empty()) {
+            cerr << "Error: " << error << endl;
+            CleanUp();
+            return EXIT_FAILURE;
+        }
     }
 
     CleanUp();
@@ -468,226 +250,297 @@ int ScsiDump::run(span<char *> args)
     return EXIT_SUCCESS;
 }
 
-void ScsiDump::DisplayBoardId() const
+void ScsiDump::DisplayBoardId(ostream &console) const
 {
-    cout << DIVIDER << "\nPiSCSI board ID is " << initiator_id << "\n";
+    console << DIVIDER << "\nPiSCSI board ID is " << initiator_id << "\n";
 }
 
-void ScsiDump::ScanBus()
+void ScsiDump::ScanBus(ostream &console)
 {
-    DisplayBoardId();
+    DisplayBoardId(console);
 
-	for (target_id = 0; target_id < ControllerManager::GetScsiIdMax(); target_id++) {
-		if (initiator_id == target_id) {
-			continue;
-		}
+    for (target_id = 0; target_id < ControllerManager::GetScsiIdMax(); target_id++) {
+        if (initiator_id == target_id) {
+            continue;
+        }
 
-		for (target_lun = 0; target_lun < 8; target_lun++) {
-			inquiry_info_t inq_info;
-			try {
-				DisplayInquiry(inq_info, false);
-			}
-			catch(const phase_exception&) {
-				// Continue with next ID if there is no LUN 0
-				if (!target_lun) {
-					break;
-				}
-			}
-		}
-	}
+        target_lun = 0;
+        if (!DisplayInquiry(console, false) || !scan_all_luns) {
+            // Continue with next ID if there is no LUN 0 or only LUN 0 should be scanned
+            continue;
+        }
+
+        auto luns = scsi_executor->ReportLuns();
+        // LUN 0 has already been dealt with
+        luns.erase(0);
+
+        for (const auto lun : luns) {
+            target_lun = lun;
+            DisplayInquiry(console, false);
+        }
+    }
 }
 
-bool ScsiDump::DisplayInquiry(ScsiDump::inquiry_info_t& inq_info, bool check_type)
+bool ScsiDump::DisplayInquiry(ostream &console, bool check_type)
 {
-    // Assert RST for 1 ms
-    bus->SetRST(true);
-    const timespec ts = {.tv_sec = 0, .tv_nsec = 1000 * 1000};
-    nanosleep(&ts, nullptr);
-    bus->SetRST(false);
+    console << DIVIDER << "\nTarget device is " << target_id << ":" << target_lun << "\n" << flush;
 
-    cout << DIVIDER << "\nTarget device is " << target_id << ":" << target_lun << "\n" << flush;
+    inq_info = { };
 
-    Inquiry();
+    scsi_executor->SetTarget(target_id, target_lun);
 
-    const auto type = static_cast<byte>(buffer[0]);
-    if ((type & byte{0x1f}) == byte{0x1f}) {
-    	// Requested LUN is not available
-    	return false;
+    vector<uint8_t> buf(36);
+
+    if (!scsi_executor->Inquiry(buf)) {
+        return false;
     }
 
-    array<char, 17> str = {};
-    memcpy(str.data(), &buffer[8], 8);
+    const auto type = static_cast<byte>(buf[0]);
+    if ((type & byte { 0x1f }) == byte { 0x1f }) {
+        // Requested LUN is not available
+        return false;
+    }
+
+    array<char, 17> str = { };
+    memcpy(str.data(), &buf[8], 8);
     inq_info.vendor = string(str.data());
-    cout << "Vendor:      " << inq_info.vendor << "\n";
+    console << "Vendor:      " << inq_info.vendor << "\n";
 
     str.fill(0);
-    memcpy(str.data(), &buffer[16], 16);
+    memcpy(str.data(), &buf[16], 16);
     inq_info.product = string(str.data());
-    cout << "Product:     " << inq_info.product << "\n";
+    console << "Product:     " << inq_info.product << "\n";
 
     str.fill(0);
-    memcpy(str.data(), &buffer[32], 4);
+    memcpy(str.data(), &buf[32], 4);
     inq_info.revision = string(str.data());
-    cout << "Revision:    " << inq_info.revision << "\n" << flush;
+    console << "Revision:    " << inq_info.revision << "\n" << flush;
 
-    if (const auto& t = DEVICE_TYPES.find(type & byte{0x1f}); t != DEVICE_TYPES.end()) {
-    	cout << "Device Type: " << (*t).second << "\n";
+    if (const auto &t = DEVICE_TYPES.find(type & byte { 0x1f }); t != DEVICE_TYPES.end()) {
+        console << "Device Type: " << (*t).second << "\n";
     }
     else {
-    	cout << "Device Type: Unknown\n";
+        console << "Device Type: Unknown\n";
     }
 
-    cout << "Removable:   " << (((static_cast<byte>(buffer[1]) & byte{0x80}) == byte{0x80}) ? "Yes" : "No") << "\n";
+    console << "Removable:   " << (((static_cast<byte>(buf[1]) & byte { 0x80 }) == byte { 0x80 }) ? "Yes" : "No")
+        << "\n";
 
     if (check_type && type != static_cast<byte>(device_type::direct_access) &&
-    		type != static_cast<byte>(device_type::cd_rom) && type != static_cast<byte>(device_type::optical_memory)) {
-    	cerr << "Invalid device type, supported types for dump/restore are DIRECT ACCESS, CD-ROM/DVD/BD and OPTICAL MEMORY" << endl;
-    	return false;
+        type != static_cast<byte>(device_type::cd_rom) && type != static_cast<byte>(device_type::optical_memory)) {
+        cerr << "Error: Invalid device type, supported types for dump/restore are DIRECT ACCESS,"
+            << " CD-ROM/DVD/BD and OPTICAL MEMORY" << endl;
+        return false;
     }
 
     return true;
 }
 
-int ScsiDump::DumpRestore()
+string ScsiDump::DumpRestore(ostream &console)
 {
-	inquiry_info_t inq_info;
-    if (!GetDeviceInfo(inq_info)) {
-    	return EXIT_FAILURE;
+    if (!GetDeviceInfo(console)) {
+        return "Can't get device information";
     }
 
     fstream fs;
-    fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
-
-    if (fs.fail()) {
-        throw parser_exception("Can't open image file '" + filename + "'");
+    if (!to_stdout) {
+        fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
+        if (fs.fail()) {
+            return "Can't open image file '" + filename + "': " + strerror(errno);
+        }
     }
 
-    if (restore) {
-        cout << "Starting restore\n" << flush;
+    ostream &out = to_stdout ? cout : fs;
 
-        off_t size;
-        try {
-        	size = file_size(path(filename));
-        }
-        catch (const filesystem_error& e) {
-        	throw parser_exception(string("Can't determine file size: ") + e.what());
-        }
-
-        cout << "Restore file size: " << size << " bytes\n";
-        if (size > (off_t)(inq_info.sector_size * inq_info.capacity)) {
-            cout << "WARNING: File size is larger than disk size\n" << flush;
-        } else if (size < (off_t)(inq_info.sector_size * inq_info.capacity)) {
-            throw parser_exception("File size is smaller than disk size");
-        }
-    } else {
-        cout << "Starting dump\n" << flush;
+    const auto effective_size = CalculateEffectiveSize(console);
+    if (effective_size < 0) {
+        return "";
+    }
+    if (!effective_size) {
+        console << "Nothing to do, effective size is 0\n" << flush;
+        return "";
     }
 
-    // Dump by buffer size
-    auto dsiz = static_cast<int>(buffer.size());
-    const int duni = dsiz / inq_info.sector_size;
-    auto dnum = static_cast<int>((inq_info.capacity * inq_info.sector_size) / dsiz);
+    console << "Starting " << (restore ? "restore" : "dump") << ", buffer size is " << buffer.size()
+        << " bytes\n\n" << flush;
+
+    int sector_offset = 0;
+
+    auto remaining = effective_size;
+
+    scsi_executor->SetTarget(target_id, target_lun);
 
     const auto start_time = chrono::high_resolution_clock::now();
 
-    int i;
-    for (i = 0; i < dnum; i++) {
-        if (restore) {
-            fs.read((char*)buffer.data(), dsiz);
-            Write10(i * duni, duni, dsiz);
-        } else {
-            Read10(i * duni, duni, dsiz);
-            fs.write((const char*)buffer.data(), dsiz);
+    while (remaining) {
+        const auto byte_count = static_cast<int>(min(static_cast<size_t>(remaining), buffer.size()));
+        auto sector_count = byte_count / inq_info.sector_size;
+        if (byte_count % inq_info.sector_size) {
+            ++sector_count;
         }
 
-        if (fs.fail()) {
-            throw parser_exception("File I/O failed");
+        spdlog::debug("Remaining bytes: " + to_string(remaining));
+        spdlog::debug("Next sector: " + to_string(sector_offset));
+        spdlog::debug("Sector count: " + to_string(sector_count));
+        spdlog::debug("SCSI transfer size: " + to_string(sector_count * inq_info.sector_size));
+        spdlog::debug("File chunk size: " + to_string(byte_count));
+
+        if (const string error = ReadWrite(out, fs, sector_offset, sector_count, byte_count); !error.empty()) {
+            return error;
         }
 
-        cout << ((i + 1) * 100 / dnum) << "%"
-             << " (" << (i + 1) * duni << "/" << inq_info.capacity << ")\n"
-             << flush;
+        sector_offset += sector_count;
+        remaining -= byte_count;
+
+        console << setw(3) << (effective_size - remaining) * 100 / effective_size << "% ("
+            << effective_size - remaining << "/" << effective_size << ")\n" << flush;
     }
 
-    // Rounding on capacity
-    dnum = inq_info.capacity % duni;
-    dsiz = dnum * inq_info.sector_size;
-    if (dnum > 0) {
-        if (restore) {
-            fs.read((char*)buffer.data(), dsiz);
-            if (!fs.fail()) {
-                Write10(i * duni, dnum, dsiz);
-            }
-        } else {
-            Read10(i * duni, dnum, dsiz);
-            fs.write((const char*)buffer.data(), dsiz);
-        }
-
-        if (fs.fail()) {
-            throw parser_exception("File I/O failed");
-        }
-
-        cout << "100% (" << inq_info.capacity << "/" << inq_info.capacity << ")\n" << flush;
+    auto duration = chrono::duration_cast<chrono::seconds>(chrono::high_resolution_clock::now()
+        - start_time).count();
+    if (!duration) {
+        duration = 1;
     }
 
-    const auto stop_time = chrono::high_resolution_clock::now();
-
-    const auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
-
-    cout << DIVIDER << "\n";
-    cout << "Transfered : " << inq_info.capacity * inq_info.sector_size << " bytes ["
-         << inq_info.capacity * inq_info.sector_size / 1024 / 1024 << "MiB]\n";
-    cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes\n";
-    cout << "Average transfer rate: " << (inq_info.capacity * inq_info.sector_size / 8) / duration
-         << " bytes per second (" << (inq_info.capacity * inq_info.sector_size / 8) / duration / 1024
-         << " KiB per second)\n";
-    cout << DIVIDER << "\n";
-
-    if (properties_file && !restore) {
-        inq_info.GeneratePropertiesFile(filename + ".properties");
+    if (restore) {
+        // Ensure that if the target device is also a PiSCSI instance its image file becomes complete immediately
+        scsi_executor->SynchronizeCache();
     }
 
-    return EXIT_SUCCESS;
+    console << DIVIDER << "\n";
+    console << "Transferred " << effective_size / 1024 / 1024 << " MiB (" << effective_size << " bytes)\n";
+    console << "Total time: " << duration << " seconds (" << duration / 60 << " minutes)\n";
+    console << "Average transfer rate: " << effective_size / duration << " bytes per second ("
+        << effective_size / 1024 / duration << " KiB per second)\n";
+    console << DIVIDER << "\n" << flush;
+
+    if (create_properties_file && !restore) {
+        inq_info.GeneratePropertiesFile(console, filename + ".properties");
+    }
+
+    return "";
 }
 
-bool ScsiDump::GetDeviceInfo(inquiry_info_t& inq_info)
+string ScsiDump::ReadWrite(ostream &out, fstream &fs, int sector_offset, uint32_t sector_count, int byte_count)
 {
-    DisplayBoardId();
+    if (restore) {
+        fs.read((char*) buffer.data(), byte_count);
+        if (fs.fail()) {
+            return "Error reading from file '" + filename + "'";
+        }
 
-    if (!DisplayInquiry(inq_info, true)) {
-    	return false;
+        if (!scsi_executor->ReadWrite(buffer, sector_offset, sector_count,
+            sector_count * inq_info.sector_size, true)) {
+            return "Error writing to device";
+        }
+    } else {
+        if (!scsi_executor->ReadWrite(buffer, sector_offset,
+            sector_count, sector_count * inq_info.sector_size, false)) {
+            return "Error reading from device";
+        }
+
+        out.write((const char*) buffer.data(), byte_count);
+        if (out.fail()) {
+            return "Error writing to file '" + filename + "'";
+        }
     }
 
-    TestUnitReady();
+    return "";
+}
 
-    RequestSense();
+long ScsiDump::CalculateEffectiveSize(ostream &console) const
+{
+    const off_t disk_size = inq_info.capacity * inq_info.sector_size;
 
-    const auto [capacity, sector_size] = ReadCapacity();
+    size_t effective_size;
+    if (restore) {
+        off_t size;
+        try {
+            size = file_size(path(filename));
+        }
+        catch (const filesystem_error &e) {
+            cerr << "Can't determine image file size: " << e.what() << endl;
+            return -1;
+        }
+
+        effective_size = min(size, disk_size);
+
+        console << "Restore image file size: " << size << " bytes\n" << flush;
+        if (size > disk_size) {
+            console << "Warning: Image file size of " << size
+                << " byte(s) is larger than disk size of " << disk_size << " bytes(s)\n" << flush;
+        } else if (size < disk_size) {
+            console << "Warning: Image file size of " << size
+                << " byte(s) is smaller than disk size of " << disk_size << " bytes(s)\n" << flush;
+        }
+    } else {
+        effective_size = disk_size;
+    }
+
+    return static_cast<long>(effective_size);
+}
+
+bool ScsiDump::GetDeviceInfo(ostream &console)
+{
+    DisplayBoardId(console);
+
+    if (!DisplayInquiry(console, true)) {
+        return false;
+    }
+
+    // Clear any pending condition, e.g. medium just having being inserted
+    scsi_executor->TestUnitReady();
+
+    const auto [capacity, sector_size] = scsi_executor->ReadCapacity();
+    if (!capacity || !sector_size) {
+        spdlog::trace("Can't get device capacity");
+        return false;
+    }
+
     inq_info.capacity = capacity;
     inq_info.sector_size = sector_size;
 
-    cout << "Sectors:     " << capacity << "\n"
-         << "Sector size: " << sector_size << " bytes\n"
-         << "Capacity:    " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
-         << " bytes)\n"
-         << DIVIDER << "\n\n"
-         << flush;
+    console << "Sectors:     " << capacity << "\n"
+        << "Sector size: " << sector_size << " bytes\n"
+        << "Capacity:    " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
+        << " bytes)\n"
+        << DIVIDER << "\n\n"
+        << flush;
 
     return true;
 }
 
-void ScsiDump::inquiry_info::GeneratePropertiesFile(const string& property_file) const
+void ScsiDump::inquiry_info::GeneratePropertiesFile(ostream &console, const string &properties_file) const
 {
-	ofstream prop_stream(property_file);
+    ofstream prop(properties_file);
 
-    prop_stream << "{" << endl;
-    prop_stream << "   \"vendor\": \"" << vendor << "\"," << endl;
-    prop_stream << "   \"product\": \"" << product << "\"," << endl;
-    prop_stream << "   \"revision\": \"" << revision << "\"," << endl;
-    prop_stream << "   \"block_size\": \"" << sector_size << "\"" << endl;
-    prop_stream << "}" << endl;
+    prop << "{\n"
+        << "    \"vendor\": \"" << vendor << "\",\n"
+        << "    \"product\": \"" << product << "\",\n"
+        << "    \"revision\": \"" << revision << "\"";
+    if (sector_size) {
+        prop << ",\n    \"block_size\": \"" << sector_size << "\"";
+    }
+    prop << "\n}\n";
 
-    if (prop_stream.fail()) {
-        spdlog::warn("Unable to create properties file '" + property_file + "'");
+    if (prop.fail()) {
+        cerr << "Error: Can't create properties file '" + properties_file + "': " << strerror(errno) << endl;
+    }
+    else {
+        console << "Created properties file '" + properties_file + "'\n" << flush;
     }
 }
+
+bool ScsiDump::SetLogLevel() const
+{
+    const level::level_enum l = level::from_str(log_level);
+    // Compensate for spdlog using 'off' for unknown levels
+    if (to_string_view(l) != log_level) {
+        return false;
+    }
+
+    set_level(l);
+
+    return true;
+}
+
