@@ -259,7 +259,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         throw scsi_exception(sense_key::aborted_command);
     }
 
-    if (!allocation_length) {
+    if (!size) {
         EnterStatusPhase();
     }
     else {
