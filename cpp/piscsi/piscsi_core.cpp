@@ -352,19 +352,17 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case DEVICES_INFO:
-			response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
-			context.WriteResult(result);
-			break;
+			response.GetDevicesInfo(executor->GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+            return context.WriteSuccessResult(result);
 
 		case DEVICE_TYPES_INFO:
 			response.GetDeviceTypesInfo(*result.mutable_device_types_info());
 			return context.WriteSuccessResult(result);
 
 		case SERVER_INFO:
-			response.GetServerInfo(*result.mutable_server_info(), command, controller_manager->GetAllDevices(),
+			response.GetServerInfo(*result.mutable_server_info(), command, executor->GetAllDevices(),
 					executor->GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
-			context.WriteSuccessResult(result);
-			break;
+			return context.WriteSuccessResult(result);
 
 		case VERSION_INFO:
 			response.GetVersionInfo(*result.mutable_version_info());
@@ -407,9 +405,8 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			return context.WriteSuccessResult(result);
 
 		case STATISTICS_INFO:
-			response.GetStatisticsInfo(*result.mutable_statistics_info(), controller_manager->GetAllDevices());
-			context.WriteSuccessResult(result);
-			break;
+			response.GetStatisticsInfo(*result.mutable_statistics_info(), executor->GetAllDevices());
+			return context.WriteSuccessResult(result);
 
 		case OPERATION_INFO:
 			response.GetOperationInfo(*result.mutable_operation_info(), piscsi_image.GetDepth());
@@ -469,7 +466,7 @@ bool Piscsi::HandleDeviceListChange(const CommandContext& context, PbOperation o
 		// A command with an empty device list is required here in order to return data for all devices
 		PbCommand command;
 		PbResult result;
-		response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+		response.GetDevicesInfo(executor->GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
 		context.WriteResult(result);
 		return result.status();
 	}
@@ -542,7 +539,7 @@ int Piscsi::run(span<char *> args)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	response.GetDevices(controller_manager->GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
+	response.GetDevices(executor->GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
 	const vector<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
