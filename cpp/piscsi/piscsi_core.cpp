@@ -73,7 +73,7 @@ bool Piscsi::InitBus()
 
 	controller_manager = make_shared<ControllerManager>();
 
-	executor = make_unique<PiscsiExecutor>(*bus, controller_manager);
+	executor = make_shared<PiscsiExecutor>(*bus, controller_manager);
 
 	return true;
 }

@@ -71,7 +71,7 @@ private:
 
 	PiscsiService service;
 
-	unique_ptr<PiscsiExecutor> executor;
+	shared_ptr<PiscsiExecutor> executor;
 
 	shared_ptr<ControllerManager> controller_manager;
 
