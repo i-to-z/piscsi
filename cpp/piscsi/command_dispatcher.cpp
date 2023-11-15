@@ -118,8 +118,7 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 			return context.WriteSuccessResult(result);
 
 		case SHUT_DOWN:
-		    // TODO
-		    //return ShutDown(context, GetParam(command, "mode"));
+		    return ShutDown(context, GetParam(command, "mode"));
 
 		case NO_OPERATION:
 			return context.ReturnSuccessStatus();
