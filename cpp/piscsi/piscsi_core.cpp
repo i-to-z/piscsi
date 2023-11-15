@@ -477,7 +477,9 @@ void Piscsi::Process()
 			if (const auto shutdown_mode = controller_manager->ProcessOnController(bus->GetDAT());
 				shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
 				// When the bus is free PiSCSI or the Pi may be shut down.
-				ShutDown(shutdown_mode);
+				if (dispatcher->ShutDown(shutdown_mode)) {
+				    CleanUp();
+				}
 			}
 		}
 	}
@@ -492,71 +494,6 @@ bool Piscsi::ExecuteCommand(CommandContext& context)
     context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
     PbResult result;
     return dispatcher->DispatchCommand(context, result);
-}
-
-// Shutdown on a remote interface command
-bool Piscsi::ShutDown(const CommandContext& context, const string& m) {
-	if (m.empty()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
-	}
-
-	AbstractController::piscsi_shutdown_mode mode = AbstractController::piscsi_shutdown_mode::NONE;
-	if (m == "rascsi") {
-		mode = AbstractController::piscsi_shutdown_mode::STOP_PISCSI;
-	}
-	else if (m == "system") {
-		mode = AbstractController::piscsi_shutdown_mode::STOP_PI;
-	}
-	else if (m == "reboot") {
-		mode = AbstractController::piscsi_shutdown_mode::RESTART_PI;
-	}
-	else {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID, m);
-	}
-
-	// Shutdown modes other than rascsi require root permissions
-	if (mode != AbstractController::piscsi_shutdown_mode::STOP_PISCSI && getuid()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_PERMISSION);
-	}
-
-	// Report success now because after a shutdown nothing can be reported anymore
-	PbResult result;
-	context.WriteSuccessResult(result);
-
-	return ShutDown(mode);
-}
-
-// Shutdown on a SCSI command
-bool Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
-{
-	switch(shutdown_mode) {
-	case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
-		spdlog::info("PiSCSI shutdown requested");
-		CleanUp();
-		return true;
-
-	case AbstractController::piscsi_shutdown_mode::STOP_PI:
-		spdlog::info("Raspberry Pi shutdown requested");
-		CleanUp();
-		if (system("init 0") == -1) {
-			spdlog::error("Raspberry Pi shutdown failed");
-		}
-		break;
-
-	case AbstractController::piscsi_shutdown_mode::RESTART_PI:
-		spdlog::info("Raspberry Pi restart requested");
-		CleanUp();
-		if (system("init 6") == -1) {
-			spdlog::error("Raspberry Pi restart failed");
-		}
-		break;
-
-	case AbstractController::piscsi_shutdown_mode::NONE:
-		assert(false);
-		break;
-	}
-
-	return false;
 }
 
 bool Piscsi::IsNotBusy() const

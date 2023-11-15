@@ -82,7 +82,6 @@ void PiscsiService::Execute() const
 	sched_setscheduler(0, SCHED_IDLE, &schedparam);
 #endif
 
-	// TODO Accept more than one command instead of closing the socket after a single command
 	while (service_socket != -1) {
 		const int fd = accept(service_socket, nullptr, nullptr);
 		if (fd != -1) {

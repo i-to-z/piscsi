@@ -28,10 +28,13 @@ public:
 
 	bool DispatchCommand(const CommandContext&, PbResult&);
 
+	bool ShutDown(AbstractController::piscsi_shutdown_mode);
+
 private:
 
 	bool ExecuteWithLock(const CommandContext&);
 	bool HandleDeviceListChange(const CommandContext&, PbOperation) const;
+	bool ShutDown(const CommandContext&, const string&);
 
 	PiscsiImage& piscsi_image;
 

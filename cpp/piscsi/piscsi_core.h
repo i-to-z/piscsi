@@ -51,9 +51,6 @@ private:
 
 	bool ExecuteCommand(CommandContext&);
 
-	bool ShutDown(AbstractController::piscsi_shutdown_mode);
-	bool ShutDown(const CommandContext&, const string&);
-
 	bool ExecuteCommand(const CommandContext&);
 	bool ExecuteWithLock(const CommandContext&);
 	bool HandleDeviceListChange(const CommandContext&, PbOperation) const;

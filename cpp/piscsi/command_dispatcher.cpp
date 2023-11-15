@@ -176,3 +176,70 @@ bool CommandDispatcher::HandleDeviceListChange(const CommandContext& context, Pb
 
 	return true;
 }
+
+// TODO Exit piscsi
+// Shutdown on a remote interface command
+bool CommandDispatcher::ShutDown(const CommandContext& context, const string& m) {
+    if (m.empty()) {
+        return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
+    }
+
+    AbstractController::piscsi_shutdown_mode mode = AbstractController::piscsi_shutdown_mode::NONE;
+    if (m == "rascsi") {
+        mode = AbstractController::piscsi_shutdown_mode::STOP_PISCSI;
+    }
+    else if (m == "system") {
+        mode = AbstractController::piscsi_shutdown_mode::STOP_PI;
+    }
+    else if (m == "reboot") {
+        mode = AbstractController::piscsi_shutdown_mode::RESTART_PI;
+    }
+    else {
+        return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID, m);
+    }
+
+    // Shutdown modes other than rascsi require root permissions
+    if (mode != AbstractController::piscsi_shutdown_mode::STOP_PISCSI && getuid()) {
+        return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_PERMISSION);
+    }
+
+    // Report success now because after a shutdown nothing can be reported anymore
+    PbResult result;
+    context.WriteSuccessResult(result);
+
+    return ShutDown(mode);
+}
+
+// Shutdown on a SCSI command
+bool CommandDispatcher::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
+{
+    switch(shutdown_mode) {
+    case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
+        spdlog::info("PiSCSI shutdown requested");
+        executor.DetachAll();
+        return true;
+
+    case AbstractController::piscsi_shutdown_mode::STOP_PI:
+        spdlog::info("Raspberry Pi shutdown requested");
+        executor.DetachAll();
+        if (system("init 0") == -1) {
+            spdlog::error("Raspberry Pi shutdown failed");
+        }
+        break;
+
+    case AbstractController::piscsi_shutdown_mode::RESTART_PI:
+        spdlog::info("Raspberry Pi restart requested");
+        executor.DetachAll();
+        if (system("init 6") == -1) {
+            spdlog::error("Raspberry Pi restart failed");
+        }
+        break;
+
+    case AbstractController::piscsi_shutdown_mode::NONE:
+        assert(false);
+        break;
+    }
+
+    return false;
+}
+
