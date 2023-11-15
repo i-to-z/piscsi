@@ -13,6 +13,7 @@
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include <unordered_set>
+#include <mutex>
 
 class DeviceFactory;
 class PrimaryDevice;
@@ -54,6 +55,8 @@ public:
 	static bool ValidateIdAndLun(const CommandContext&, int, int);
 	static bool SetProductData(const CommandContext&, const PbDeviceDefinition&, PrimaryDevice&);
 
+	mutex& GetExecutionLocker() { return execution_locker; }
+
 	auto GetAllDevices() const { return controller_manager->GetAllDevices(); }
 
 private:
@@ -65,6 +68,8 @@ private:
 	shared_ptr<ControllerManager> controller_manager;
 
 	[[no_unique_address]] const DeviceFactory device_factory;
+
+    mutex execution_locker;
 
 	unordered_set<int> reserved_ids;
 };

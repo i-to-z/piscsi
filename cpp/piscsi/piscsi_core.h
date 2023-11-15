@@ -61,8 +61,6 @@ private:
 
 	static PbDeviceType ParseDeviceType(const string&);
 
-	mutex execution_locker;
-
 	string access_token;
 
 	PiscsiImage piscsi_image;

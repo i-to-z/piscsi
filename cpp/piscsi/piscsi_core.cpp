@@ -455,7 +455,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 bool Piscsi::ExecuteWithLock(const CommandContext& context)
 {
-	scoped_lock<mutex> lock(execution_locker);
+	scoped_lock<mutex> lock(executor->GetExecutionLocker());
 	return executor->ProcessCmd(context);
 }
 
@@ -602,7 +602,7 @@ void Piscsi::Process()
 
 		// Only process the SCSI command if the bus is not busy and no other device responded
 		if (IsNotBusy() && bus->GetSEL()) {
-			scoped_lock<mutex> lock(execution_locker);
+			scoped_lock<mutex> lock(executor->GetExecutionLocker());
 
 			// Process command on the responsible controller based on the current initiator and target ID
 			if (const auto shutdown_mode = controller_manager->ProcessOnController(bus->GetDAT());
