@@ -102,43 +102,39 @@ TEST(PhaseHandlerTest, ProcessPhase)
 
 	handler.SetPhase(phase_t::selection);
 	EXPECT_CALL(handler, Selection);
-	handler.ProcessPhase();
+    EXPECT_TRUE(handler.ProcessPhase());
 
 	handler.SetPhase(phase_t::busfree);
 	EXPECT_CALL(handler, BusFree);
-	handler.ProcessPhase();
+    EXPECT_TRUE(handler.ProcessPhase());
 
 	handler.SetPhase(phase_t::datain);
 	EXPECT_CALL(handler, DataIn);
-	handler.ProcessPhase();
+    EXPECT_TRUE(handler.ProcessPhase());
 
 	handler.SetPhase(phase_t::dataout);
 	EXPECT_CALL(handler, DataOut);
-	handler.ProcessPhase();
+    EXPECT_TRUE(handler.ProcessPhase());
 
 	handler.SetPhase(phase_t::command);
 	EXPECT_CALL(handler, Command);
-	handler.ProcessPhase();
+    EXPECT_TRUE(handler.ProcessPhase());
 
 	handler.SetPhase(phase_t::status);
 	EXPECT_CALL(handler, Status);
-	handler.ProcessPhase();
+    EXPECT_TRUE(handler.ProcessPhase());
 
 	handler.SetPhase(phase_t::msgin);
 	EXPECT_CALL(handler, MsgIn);
-	handler.ProcessPhase();
+    EXPECT_TRUE(handler.ProcessPhase());
 
 	handler.SetPhase(phase_t::msgout);
 	EXPECT_CALL(handler, MsgOut);
-	handler.ProcessPhase();
+	EXPECT_TRUE(handler.ProcessPhase());
 
 	handler.SetPhase(phase_t::reselection);
-	EXPECT_THAT([&] { handler.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
-			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))));
+	EXPECT_FALSE(handler.ProcessPhase());
 
 	handler.SetPhase(phase_t::reserved);
-	EXPECT_THAT([&] { handler.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
-			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))));
+	EXPECT_FALSE(handler.ProcessPhase());
 }

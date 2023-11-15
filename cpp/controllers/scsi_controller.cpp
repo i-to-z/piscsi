@@ -62,15 +62,9 @@ bool ScsiController::Process(int id)
 
 	initiator_id = id;
 
-	try {
-		ProcessPhase();
-	}
-	catch(const scsi_exception&) {
-		LogError("Unhandled SCSI error, resetting controller and bus and entering bus free phase");
-
-		Reset();
-
-		BusFree();
+	if (!ProcessPhase()) {
+        Error(sense_key::aborted_command);
+        return false;
 	}
 
 	return !IsBusFree();

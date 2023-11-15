@@ -37,7 +37,6 @@ TEST(ScsiControllerTest, Process)
 	ON_CALL(*bus, GetRST).WillByDefault(Return(true));
 	EXPECT_CALL(*bus, Acquire);
 	EXPECT_CALL(*bus, GetRST);
-	EXPECT_CALL(controller, Reset);
 	EXPECT_FALSE(controller.Process(0));
 
 	controller.SetPhase(phase_t::busfree);
@@ -47,9 +46,8 @@ TEST(ScsiControllerTest, Process)
 	EXPECT_FALSE(controller.Process(0));
 
 	controller.SetPhase(phase_t::reserved);
-	EXPECT_CALL(*bus, Acquire);
-	EXPECT_CALL(*bus, GetRST);
-	EXPECT_CALL(controller, Reset);
+	EXPECT_CALL(*bus, Acquire).Times(2);
+	EXPECT_CALL(*bus, GetRST).Times(2);
 	EXPECT_FALSE(controller.Process(0));
 }
 
