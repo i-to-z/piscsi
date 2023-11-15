@@ -73,6 +73,7 @@ const char* BUS::GetPhaseStrRaw(phase_t current_phase) {
 // | 1 | 0 | 1 | RESERVED
 // | 1 | 1 | 0 | MESSAGE OUT
 // | 1 | 1 | 1 | MESSAGE IN
+//
 const array<phase_t, 8> BUS::phase_table = {
     phase_t::dataout,
     phase_t::datain,
