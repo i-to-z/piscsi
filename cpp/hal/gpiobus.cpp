@@ -397,7 +397,7 @@ bool GPIOBUS::PollSelectEvent()
 
 bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
-    // Wait 3 s
+    // Wait up to 3 s
     const auto now = chrono::steady_clock::now();
     do {
         Acquire();

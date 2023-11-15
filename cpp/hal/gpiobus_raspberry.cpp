@@ -339,7 +339,7 @@ void GPIOBUS_Raspberry::Reset()
     SetMode(PIN_IO, IN);
 
     if (actmode == mode_e::TARGET) {
-        // Set the initiator signal to input
+        // Set the target signal to input
         SetControl(PIN_IND, IND_IN);
         SetMode(PIN_SEL, IN);
         SetMode(PIN_ATN, IN);
