@@ -225,9 +225,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 
     if (!status) {
         LogTrace("Error deserializing protobuf input data");
-
-        // TODO Find better error codes
-        throw scsi_exception(sense_key::aborted_command);
+        return false;
     }
 
     CommandContext context(command, piscsi_image.GetDefaultFolder(), protobuf_util::GetParam(command, "locale"));
@@ -243,8 +241,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         if (status) {
             size = static_cast<int>(min(allocation_length, json.size()));
             if (size > 65535) {
-                // TODO Find better error codes
-                throw scsi_exception(sense_key::aborted_command);
+                return false;
              }
 
             memcpy(GetController()->GetBuffer().data(), json.data(), size);
@@ -254,8 +251,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         const string data = result.SerializeAsString();
         size = static_cast<int>(min(allocation_length, data.size()));
         if (size > 65535) {
-            // TODO Find better error codes
-            throw scsi_exception(sense_key::aborted_command);
+            return false;
          }
 
         memcpy(GetController()->GetBuffer().data(), data.data(), size);
@@ -264,9 +260,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 
     if (!status) {
         LogTrace("Error serializing protobuf output data");
-
-        // TODO Find better error codes
-        throw scsi_exception(sense_key::aborted_command);
+        return false;
     }
 
     if (!size) {

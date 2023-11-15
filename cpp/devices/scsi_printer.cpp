@@ -173,9 +173,7 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 		const int fd = mkstemp(f.data());
 		if (fd == -1) {
 			LogError("Can't create printer output file for pattern '" + filename + "': " + strerror(errno));
-
 			++print_error_count;
-
 			return false;
 		}
 		close(fd);
@@ -185,8 +183,7 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 		out.open(filename, ios::binary);
 		if (out.fail()) {
 			++print_error_count;
-
-			throw scsi_exception(sense_key::aborted_command);
+			return false;
 		}
 
 		LogTrace("Created printer output file '" + filename + "'");
