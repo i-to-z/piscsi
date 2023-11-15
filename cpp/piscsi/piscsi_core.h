@@ -72,7 +72,7 @@ private:
 
 	PiscsiService service;
 
-	shared_ptr<PiscsiExecutor> executor;
+	unique_ptr<PiscsiExecutor> executor;
 
 	shared_ptr<CommandDispatcher> dispatcher;
 

@@ -54,7 +54,7 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 			break;
 
 		case DEVICES_INFO:
-			response.GetDevicesInfo(executor->GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+			response.GetDevicesInfo(executor.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
             return context.WriteSuccessResult(result);
 
 		case DEVICE_TYPES_INFO:
@@ -62,8 +62,8 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 			return context.WriteSuccessResult(result);
 
 		case SERVER_INFO:
-			response.GetServerInfo(*result.mutable_server_info(), command, executor->GetAllDevices(),
-					executor->GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
+			response.GetServerInfo(*result.mutable_server_info(), command, executor.GetAllDevices(),
+					executor.GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
 			return context.WriteSuccessResult(result);
 
 		case VERSION_INFO:
@@ -107,7 +107,7 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 			return context.WriteSuccessResult(result);
 
 		case STATISTICS_INFO:
-			response.GetStatisticsInfo(*result.mutable_statistics_info(), executor->GetAllDevices());
+			response.GetStatisticsInfo(*result.mutable_statistics_info(), executor.GetAllDevices());
 			return context.WriteSuccessResult(result);
 
 		case OPERATION_INFO:
@@ -115,7 +115,7 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 			return context.WriteSuccessResult(result);
 
 		case RESERVED_IDS_INFO:
-			response.GetReservedIds(*result.mutable_reserved_ids_info(), executor->GetReservedIds());
+			response.GetReservedIds(*result.mutable_reserved_ids_info(), executor.GetReservedIds());
 			return context.WriteSuccessResult(result);
 
 		case SHUT_DOWN:
@@ -142,7 +142,7 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 			return piscsi_image.SetImagePermissions(context);
 
 		case RESERVE_IDS:
-			return executor->ProcessCmd(context);
+			return executor.ProcessCmd(context);
 
 		default:
 			// The remaining commands may only be executed when the target is idle
@@ -158,8 +158,8 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 
 bool CommandDispatcher::ExecuteWithLock(const CommandContext& context)
 {
-	scoped_lock<mutex> lock(executor->GetExecutionLocker());
-	return executor->ProcessCmd(context);
+	scoped_lock<mutex> lock(executor.GetExecutionLocker());
+	return executor.ProcessCmd(context);
 }
 
 bool CommandDispatcher::HandleDeviceListChange(const CommandContext& context, PbOperation operation) const
@@ -169,7 +169,7 @@ bool CommandDispatcher::HandleDeviceListChange(const CommandContext& context, Pb
 		// A command with an empty device list is required here in order to return data for all devices
 		PbCommand command;
 		PbResult result;
-		response.GetDevicesInfo(executor->GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+		response.GetDevicesInfo(executor.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
 		context.WriteResult(result);
 		return result.status();
 	}

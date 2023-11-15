@@ -22,7 +22,7 @@ class CommandDispatcher
 
 public:
 
-	CommandDispatcher(PiscsiImage& i, PiscsiResponse& r, shared_ptr<PiscsiExecutor> e)
+	CommandDispatcher(PiscsiImage& i, PiscsiResponse& r, PiscsiExecutor& e)
 	    : piscsi_image(i), response(r), executor(e) { }
 	~CommandDispatcher() = default;
 
@@ -37,5 +37,5 @@ private:
 
 	PiscsiResponse& response;
 
-    shared_ptr<PiscsiExecutor> executor;
+    PiscsiExecutor& executor;
 };
