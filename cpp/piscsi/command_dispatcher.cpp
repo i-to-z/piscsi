@@ -24,11 +24,6 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 	const PbCommand& command = context.GetCommand();
 	const PbOperation operation = command.operation();
 
-	// TODO
-//	if (!access_token.empty() && access_token != GetParam(command, "token")) {
-//		return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
-//	}
-
 	if (!PbOperation_IsValid(operation)) {
 		spdlog::trace("Ignored unknown command with operation opcode " + to_string(operation));
 

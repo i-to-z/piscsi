@@ -369,7 +369,11 @@ int Piscsi::run(span<char *> args)
 	}
 
 	if (const string error = service.Init([this] (CommandContext& context) {
-			context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
+	    if (!access_token.empty() && access_token != GetParam(context.GetCommand(), "token")) {
+	        return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
+	    }
+
+	    context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
 			PbResult result;
 			return dispatcher->DispatchCommand(context, result);
 		}, port); !error.empty()) {
