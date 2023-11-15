@@ -76,7 +76,7 @@ bool Piscsi::InitBus()
 
 	executor = make_shared<PiscsiExecutor>(*bus, controller_manager);
 
-	dispatcher = make_shared<CommandDispatcher>(executor);
+	dispatcher = make_shared<CommandDispatcher>(piscsi_image, response, executor);
 
 	return true;
 }

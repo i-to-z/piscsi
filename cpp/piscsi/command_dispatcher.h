@@ -22,7 +22,8 @@ class CommandDispatcher
 
 public:
 
-	CommandDispatcher(shared_ptr<PiscsiExecutor> e) : executor(e) { }
+	CommandDispatcher(PiscsiImage& i, PiscsiResponse& r, shared_ptr<PiscsiExecutor> e)
+	    : piscsi_image(i), response(r), executor(e) { }
 	~CommandDispatcher() = default;
 
 	bool DispatchCommand(const CommandContext&, PbResult&);
@@ -32,9 +33,9 @@ private:
 	bool ExecuteWithLock(const CommandContext&);
 	bool HandleDeviceListChange(const CommandContext&, PbOperation) const;
 
-	shared_ptr<PiscsiExecutor> executor;
+	PiscsiImage& piscsi_image;
 
-	PiscsiImage piscsi_image;
+	PiscsiResponse& response;
 
-	PiscsiResponse response;
+    shared_ptr<PiscsiExecutor> executor;
 };
