@@ -43,9 +43,6 @@ class PinControl
     virtual bool GetREQ() const   = 0;
     virtual void SetREQ(bool ast) = 0;
 
-    virtual bool GetACT() const   = 0;
-    virtual void SetACT(bool ast) = 0;
-
     virtual uint8_t GetDAT()         = 0;
     virtual void SetDAT(uint8_t dat) = 0;
 

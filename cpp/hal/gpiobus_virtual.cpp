@@ -250,16 +250,6 @@ void GPIOBUS_Virtual::SetACK(bool ast)
     SetSignal(PIN_ACK, ast);
 }
 
-bool GPIOBUS_Virtual::GetACT() const
-{
-    return GetSignal(PIN_ACT);
-}
-
-void GPIOBUS_Virtual::SetACT(bool ast)
-{
-    SetSignal(PIN_ACT, ast);
-}
-
 bool GPIOBUS_Virtual::GetRST() const
 {
     return GetSignal(PIN_RST);

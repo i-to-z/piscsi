@@ -64,11 +64,6 @@ class GPIOBUS_Virtual final : public GPIOBUS
     void SetACK(bool ast) override;
     // Set ACK signal
 
-    bool GetACT() const override;
-    // Get ACT signal
-    void SetACT(bool ast) override;
-    // Set ACT signal
-
     bool GetRST() const override;
     // Get RST signal
     void SetRST(bool ast) override;

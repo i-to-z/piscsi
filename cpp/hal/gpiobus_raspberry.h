@@ -104,11 +104,6 @@ class GPIOBUS_Raspberry : public GPIOBUS
     // Set ACK signal
     void SetACK(bool ast) override;
 
-    // Get ACT signal
-    bool GetACT() const override;
-    // Set ACT signal
-    void SetACT(bool ast) override;
-
     // Get RST signal
     bool GetRST() const override;
     // Set RST signal

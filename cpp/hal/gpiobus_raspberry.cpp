@@ -468,16 +468,6 @@ void GPIOBUS_Raspberry::SetACK(bool ast)
     SetSignal(PIN_ACK, ast);
 }
 
-bool GPIOBUS_Raspberry::GetACT() const
-{
-    return GetSignal(PIN_ACT);
-}
-
-void GPIOBUS_Raspberry::SetACT(bool ast)
-{
-    SetSignal(PIN_ACT, ast);
-}
-
 bool GPIOBUS_Raspberry::GetRST() const
 {
     return GetSignal(PIN_RST);
