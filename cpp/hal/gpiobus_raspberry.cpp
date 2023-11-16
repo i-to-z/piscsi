@@ -573,20 +573,9 @@ void GPIOBUS_Raspberry::SetREQ(bool ast)
     SetSignal(PIN_REQ, ast);
 }
 
-//---------------------------------------------------------------------------
-//
-// Get data signals
-//
-//---------------------------------------------------------------------------
 uint8_t GPIOBUS_Raspberry::GetDAT()
 {
-    uint32_t data = Acquire();
-    data          = ((data >> (PIN_DT0 - 0)) & (1 << 0)) | ((data >> (PIN_DT1 - 1)) & (1 << 1)) |
-           ((data >> (PIN_DT2 - 2)) & (1 << 2)) | ((data >> (PIN_DT3 - 3)) & (1 << 3)) |
-           ((data >> (PIN_DT4 - 4)) & (1 << 4)) | ((data >> (PIN_DT5 - 5)) & (1 << 5)) |
-           ((data >> (PIN_DT6 - 6)) & (1 << 6)) | ((data >> (PIN_DT7 - 7)) & (1 << 7));
-
-    return (uint8_t)data;
+    return static_cast<uint8_t>(Acquire() >> PIN_DT0);
 }
 
 void GPIOBUS_Raspberry::SetDAT(uint8_t dat)
