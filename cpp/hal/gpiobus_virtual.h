@@ -44,9 +44,6 @@ class GPIOBUS_Virtual final : public GPIOBUS
     //---------------------------------------------------------------------------
     uint32_t Acquire() override;
 
-    void SetENB(bool ast) override;
-    // Set ENB signal
-
     bool GetBSY() const override;
     // Get BSY signal
     void SetBSY(bool ast) override;
