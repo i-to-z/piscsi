@@ -199,7 +199,6 @@ void HostServices::ReadOperationResult()
 
         length = static_cast<int>(min(allocation_length, data.size()));
         if (length > 65535) {
-            // TODO No data available, find better error code
              throw scsi_exception(sense_key::aborted_command);
          }
 
