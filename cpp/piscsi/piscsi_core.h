@@ -49,7 +49,7 @@ private:
 	void Process();
 	bool IsNotBusy() const;
 
-	bool ExecuteCommand(CommandContext&) const;
+	bool ExecuteCommand(CommandContext&);
 	bool ExecuteWithLock(const CommandContext&);
 	bool HandleDeviceListChange(const CommandContext&, PbOperation) const;
 

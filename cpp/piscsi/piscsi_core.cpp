@@ -442,7 +442,7 @@ void Piscsi::Process()
 	}
 }
 
-bool Piscsi::ExecuteCommand(CommandContext& context) const
+bool Piscsi::ExecuteCommand(CommandContext& context)
 {
     if (!access_token.empty() && access_token != GetParam(context.GetCommand(), "token")) {
         return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
@@ -450,7 +450,12 @@ bool Piscsi::ExecuteCommand(CommandContext& context) const
 
     context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
     PbResult result;
-    return dispatcher->DispatchCommand(context, result);
+    const bool status = dispatcher->DispatchCommand(context, result);
+    if (status && context.GetCommand().operation() == PbOperation::SHUT_DOWN) {
+        CleanUp();
+    }
+
+    return status;
 }
 
 bool Piscsi::IsNotBusy() const
