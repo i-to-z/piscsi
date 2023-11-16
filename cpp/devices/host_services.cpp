@@ -175,7 +175,7 @@ void HostServices::ReadOperationResult()
     if (it == operation_results.end()) {
         throw scsi_exception(sense_key::aborted_command);
     }
-    auto& operation_result = it->second;
+    const auto& operation_result = it->second;
 
     const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
 
@@ -276,7 +276,7 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 
 bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 {
-    const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
+    const auto length = GetInt16(GetController()->GetCmd(), 7);
 
     PbCommand command;
     bool status;
@@ -294,8 +294,8 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     }
 
     auto operation_result = make_shared<PbResult>();
-    CommandContext context(command, piscsi_image.GetDefaultFolder(), protobuf_util::GetParam(command, "locale"));
-    if (!dispatcher->DispatchCommand(context, *operation_result)) {
+    if (CommandContext context(command, piscsi_image.GetDefaultFolder(), protobuf_util::GetParam(command, "locale"));
+        !dispatcher->DispatchCommand(context, *operation_result)) {
         LogTrace("Error dispatching operation");
         return false;
     }
