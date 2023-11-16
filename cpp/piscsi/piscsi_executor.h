@@ -72,4 +72,10 @@ private:
     mutex execution_locker;
 
 	unordered_set<int> reserved_ids;
+
+    const inline static unordered_set<PbDeviceType> unique_device_types = {
+        PbDeviceType::SCBR,
+        PbDeviceType::SCDP,
+        PbDeviceType::SCHS
+   };
 };

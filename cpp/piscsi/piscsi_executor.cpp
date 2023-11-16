@@ -215,11 +215,12 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return false;
 	}
 
-	// The can only be a single host services device
-	if (device->GetType() == PbDeviceType::SCHS) {
+	// The can only be a single SCBR, SCDP or SCHS device
+	if (unique_device_types.contains(device->GetType())) {
         for (const auto& d : GetAllDevices()) {
-            if (d->GetType() == PbDeviceType::SCHS) {
-                return context.ReturnLocalizedError(LocalizationKey::ERROR_UNIQUE_DEVICE, to_string(id));
+            if (d->GetType() == device->GetType()) {
+                return context.ReturnLocalizedError(LocalizationKey::ERROR_UNIQUE_DEVICE_TYPE,
+                    PbDeviceType_Name(device->GetType()));
             }
         }
     }
