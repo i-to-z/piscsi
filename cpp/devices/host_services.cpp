@@ -19,7 +19,7 @@
 //   b) !start && load (EJECT): Shut down the Raspberry Pi
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
-// 3. Remote command execution via SCSI, using thes custom SCSI commands:
+// 3. Remote command execution via SCSI, using these custom SCSI commands:
 //
 //   a) ExecuteOperation
 //
