@@ -215,7 +215,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return false;
 	}
 
-	// The can only be a single SCBR, SCDP or SCHS device
+	// Some device types must be unique
 	if (unique_device_types.contains(device->GetType())) {
         for (const auto& d : GetAllDevices()) {
             if (d->GetType() == device->GetType()) {
