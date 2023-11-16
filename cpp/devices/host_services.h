@@ -16,9 +16,13 @@
 #include "piscsi/piscsi_image.h"
 #include "piscsi/piscsi_response.h"
 #include "mode_page_device.h"
+#include "generated/piscsi_interface.pb.h"
 #include <span>
 #include <vector>
 #include <map>
+
+using namespace std;
+using namespace piscsi_interface;
 
 class HostServices: public ModePageDevice
 {
@@ -55,7 +59,8 @@ private:
 	};
 
 	void StartStopUnit() const;
-    void Execute();
+    void ExecuteOperation();
+    void ReadOperationResult();
 
     int ModeSense6(cdb_t, vector<uint8_t>&) const override;
 	int ModeSense10(cdb_t, vector<uint8_t>&) const override;
@@ -64,12 +69,13 @@ private:
 
 	bool WriteByteSequence(span<const uint8_t>) override;
 
+	unique_ptr<PbResult> operation_result;
+
 	shared_ptr<CommandDispatcher> dispatcher;
 
 	PiscsiImage piscsi_image;
 
     [[no_unique_address]] PiscsiResponse response;
 
-    bool json_in = false;
-    bool json_out = false;
+    bool json = false;
 };

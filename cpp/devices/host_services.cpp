@@ -19,7 +19,9 @@
 //   b) !start && load (EJECT): Shut down the Raspberry Pi
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
-// 3. Remote command execution via SCSI, using this custom SCSI command:
+// 3. Remote command execution via SCSI, using thes custom SCSI commands:
+//
+//   a) ExecuteOperation
 //
 // +==============================================================================
 // |  Bit|   7    |   6    |   5    |   4    |   3    |   2    |   1    |   0    |
@@ -27,7 +29,7 @@
 // |=====+========================================================================
 // | 0   |                           Operation code (c0h)                        |
 // |-----+-----------------------------------------------------------------------|
-// | 1   | Logical unit number      |        |  B_OUT |  J_OUT |  B_IN  |  J_IN  |
+// | 1   | Logical unit number      |              Reserved             |  JSON  |
 // |-----+-----------------------------------------------------------------------|
 // | 2   |                           Reserved                                    |
 // |-----+-----------------------------------------------------------------------|
@@ -35,9 +37,9 @@
 // |-----+-----------------------------------------------------------------------|
 // | 4   |                           Reserved                                    |
 // |-----+-----------------------------------------------------------------------|
-// | 5   | (MSB)                                                                 |
-// |-----+---                        Input data length                           |
-// | 6   |                                                                 (LSB) |
+// | 5   |                           Reserved                                    |
+// |-----+-----------------------------------------------------------------------|
+// | 6   |                           Reserved                                    |
 // |-----+-----------------------------------------------------------------------|
 // | 7   | (MSB)                                                                 |
 // |-----+---                        Byte transfer length                        |
@@ -46,10 +48,34 @@
 // | 9   |                           Control                                     |
 // +==============================================================================
 //
-// J_IN, B_IN, J_OUT and B_OUT control the input and output formats.
-// There can only be one input and one output format. These formats do not have to be identical.
-// Note that this command requires both a DATA OUT (input data length) and a DATA IN (byte transfer length) phase,
-// which is unusual.
+//   b) ReadOperationResult
+//
+// +==============================================================================
+// |  Bit|   7    |   6    |   5    |   4    |   3    |   2    |   1    |   0    |
+// |Byte |        |        |        |        |        |        |        |        |
+// |=====+========================================================================
+// | 0   |                           Operation code (c1h)                        |
+// |-----+-----------------------------------------------------------------------|
+// | 1   | Logical unit number      |              Reserved             |  JSON  |
+// |-----+-----------------------------------------------------------------------|
+// | 2   |                           Reserved                                    |
+// |-----+-----------------------------------------------------------------------|
+// | 3   |                           Reserved                                    |
+// |-----+-----------------------------------------------------------------------|
+// | 4   |                           Reserved                                    |
+// |-----+-----------------------------------------------------------------------|
+// | 5   |                           Reserved                                    |
+// |-----+-----------------------------------------------------------------------|
+// | 6   |                           Reserved                                    |
+// |-----+-----------------------------------------------------------------------|
+// | 7   | (MSB)                                                                 |
+// |-----+---                        Byte transfer length                        |
+// | 8   |                                                                 (LSB) |
+// |-----+-----------------------------------------------------------------------|
+// | 9   |                           Control                                     |
+// +==============================================================================
+//
+// The JSON flags signal to use the JSON instead of the binary protobuf format.
 //
 
 #include "shared/piscsi_exceptions.h"
@@ -63,6 +89,7 @@
 
 using namespace std::chrono;
 using namespace google::protobuf::util;
+using namespace piscsi_interface;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 using namespace protobuf_util;
@@ -73,7 +100,8 @@ bool HostServices::Init(const param_map& params)
 
     AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
     AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
-    AddCommand(scsi_command::eCmdExecute, [this] { Execute(); });
+    AddCommand(scsi_command::eCmdExecuteOperation, [this] { ExecuteOperation(); });
+    AddCommand(scsi_command::eCmdReadOperationResult, [this] { ReadOperationResult(); });
 
 	SetReady(true);
 
@@ -114,30 +142,87 @@ void HostServices::StartStopUnit() const
 	EnterStatusPhase();
 }
 
-void HostServices::Execute()
+void HostServices::ExecuteOperation()
 {
-    const int formats = GetController()->GetCmdByte(1);
-    json_in = formats & 0x01;
-    json_out = formats & 0x04;
-    const bool bin_in = formats & 0x02;
+    const int format = GetController()->GetCmdByte(1);
 
-    if (const bool bin_out = formats & 0x08;
-        !formats || !(json_in || bin_in) || !(json_out || bin_out) || (json_in && bin_in) || (json_out && bin_out)) {
+    if (format & 0xfe) {
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
 
-    const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
+    json = format & 0x01;
+
+    const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
     if (!length) {
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
-
-    // The custom SCSI Execute command supports transfers of up to 65535 bytes
-    GetController()->AllocateBuffer(65536);
 
     GetController()->SetLength(static_cast<uint32_t>(length));
     GetController()->SetByteTransfer(true);
 
     EnterDataOutPhase();
+}
+
+void HostServices::ReadOperationResult()
+{
+    const int json = GetController()->GetCmdByte(1);
+
+    if (json & 0xfe) {
+        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+    }
+
+    if (!operation_result) {
+        // TODO No data available, find better error code
+        throw scsi_exception(sense_key::aborted_command);
+    }
+
+    const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
+
+    int length = 0;
+    bool status = false;
+    if (json) {
+        string data;
+        status = MessageToJsonString(*operation_result, &data).ok();
+        operation_result.reset();
+
+        if (status) {
+            length = static_cast<int>(min(allocation_length, data.size()));
+            if (length > 65535) {
+                // TODO No data available, find better error code
+                 throw scsi_exception(sense_key::aborted_command);
+             }
+
+            memcpy(GetController()->GetBuffer().data(), data.data(), length);
+        }
+    }
+    else {
+        const string data = operation_result->SerializeAsString();
+        operation_result.reset();
+
+        length = static_cast<int>(min(allocation_length, data.size()));
+        if (length > 65535) {
+            // TODO No data available, find better error code
+             throw scsi_exception(sense_key::aborted_command);
+         }
+
+        memcpy(GetController()->GetBuffer().data(), data.data(), length);
+        status = true;
+    }
+
+    if (!status) {
+        LogTrace("Error serializing protobuf output data");
+        // TODO No data available, find better error code
+        throw scsi_exception(sense_key::aborted_command);
+    }
+
+    if (!length) {
+        EnterStatusPhase();
+    }
+    else {
+        GetController()->SetLength(static_cast<uint32_t>(length));
+
+        EnterDataInPhase();
+    }
 }
 
 int HostServices::ModeSense6(cdb_t cdb, vector<uint8_t>& buf) const
@@ -210,67 +295,32 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 
 bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 {
-    const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 5));
+    const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
 
     PbCommand command;
     bool status;
-
-    if (json_in) {
+    if (json) {
         string cmd((const char *)buf.data(), length);
         status = JsonStringToMessage(cmd, &command).ok();
     }
     else {
-        status = command.ParseFromArray(buf.data(), static_cast<int>(length));
+        status = command.ParseFromArray(buf.data(), length);
     }
 
     if (!status) {
         LogTrace("Error deserializing protobuf input data");
-        return false;
+        throw scsi_exception(sense_key::aborted_command);
     }
 
+    operation_result = make_unique<PbResult>();
     CommandContext context(command, piscsi_image.GetDefaultFolder(), protobuf_util::GetParam(command, "locale"));
-    PbResult result;
-    dispatcher->DispatchCommand(context, result);
-
-    const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
-
-    int size = 0;
-    if (json_out) {
-        string json;
-        status = MessageToJsonString(result, &json).ok();
-        if (status) {
-            size = static_cast<int>(min(allocation_length, json.size()));
-            if (size > 65535) {
-                return false;
-             }
-
-            memcpy(GetController()->GetBuffer().data(), json.data(), size);
-        }
-    }
-    else {
-        const string data = result.SerializeAsString();
-        size = static_cast<int>(min(allocation_length, data.size()));
-        if (size > 65535) {
-            return false;
-         }
-
-        memcpy(GetController()->GetBuffer().data(), data.data(), size);
-        status = true;
+    if (!dispatcher->DispatchCommand(context, *operation_result)) {
+        operation_result.reset();
+        LogTrace("Error dispatching operation");
+        throw scsi_exception(sense_key::aborted_command);
     }
 
-    if (!status) {
-        LogTrace("Error serializing protobuf output data");
-        return false;
-    }
-
-    if (!size) {
-        EnterStatusPhase();
-    }
-    else {
-        GetController()->SetLength(static_cast<uint32_t>(size));
-
-        EnterDataInPhase();
-    }
+    EnterStatusPhase();
 
     return true;
 }
