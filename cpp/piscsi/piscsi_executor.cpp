@@ -207,12 +207,22 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_RESERVED_ID, to_string(id));
 	}
 
+
 	const string filename = GetParam(pb_device, "file");
 
 	auto device = CreateDevice(context, type, lun, filename);
-	if (device == nullptr) {
+	if (!device) {
 		return false;
 	}
+
+	// The can only be a single host services device
+	if (device->GetType() == PbDeviceType::SCHS) {
+        for (const auto& d : GetAllDevices()) {
+            if (d->GetType() == PbDeviceType::SCHS) {
+                return context.ReturnLocalizedError(LocalizationKey::ERROR_HOST_SERVICES, to_string(id));
+            }
+        }
+    }
 
 	// If no filename was provided the medium is considered not inserted
 	device->SetRemoved(device->SupportsFile() ? filename.empty() : false);
@@ -487,7 +497,7 @@ string PiscsiExecutor::EnsureLun0(const PbCommand& command) const
 	}
 
 	// Collect LUN bit vectors of existing devices
-	for (const auto& device : controller_manager->GetAllDevices()) {
+	for (const auto& device : GetAllDevices()) {
 		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 

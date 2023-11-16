@@ -238,6 +238,9 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_READY, "fr", "Opération %1 refusée, %2 n'est pas prêt");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_READY, "es", "%1 operación denegada, %2 no está listo");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_READY, "zh", "%1 操作被拒绝,%2 还没有准备好");
+
+    Add(LocalizationKey::ERROR_HOST_SERVICES, "en", "There can only be a single host services device");
+    Add(LocalizationKey::ERROR_HOST_SERVICES, "de", "Es kann nur ein Host Services-Gerät geben");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, string_view value)
