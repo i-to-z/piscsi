@@ -215,16 +215,6 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return false;
 	}
 
-	// Some device types must be unique
-	if (UNIQUE_DEVICE_TYPES.contains(device->GetType())) {
-        for (const auto& d : GetAllDevices()) {
-            if (d->GetType() == device->GetType()) {
-                return context.ReturnLocalizedError(LocalizationKey::ERROR_UNIQUE_DEVICE_TYPE,
-                    PbDeviceType_Name(device->GetType()));
-            }
-        }
-    }
-
 	// If no filename was provided the medium is considered not inserted
 	device->SetRemoved(device->SupportsFile() ? filename.empty() : false);
 
@@ -523,16 +513,29 @@ shared_ptr<PrimaryDevice> PiscsiExecutor::CreateDevice(const CommandContext& con
 		int lun, const string& filename) const
 {
 	auto device = device_factory.CreateDevice(type, lun, filename);
-	if (device == nullptr) {
+	if (!device) {
 		if (type == UNDEFINED) {
 			context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);
 		}
 		else {
 			context.ReturnLocalizedError(LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, PbDeviceType_Name(type));
 		}
+
+		return nullptr;
 	}
 
-	return device;
+    // Some device types must be unique
+    if (UNIQUE_DEVICE_TYPES.contains(device->GetType())) {
+        for (const auto& d : GetAllDevices()) {
+            if (d->GetType() == device->GetType()) {
+                context.ReturnLocalizedError(LocalizationKey::ERROR_UNIQUE_DEVICE_TYPE,
+                    PbDeviceType_Name(device->GetType()));
+                return nullptr;
+            }
+        }
+    }
+
+    return device;
 }
 
 bool PiscsiExecutor::SetSectorSize(const CommandContext& context, shared_ptr<PrimaryDevice> device, int size) const
