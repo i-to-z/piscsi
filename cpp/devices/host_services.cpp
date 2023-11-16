@@ -150,7 +150,7 @@ void HostServices::ExecuteOperation()
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
 
-    json = format & 0x01;
+    json_format = format & 0x01;
 
     const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
     if (!length) {
@@ -299,7 +299,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 
     PbCommand command;
     bool status;
-    if (json) {
+    if (json_format) {
         string cmd((const char *)buf.data(), length);
         status = JsonStringToMessage(cmd, &command).ok();
     }

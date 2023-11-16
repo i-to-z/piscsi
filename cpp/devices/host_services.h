@@ -77,5 +77,5 @@ private:
 
     [[no_unique_address]] PiscsiResponse response;
 
-    bool json = false;
+    bool json_format = false;
 };
