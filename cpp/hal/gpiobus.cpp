@@ -45,8 +45,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 
 	GPIO_FUNCTION_TRACE
 
-    DisableIRQ();
-
     // Assert REQ signal
     SetREQ(ON);
 
@@ -64,7 +62,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 
     // Timeout waiting for ACK assertion
     if (!ret) {
-        EnableIRQ();
         return 0;
     }
 
@@ -73,7 +70,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 
     // Timeout waiting for ACK to clear
     if (!ret) {
-        EnableIRQ();
         return 0;
     }
 
@@ -99,21 +95,18 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
         SetREQ(OFF);
 
         if (!ret) {
-            EnableIRQ();
             return 0;
         }
 
         WaitACK(OFF);
 
         if (!ret) {
-            EnableIRQ();
             return 0;
         }
     }
 
     const int command_byte_count = GetCommandByteCount(buf[0]);
     if (command_byte_count == 0) {
-        EnableIRQ();
 
         return 0;
     }
@@ -153,8 +146,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
         }
     }
 
-    EnableIRQ();
-
     return bytes_received;
 }
 
@@ -167,9 +158,6 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 {
     GPIO_FUNCTION_TRACE
     int i;
-
-    // Disable IRQs
-    DisableIRQ();
 
     if (actmode == mode_e::TARGET) {
         for (i = 0; i < count; i++) {
@@ -255,9 +243,6 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
         }
     }
 
-    // Re-enable IRQ
-    EnableIRQ();
-
     // Return the number of bytes received
     return i;
 }
@@ -272,18 +257,13 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
     GPIO_FUNCTION_TRACE
     int i;
 
-    // Disable IRQs
-    DisableIRQ();
-
     if (actmode == mode_e::TARGET) {
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
                 spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_NS) + " ns after " +
                 		to_string(delay_after_bytes) + " bytes");
-                EnableIRQ();
                 const timespec ts = { .tv_sec = 0, .tv_nsec = SCSI_DELAY_SEND_DATA_DAYNAPORT_NS};
                 nanosleep(&ts, nullptr);
-                DisableIRQ();
             }
 
             // Set the DATA signals
@@ -373,9 +353,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
             buf++;
         }
     }
-
-    // Re-enable IRQ
-    EnableIRQ();
 
     // Return number of transmissions
     return i;
