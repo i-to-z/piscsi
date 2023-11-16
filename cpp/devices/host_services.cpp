@@ -309,7 +309,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 
     if (!status) {
         LogTrace("Error deserializing protobuf input data");
-        throw scsi_exception(sense_key::aborted_command);
+        return false;
     }
 
     operation_result = make_unique<PbResult>();
@@ -317,10 +317,8 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     if (!dispatcher->DispatchCommand(context, *operation_result)) {
         operation_result.reset();
         LogTrace("Error dispatching operation");
-        throw scsi_exception(sense_key::aborted_command);
+        return false;
     }
-
-    EnterStatusPhase();
 
     return true;
 }
