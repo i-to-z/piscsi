@@ -467,7 +467,6 @@ void ScsiController::Send()
 	}
 
 	// Move to next phase
-	LogTrace("All data transferred, moving to next phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
 		case phase_t::msgin:
 			// Completed sending response to extended message of IDENTIFY message
