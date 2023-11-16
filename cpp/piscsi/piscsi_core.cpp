@@ -453,6 +453,7 @@ bool Piscsi::ExecuteCommand(CommandContext& context)
     const bool status = dispatcher->DispatchCommand(context, result);
     if (status && context.GetCommand().operation() == PbOperation::SHUT_DOWN) {
         CleanUp();
+        return false;
     }
 
     return status;
