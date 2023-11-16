@@ -216,7 +216,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	// Some device types must be unique
-	if (unique_device_types.contains(device->GetType())) {
+	if (UNIQUE_DEVICE_TYPES.contains(device->GetType())) {
         for (const auto& d : GetAllDevices()) {
             if (d->GetType() == device->GetType()) {
                 return context.ReturnLocalizedError(LocalizationKey::ERROR_UNIQUE_DEVICE_TYPE,

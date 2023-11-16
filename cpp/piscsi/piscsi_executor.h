@@ -73,7 +73,7 @@ private:
 
 	unordered_set<int> reserved_ids;
 
-    const inline static unordered_set<PbDeviceType> unique_device_types = {
+    const inline static unordered_set<PbDeviceType> UNIQUE_DEVICE_TYPES = {
         PbDeviceType::SCBR,
         PbDeviceType::SCDP,
         PbDeviceType::SCHS
