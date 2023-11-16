@@ -64,15 +64,7 @@ OBJDIR := obj
 BINDIR := bin
 
 BIN_ALL = \
-	$(BINDIR)/$(PISCSI) \
-	$(BINDIR)/$(SCSICTL) \
-	$(BINDIR)/$(SCSIMON) \
-	$(BINDIR)/$(SCSILOOP)
-
-# scsidump requires initiator support
-ifeq ($(CONNECT_TYPE), FULLSPEC)
-	BIN_ALL += $(BINDIR)/$(SCSIDUMP)
-endif
+	$(BINDIR)/$(PISCSI)
 
 SRC_PROTOC = piscsi_interface.proto
 
