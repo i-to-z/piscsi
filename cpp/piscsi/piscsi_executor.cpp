@@ -192,7 +192,6 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 {
 	const int id = pb_device.id();
 	const int lun = pb_device.unit();
-	const PbDeviceType type = pb_device.type();
 
 	if (lun >= ControllerManager::GetScsiLunMax()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INVALID_LUN, to_string(lun),
@@ -210,6 +209,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	const string filename = GetParam(pb_device, "file");
 
+    const PbDeviceType type = pb_device.type();
 	auto device = CreateDevice(context, type, lun, filename);
 	if (!device) {
 		return false;
