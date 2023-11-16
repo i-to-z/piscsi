@@ -466,6 +466,8 @@ void ScsiController::Send()
 		return;
 	}
 
+	LogTrace("All data transferred");
+
 	// Move to next phase
 	switch (GetPhase()) {
 		case phase_t::msgin:
