@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@
 
 TEST(BusTest, GetCommandByteCount)
 {
-    EXPECT_EQ(42, scsi_defs::command_mapping.size());
+    EXPECT_EQ(43, scsi_defs::command_mapping.size());
     EXPECT_EQ(6, BUS::GetCommandByteCount(0x00));
     EXPECT_EQ(6, BUS::GetCommandByteCount(0x01));
     EXPECT_EQ(6, BUS::GetCommandByteCount(0x03));
@@ -47,14 +47,15 @@ TEST(BusTest, GetCommandByteCount)
     EXPECT_EQ(10, BUS::GetCommandByteCount(0x4a));
     EXPECT_EQ(10, BUS::GetCommandByteCount(0x55));
     EXPECT_EQ(10, BUS::GetCommandByteCount(0x5a));
-    EXPECT_EQ(10, BUS::GetCommandByteCount(0xc0));
-    EXPECT_EQ(12, BUS::GetCommandByteCount(0xa0));
     EXPECT_EQ(16, BUS::GetCommandByteCount(0x88));
     EXPECT_EQ(16, BUS::GetCommandByteCount(0x8a));
     EXPECT_EQ(16, BUS::GetCommandByteCount(0x8f));
     EXPECT_EQ(16, BUS::GetCommandByteCount(0x91));
     EXPECT_EQ(16, BUS::GetCommandByteCount(0x9e));
     EXPECT_EQ(16, BUS::GetCommandByteCount(0x9f));
+    EXPECT_EQ(12, BUS::GetCommandByteCount(0xa0));
+    EXPECT_EQ(10, BUS::GetCommandByteCount(0xc0));
+    EXPECT_EQ(10, BUS::GetCommandByteCount(0xc1));
     EXPECT_EQ(0, BUS::GetCommandByteCount(0x1f));
 }
 
