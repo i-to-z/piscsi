@@ -25,7 +25,7 @@ class PiscsiResponse
 {
 public:
 
-	PiscsiResponse() { }
+	PiscsiResponse() { } //NOSONAR Required by the bookworm compiler
 	~PiscsiResponse() = default;
 
 	bool GetImageFile(PbImageFile&, const string&, const string&) const;
