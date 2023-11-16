@@ -53,8 +53,6 @@ private:
 	bool ExecuteWithLock(const CommandContext&);
 	bool HandleDeviceListChange(const CommandContext&, PbOperation) const;
 
-	bool SetLogLevel(const string&) const;
-
 	const shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("piscsi stdout logger");
 
 	static PbDeviceType ParseDeviceType(const string&);

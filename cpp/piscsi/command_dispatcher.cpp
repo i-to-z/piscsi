@@ -32,126 +32,125 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 
 	spdlog::trace("Received " + PbOperation_Name(operation) + " command");
 
-	switch(operation) {
-		case LOG_LEVEL:
-		    // TODO
-//			if (const string log_level = GetParam(command, "level"); !SetLogLevel(log_level)) {
-//				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
-//			}
-//			else {
-//				context.ReturnSuccessStatus();
-//			}
-			break;
+    switch (operation) {
+    case LOG_LEVEL:
+        if (const string log_level = GetParam(command, "level"); !SetLogLevel(log_level)) {
+            return context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
+        }
+        else {
+            return context.ReturnSuccessStatus();
+        }
 
-		case DEFAULT_FOLDER:
-		    if (const string error = piscsi_image.SetDefaultFolder(GetParam(command, "folder")); !error.empty()) {
-		        context.WriteResult(result);
-		        return false;
-			}
-			else {
-			    return context.WriteSuccessResult(result);
-			}
-
-		case DEVICES_INFO:
-			response.GetDevicesInfo(executor.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+    case DEFAULT_FOLDER:
+        if (const string error = piscsi_image.SetDefaultFolder(GetParam(command, "folder")); !error.empty()) {
+            context.WriteResult(result);
+            return false;
+        }
+        else {
             return context.WriteSuccessResult(result);
+        }
 
-		case DEVICE_TYPES_INFO:
-			response.GetDeviceTypesInfo(*result.mutable_device_types_info());
-			return context.WriteSuccessResult(result);
+    case DEVICES_INFO:
+        response.GetDevicesInfo(executor.GetAllDevices(), result, command, piscsi_image.GetDefaultFolder());
+        return context.WriteSuccessResult(result);
 
-		case SERVER_INFO:
-			response.GetServerInfo(*result.mutable_server_info(), command, executor.GetAllDevices(),
-					executor.GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
-			return context.WriteSuccessResult(result);
+    case DEVICE_TYPES_INFO:
+        response.GetDeviceTypesInfo(*result.mutable_device_types_info());
+        return context.WriteSuccessResult(result);
 
-		case VERSION_INFO:
-			response.GetVersionInfo(*result.mutable_version_info());
-			return context.WriteSuccessResult(result);
+    case SERVER_INFO:
+        response.GetServerInfo(*result.mutable_server_info(), command, executor.GetAllDevices(),
+            executor.GetReservedIds(), piscsi_image.GetDefaultFolder(), piscsi_image.GetDepth());
+        return context.WriteSuccessResult(result);
 
-		case LOG_LEVEL_INFO:
-			response.GetLogLevelInfo(*result.mutable_log_level_info());
-			return context.WriteSuccessResult(result);
+    case VERSION_INFO:
+        response.GetVersionInfo(*result.mutable_version_info());
+        return context.WriteSuccessResult(result);
 
-		case DEFAULT_IMAGE_FILES_INFO:
-			response.GetImageFilesInfo(*result.mutable_image_files_info(), piscsi_image.GetDefaultFolder(),
-					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), piscsi_image.GetDepth());
-			return context.WriteSuccessResult(result);
+    case LOG_LEVEL_INFO:
+        response.GetLogLevelInfo(*result.mutable_log_level_info());
+        return context.WriteSuccessResult(result);
 
-		case IMAGE_FILE_INFO:
-			if (string filename = GetParam(command, "file"); filename.empty()) {
-				context.ReturnLocalizedError( LocalizationKey::ERROR_MISSING_FILENAME);
-			}
-			else {
-				auto image_file = make_unique<PbImageFile>();
-				const bool status = response.GetImageFile(*image_file.get(), piscsi_image.GetDefaultFolder(),
-						filename);
-				if (status) {
-					result.set_allocated_image_file_info(image_file.get());
-					result.set_status(true);
-					context.WriteResult(result);
-				}
-				else {
-					context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_FILE_INFO);
-				}
-			}
-			break;
+    case DEFAULT_IMAGE_FILES_INFO:
+        response.GetImageFilesInfo(*result.mutable_image_files_info(), piscsi_image.GetDefaultFolder(),
+            GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), piscsi_image.GetDepth());
+        return context.WriteSuccessResult(result);
 
-		case NETWORK_INTERFACES_INFO:
-			response.GetNetworkInterfacesInfo(*result.mutable_network_interfaces_info());
-			return context.WriteSuccessResult(result);
+    case IMAGE_FILE_INFO:
+        if (string filename = GetParam(command, "file"); filename.empty()) {
+            context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME);
+        }
+        else {
+            auto image_file = make_unique<PbImageFile>();
+            const bool status = response.GetImageFile(*image_file.get(), piscsi_image.GetDefaultFolder(),
+                filename);
+            if (status) {
+                result.set_allocated_image_file_info(image_file.get());
+                result.set_status(true);
+                context.WriteResult(result);
+            }
+            else {
+                context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_FILE_INFO);
+            }
+        }
+        break;
 
-		case MAPPING_INFO:
-			response.GetMappingInfo(*result.mutable_mapping_info());
-			return context.WriteSuccessResult(result);
+    case NETWORK_INTERFACES_INFO:
+        response.GetNetworkInterfacesInfo(*result.mutable_network_interfaces_info());
+        return context.WriteSuccessResult(result);
 
-		case STATISTICS_INFO:
-			response.GetStatisticsInfo(*result.mutable_statistics_info(), executor.GetAllDevices());
-			return context.WriteSuccessResult(result);
+    case MAPPING_INFO:
+        response.GetMappingInfo(*result.mutable_mapping_info());
+        return context.WriteSuccessResult(result);
 
-		case OPERATION_INFO:
-			response.GetOperationInfo(*result.mutable_operation_info(), piscsi_image.GetDepth());
-			return context.WriteSuccessResult(result);
+    case STATISTICS_INFO:
+        response.GetStatisticsInfo(*result.mutable_statistics_info(), executor.GetAllDevices());
+        return context.WriteSuccessResult(result);
 
-		case RESERVED_IDS_INFO:
-			response.GetReservedIds(*result.mutable_reserved_ids_info(), executor.GetReservedIds());
-			return context.WriteSuccessResult(result);
+    case OPERATION_INFO:
+        response.GetOperationInfo(*result.mutable_operation_info(), piscsi_image.GetDepth());
+        return context.WriteSuccessResult(result);
 
-		case SHUT_DOWN:
-		    return ShutDown(context, GetParam(command, "mode"));
+    case RESERVED_IDS_INFO:
+        response.GetReservedIds(*result.mutable_reserved_ids_info(), executor.GetReservedIds());
+        return context.WriteSuccessResult(result);
 
-		case NO_OPERATION:
-			return context.ReturnSuccessStatus();
+    case SHUT_DOWN:
+        return ShutDown(context, GetParam(command, "mode"));
 
-		case CREATE_IMAGE:
-			return piscsi_image.CreateImage(context);
+    case NO_OPERATION:
+        return context.ReturnSuccessStatus();
 
-		case DELETE_IMAGE:
-			return piscsi_image.DeleteImage(context);
+    case CREATE_IMAGE:
+        return piscsi_image.CreateImage(context);
 
-		case RENAME_IMAGE:
-			return piscsi_image.RenameImage(context);
+    case DELETE_IMAGE:
+        return piscsi_image.DeleteImage(context);
 
-		case COPY_IMAGE:
-			return piscsi_image.CopyImage(context);
+    case RENAME_IMAGE:
+        return piscsi_image.RenameImage(context);
 
-		case PROTECT_IMAGE:
-		case UNPROTECT_IMAGE:
-			return piscsi_image.SetImagePermissions(context);
+    case COPY_IMAGE:
+        return piscsi_image.CopyImage(context);
 
-		case RESERVE_IDS:
-			return executor.ProcessCmd(context);
+    case PROTECT_IMAGE:
+        case UNPROTECT_IMAGE:
+        return piscsi_image.SetImagePermissions(context);
 
-		default:
-			// The remaining commands may only be executed when the target is idle
-			if (!ExecuteWithLock(context)) {
-				return false;
-			}
+    case RESERVE_IDS:
+        return executor.ProcessCmd(context);
 
-			return HandleDeviceListChange(context, operation);
-	}
+    default:
+        // TODO Verify, especially for host services device
+        // The remaining commands may only be executed when the target is idle
+        if (!ExecuteWithLock(context)) {
+            return false;
+        }
 
-	return true;
+        return HandleDeviceListChange(context, operation);
+    }
+
+    return true;
 }
 
 bool CommandDispatcher::ExecuteWithLock(const CommandContext& context)
@@ -242,3 +241,44 @@ bool CommandDispatcher::ShutDown(AbstractController::piscsi_shutdown_mode shutdo
     return false;
 }
 
+bool CommandDispatcher::SetLogLevel(const string& log_level)
+{
+    int id = -1;
+    int lun = -1;
+    string level = log_level;
+
+    if (const auto& components = Split(log_level, COMPONENT_SEPARATOR, 2); !components.empty()) {
+        level = components[0];
+
+        if (components.size() > 1) {
+            if (const string error = ProcessId(components[1], id, lun); !error.empty()) {
+                spdlog::warn("Error setting log level: " + error);
+                return false;
+            }
+        }
+    }
+
+    const level::level_enum l = level::from_str(level);
+    // Compensate for spdlog using 'off' for unknown levels
+    if (to_string_view(l) != level) {
+        spdlog::warn("Invalid log level '" + level + "'");
+        return false;
+    }
+
+    set_level(l);
+    DeviceLogger::SetLogIdAndLun(id, lun);
+
+    if (id != -1) {
+        if (lun == -1) {
+            spdlog::info("Set log level for device " + to_string(id) + " to '" + level + "'");
+        }
+        else {
+            spdlog::info("Set log level for device " + to_string(id) + ":" + to_string(lun) + " to '" + level + "'");
+        }
+    }
+    else {
+        spdlog::info("Set log level to '" + level + "'");
+    }
+
+    return true;
+}

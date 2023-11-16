@@ -30,6 +30,8 @@ public:
 
 	bool ShutDown(AbstractController::piscsi_shutdown_mode) const;
 
+	static bool SetLogLevel(const string&);
+
 private:
 
 	bool ExecuteWithLock(const CommandContext&);

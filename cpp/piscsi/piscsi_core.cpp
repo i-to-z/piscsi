@@ -256,7 +256,7 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 		id_and_lun = "";
 	}
 
-	if (!SetLogLevel(log_level)) {
+	if (!CommandDispatcher::SetLogLevel(log_level)) {
 		throw parser_exception("Invalid log level '" + log_level + "'");
 	}
 
@@ -272,48 +272,6 @@ PbDeviceType Piscsi::ParseDeviceType(const string& value)
 	}
 
 	throw parser_exception("Illegal device type '" + value + "'");
-}
-
-bool Piscsi::SetLogLevel(const string& log_level) const
-{
-	int id = -1;
-	int lun = -1;
-	string level = log_level;
-
-	if (const auto& components = Split(log_level, COMPONENT_SEPARATOR, 2); !components.empty()) {
-		level = components[0];
-
-		if (components.size() > 1) {
-			if (const string error = ProcessId(components[1], id, lun); !error.empty()) {
-				spdlog::warn("Error setting log level: " + error);
-				return false;
-			}
-		}
-	}
-
-	const level::level_enum l = level::from_str(level);
-	// Compensate for spdlog using 'off' for unknown levels
-	if (to_string_view(l) != level) {
-		spdlog::warn("Invalid log level '" + level + "'");
-		return false;
-	}
-
-	set_level(l);
-	DeviceLogger::SetLogIdAndLun(id, lun);
-
-	if (id != -1) {
-		if (lun == -1) {
-			spdlog::info("Set log level for device " + to_string(id) + " to '" + level + "'");
-		}
-		else {
-			spdlog::info("Set log level for device " + to_string(id) + ":" + to_string(lun) + " to '" + level + "'");
-		}
-	}
-	else {
-		spdlog::info("Set log level to '" + level + "'");
-	}
-
-	return true;
 }
 
 bool Piscsi::ExecuteWithLock(const CommandContext& context)
