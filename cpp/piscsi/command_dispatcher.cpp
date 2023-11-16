@@ -174,7 +174,6 @@ bool CommandDispatcher::HandleDeviceListChange(const CommandContext& context, Pb
 	return true;
 }
 
-// TODO Exit piscsi
 // Shutdown on a remote interface command
 bool CommandDispatcher::ShutDown(const CommandContext& context, const string& m) const
 {
@@ -214,12 +213,10 @@ bool CommandDispatcher::ShutDown(AbstractController::piscsi_shutdown_mode shutdo
     switch(shutdown_mode) {
     case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
         spdlog::info("PiSCSI shutdown requested");
-        executor.DetachAll();
         return true;
 
     case AbstractController::piscsi_shutdown_mode::STOP_PI:
         spdlog::info("Raspberry Pi shutdown requested");
-        executor.DetachAll();
         if (system("init 0") == -1) {
             spdlog::error("Raspberry Pi shutdown failed");
         }
@@ -227,7 +224,6 @@ bool CommandDispatcher::ShutDown(AbstractController::piscsi_shutdown_mode shutdo
 
     case AbstractController::piscsi_shutdown_mode::RESTART_PI:
         spdlog::info("Raspberry Pi restart requested");
-        executor.DetachAll();
         if (system("init 6") == -1) {
             spdlog::error("Raspberry Pi restart failed");
         }
