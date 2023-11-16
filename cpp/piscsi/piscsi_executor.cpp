@@ -219,7 +219,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	if (device->GetType() == PbDeviceType::SCHS) {
         for (const auto& d : GetAllDevices()) {
             if (d->GetType() == PbDeviceType::SCHS) {
-                return context.ReturnLocalizedError(LocalizationKey::ERROR_HOST_SERVICES, to_string(id));
+                return context.ReturnLocalizedError(LocalizationKey::ERROR_UNIQUE_DEVICE, to_string(id));
             }
         }
     }
