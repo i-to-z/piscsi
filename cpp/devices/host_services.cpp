@@ -171,43 +171,26 @@ void HostServices::ReadOperationResult()
         throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
     }
 
-    if (!operation_result) {
+    const auto& it = operation_results.find(GetController()->GetInitiatorId());
+    if (it == operation_results.end()) {
         throw scsi_exception(sense_key::aborted_command);
     }
+    auto& operation_result = it->second;
 
     const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
 
-    int length = 0;
-    bool status = false;
+    string data;
     if (json) {
-        string data;
-        status = MessageToJsonString(*operation_result, &data).ok();
-        operation_result.reset();
-
-        if (status) {
-            length = static_cast<int>(min(allocation_length, data.size()));
-            if (length > 65535) {
-                 throw scsi_exception(sense_key::aborted_command);
-             }
-
-            memcpy(GetController()->GetBuffer().data(), data.data(), length);
-        }
+        MessageToJsonString(*operation_result, &data);
     }
     else {
-        const string data = operation_result->SerializeAsString();
-        operation_result.reset();
-
-        length = static_cast<int>(min(allocation_length, data.size()));
-        if (length > 65535) {
-             throw scsi_exception(sense_key::aborted_command);
-         }
-
-        memcpy(GetController()->GetBuffer().data(), data.data(), length);
-        status = true;
+        data = operation_result->SerializeAsString();
     }
 
-    if (!status) {
-        LogTrace("Error serializing protobuf output data");
+    operation_results.erase(GetController()->GetInitiatorId());
+
+    auto length = static_cast<int>(min(allocation_length, data.size()));
+    if (length > 65535) {
         throw scsi_exception(sense_key::aborted_command);
     }
 
@@ -215,6 +198,8 @@ void HostServices::ReadOperationResult()
         EnterStatusPhase();
     }
     else {
+        memcpy(GetController()->GetBuffer().data(), data.data(), length);
+
         GetController()->SetLength(static_cast<uint32_t>(length));
 
         EnterDataInPhase();
@@ -308,13 +293,14 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         return false;
     }
 
-    operation_result = make_unique<PbResult>();
+    auto operation_result = make_shared<PbResult>();
     CommandContext context(command, piscsi_image.GetDefaultFolder(), protobuf_util::GetParam(command, "locale"));
     if (!dispatcher->DispatchCommand(context, *operation_result)) {
-        operation_result.reset();
         LogTrace("Error dispatching operation");
         return false;
     }
+
+    operation_results[GetController()->GetInitiatorId()] = operation_result;
 
     return true;
 }

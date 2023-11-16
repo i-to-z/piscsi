@@ -69,7 +69,8 @@ private:
 
 	bool WriteByteSequence(span<const uint8_t>) override;
 
-	unique_ptr<PbResult> operation_result;
+	// Operation results per initiator
+	unordered_map<int, shared_ptr<PbResult>> operation_results;
 
 	shared_ptr<CommandDispatcher> dispatcher;
 
