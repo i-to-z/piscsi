@@ -172,7 +172,6 @@ void HostServices::ReadOperationResult()
     }
 
     if (!operation_result) {
-        // TODO No data available, find better error code
         throw scsi_exception(sense_key::aborted_command);
     }
 
@@ -188,7 +187,6 @@ void HostServices::ReadOperationResult()
         if (status) {
             length = static_cast<int>(min(allocation_length, data.size()));
             if (length > 65535) {
-                // TODO No data available, find better error code
                  throw scsi_exception(sense_key::aborted_command);
              }
 
@@ -211,7 +209,6 @@ void HostServices::ReadOperationResult()
 
     if (!status) {
         LogTrace("Error serializing protobuf output data");
-        // TODO No data available, find better error code
         throw scsi_exception(sense_key::aborted_command);
     }
 
