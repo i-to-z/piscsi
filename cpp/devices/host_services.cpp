@@ -149,6 +149,8 @@ void HostServices::StartStopUnit() const
 
 void HostServices::ExecuteOperation()
 {
+    operation_results.erase(GetController()->GetInitiatorId());
+
     input_format = ConvertFormat(GetController()->GetCmdByte(1) & 0b00000111);
 
     const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
