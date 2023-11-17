@@ -86,6 +86,7 @@
 #include "controllers/scsi_controller.h"
 #include "scsi_command_util.h"
 #include "host_services.h"
+#include "generated/piscsi_interface.pb.h"
 #include <google/protobuf/util/json_util.h>
 #include <google/protobuf/text_format.h>
 #include <algorithm>
