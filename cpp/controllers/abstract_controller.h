@@ -113,20 +113,26 @@ private:
 
 	int ExtractInitiatorId(int) const;
 
-	using ctrl_t = struct _ctrl_t {
-		// Command data, dynamically resized if required
-		vector<int> cmd = vector<int>(16);
+    using ctrl_t = struct _ctrl_t {
+        // Command data, dynamically resized if required
+        vector<int> cmd = vector<int>(16);
 
-		scsi_defs::status status;		// Status data
-		int message;					// Message data
+        // Status data
+        scsi_defs::status status;
+        // Message data
+        int message;
 
-		// Transfer
-		vector<uint8_t> buffer;			// Transfer data buffer
-		uint32_t blocks;				// Number of transfer blocks
-		uint64_t next;					// Next record
-		uint32_t offset;				// Transfer offset
-		uint32_t length;				// Transfer remaining length
-	};
+        // Transfer data buffer, dynamically resized if required
+        vector<uint8_t> buffer;
+        // Number of transfer blocks
+        uint32_t blocks;
+        // Next record
+        uint64_t next;
+        // Transfer offset
+        uint32_t offset;
+        // Remaining bytes to be transferred
+        uint32_t length;
+    };
 
 	ctrl_t ctrl = {};
 
