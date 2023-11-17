@@ -29,6 +29,12 @@ class HostServices: public ModePageDevice
 
 public:
 
+    enum class protobuf_format {
+        binary = 1,
+        json = 2,
+        text = 3
+    };
+
 	explicit HostServices(int lun) : ModePageDevice(SCHS, lun) {}
 	~HostServices() override = default;
 
@@ -69,6 +75,8 @@ private:
 
 	bool WriteByteSequence(span<const uint8_t>) override;
 
+	static protobuf_format ConvertFormat(int);
+
 	// Operation results per initiator
 	unordered_map<int, shared_ptr<PbResult>> operation_results;
 
@@ -76,5 +84,5 @@ private:
 
 	PiscsiImage piscsi_image;
 
-    bool json_format = false;
+    protobuf_format input_format = protobuf_format::binary;
 };

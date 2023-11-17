@@ -19,7 +19,7 @@
 //   b) !start && load (EJECT): Shut down the Raspberry Pi
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
-// 3. Remote command execution via SCSI, using these custom SCSI commands:
+// 3. Remote command execution via SCSI, using these vendor-specific SCSI commands:
 //
 //   a) ExecuteOperation
 //
@@ -29,7 +29,7 @@
 // |=====+========================================================================
 // | 0   |                           Operation code (c0h)                        |
 // |-----+-----------------------------------------------------------------------|
-// | 1   | Logical unit number      |              Reserved             |  JSON  |
+// | 1   | Logical unit number      |     Reserved    |  TEXT  |  JSON  |  BIN   |
 // |-----+-----------------------------------------------------------------------|
 // | 2   |                           Reserved                                    |
 // |-----+-----------------------------------------------------------------------|
@@ -56,7 +56,7 @@
 // |=====+========================================================================
 // | 0   |                           Operation code (c1h)                        |
 // |-----+-----------------------------------------------------------------------|
-// | 1   | Logical unit number      |              Reserved             |  JSON  |
+// | 1   | Logical unit number      |     Reserved    |  TEXT  |  JSON  |  BIN   |
 // |-----+-----------------------------------------------------------------------|
 // | 2   |                           Reserved                                    |
 // |-----+-----------------------------------------------------------------------|
@@ -75,7 +75,9 @@
 // | 9   |                           Control                                     |
 // +==============================================================================
 //
-// The JSON flags signal to use the JSON instead of the binary protobuf format.
+// The piscsi commands that can be executed are defined in the piscsi_interface.proto file.
+// The BIN, JSON and TEXT flags control the input and output format of the protobuf data.
+// Exactly one of them must be set. Input and output format do not have to be identical.
 //
 
 #include "shared/piscsi_exceptions.h"
@@ -84,10 +86,12 @@
 #include "scsi_command_util.h"
 #include "host_services.h"
 #include <google/protobuf/util/json_util.h>
+#include <google/protobuf/text_format.h>
 #include <algorithm>
 #include <chrono>
 
 using namespace std::chrono;
+using namespace google::protobuf;
 using namespace google::protobuf::util;
 using namespace piscsi_interface;
 using namespace scsi_defs;
@@ -144,13 +148,7 @@ void HostServices::StartStopUnit() const
 
 void HostServices::ExecuteOperation()
 {
-    const int format = GetController()->GetCmdByte(1);
-
-    if (format & 0xfe) {
-        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
-    }
-
-    json_format = format & 0x01;
+    input_format = ConvertFormat(GetController()->GetCmdByte(1) & 0b00000111);
 
     const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
     if (!length) {
@@ -165,11 +163,7 @@ void HostServices::ExecuteOperation()
 
 void HostServices::ReadOperationResult()
 {
-    const int json = GetController()->GetCmdByte(1);
-
-    if (json & 0xfe) {
-        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
-    }
+    const protobuf_format output_format = ConvertFormat(GetController()->GetCmdByte(1) & 0b00000111);
 
     const auto& it = operation_results.find(GetController()->GetInitiatorId());
     if (it == operation_results.end()) {
@@ -180,11 +174,22 @@ void HostServices::ReadOperationResult()
     const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
 
     string data;
-    if (json) {
-        MessageToJsonString(*operation_result, &data);
-    }
-    else {
+    switch (output_format) {
+    case protobuf_format::binary:
         data = operation_result->SerializeAsString();
+        break;
+
+    case protobuf_format::json:
+        MessageToJsonString(*operation_result, &data);
+        break;
+
+    case protobuf_format::text:
+        TextFormat::PrintToString(*operation_result, &data);
+        break;
+
+    default:
+        assert(false);
+        break;
     }
 
     operation_results.erase(GetController()->GetInitiatorId());
@@ -280,12 +285,27 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 
     PbCommand command;
     bool status;
-    if (json_format) {
-        string cmd((const char *)buf.data(), length);
-        status = JsonStringToMessage(cmd, &command).ok();
-    }
-    else {
+
+    switch (input_format) {
+    case protobuf_format::binary:
         status = command.ParseFromArray(buf.data(), length);
+        break;
+
+    case protobuf_format::json: {
+        string cmd((const char*) buf.data(), length);
+        status = JsonStringToMessage(cmd, &command).ok();
+        break;
+    }
+
+    case protobuf_format::text: {
+        string cmd((const char*) buf.data(), length);
+        status = TextFormat::ParseFromString(cmd, &command);
+        break;
+    }
+
+    default:
+        assert(false);
+        break;
     }
 
     if (!status) {
@@ -296,11 +316,31 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     auto operation_result = make_shared<PbResult>();
     if (CommandContext context(command, piscsi_image.GetDefaultFolder(), protobuf_util::GetParam(command, "locale"));
         !dispatcher->DispatchCommand(context, *operation_result, fmt::format("(ID:LUN {0}:{1}) - ", GetId(), GetLun()))) {
-        LogTrace("Error dispatching operation");
+        LogTrace("Failed to execute " + PbOperation_Name(command.operation()) + " operation");
         return false;
     }
 
     operation_results[GetController()->GetInitiatorId()] = operation_result;
 
     return true;
+}
+
+HostServices::protobuf_format HostServices::ConvertFormat(int format)
+{
+    switch (format) {
+    case 0x01:
+        return protobuf_format::binary;
+        break;
+
+    case 0x02:
+        return protobuf_format::json;
+        break;
+
+    case 0x04:
+        return protobuf_format::text;
+        break;
+
+    default:
+        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+    }
 }
