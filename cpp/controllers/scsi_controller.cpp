@@ -19,7 +19,6 @@
 #include "devices/disk.h"
 #include "scsi_controller.h"
 #include <ctime>
-#include <sstream>
 #include <iomanip>
 #ifdef __linux__
 #include <linux/if_tun.h>
@@ -174,13 +173,14 @@ void ScsiController::Command()
 
 void ScsiController::Execute()
 {
-	stringstream s;
-	s << "Controller is executing " << command_mapping.find(GetOpcode())->second.second << ", CDB $"
-			<< setfill('0') << hex;
-	for (int i = 0; i < BUS::GetCommandByteCount(static_cast<uint8_t>(GetOpcode())); i++) {
-		s << setw(2) << GetCmdByte(i);
-	}
-	LogDebug(s.str());
+    if (spdlog::get_level() == spdlog::level::trace) {
+        string s = fmt::format("Controller is executing {}, CDB $",
+            command_mapping.find(GetOpcode())->second.second);
+        for (int i = 0; i < BUS::GetCommandByteCount(static_cast<uint8_t>(GetOpcode())); i++) {
+            s += fmt::format("{:0x}", GetCmdByte(i));
+        }
+        LogDebug(s);
+    }
 
 	// Initialization for data transfer
 	ResetOffset();
@@ -864,13 +864,12 @@ void ScsiController::ProcessCommand()
 {
 	const uint32_t len = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
-	stringstream s;
-	s << "CDB=$" << setfill('0') << setw(2) << hex;
+	string s = "CDB=$";
 	for (uint32_t i = 0; i < len; i++) {
 		SetCmdByte(i, GetBuffer()[i]);
-		s << GetCmdByte(i);
+		s += fmt::format("{:0x}", GetCmdByte(i));
 	}
-	LogTrace(s.str());
+	LogTrace(s);
 
 	Execute();
 }
@@ -887,7 +886,7 @@ void ScsiController::ParseMessage()
 			return;
 		}
 
-		if (message_type == 0x0C) {
+		if (message_type == 0x0c) {
 			LogTrace("Received BUS DEVICE RESET message");
 			scsi.syncoffset = 0;
 			if (auto device = GetDeviceForLun(identified_lun); device != nullptr) {
