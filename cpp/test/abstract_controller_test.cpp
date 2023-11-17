@@ -26,6 +26,7 @@ TEST(AbstractControllerTest, SetLength)
 {
 	MockAbstractController controller;
 
+	EXPECT_EQ(controller.GetCmd().size(), controller.GetBuffer().size());
 	controller.SetLength(1);
 	EXPECT_LE(1, controller.GetBuffer().size());
 	controller.SetLength(10000);

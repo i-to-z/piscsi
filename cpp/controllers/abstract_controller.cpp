@@ -18,7 +18,7 @@ using namespace scsi_defs;
 AbstractController::AbstractController(BUS& bus, int target_id, int max_luns) : bus(bus), target_id(target_id), max_luns(max_luns)
 {
     // The initial buffer just has to be big enough for a CDB
-    ctrl.buffer.resize(16);
+    ctrl.buffer.resize(ctrl.cmd.size());
 
     device_logger.SetIdAndLun(target_id, -1);
 }
