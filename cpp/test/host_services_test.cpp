@@ -69,13 +69,20 @@ TEST(HostServicesTest, ExecuteOperation)
     // Required by the bullseye clang++ compiler
     auto s = services;
 
-    // Illegal length
+    // Illegal format
+    controller->SetCmdByte(1, 0b000);
     EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdExecuteOperation); }, Throws<scsi_exception>(AllOf(
             Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
             Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 
     // Illegal format
-    controller->SetCmdByte(1, 0x08);
+    controller->SetCmdByte(1, 0b111);
+    EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdExecuteOperation); }, Throws<scsi_exception>(AllOf(
+            Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+            Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
+
+    controller->SetCmdByte(1, 0b001);
+    // Illegal length
     EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdExecuteOperation); }, Throws<scsi_exception>(AllOf(
             Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
             Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
@@ -88,7 +95,13 @@ TEST(HostServicesTest, ReadOperationResult)
     auto s = services;
 
     // Illegal format
-    controller->SetCmdByte(1, 0x02);
+    controller->SetCmdByte(1, 0b000);
+    EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdReadOperationResult); }, Throws<scsi_exception>(AllOf(
+            Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+            Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
+
+    // Illegal format
+    controller->SetCmdByte(1, 0b111);
     EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdReadOperationResult); }, Throws<scsi_exception>(AllOf(
             Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
             Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
