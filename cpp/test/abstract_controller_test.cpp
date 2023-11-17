@@ -78,11 +78,12 @@ TEST(AbstractControllerTest, ByteTransfer)
 	EXPECT_TRUE(controller.IsByteTransfer());
 }
 
-TEST(AbstractControllerTest, BytesToTransfer)
+TEST(AbstractControllerTest, InitToTransfer)
 {
 	MockAbstractController controller;
 
-	controller.SetBytesToTransfer(0x1234);
+	controller.SetLength(0x1234);
+	controller.InitBytesToTransfer();
 	EXPECT_EQ(0x1234, controller.GetBytesToTransfer());
 	controller.SetByteTransfer(false);
 	EXPECT_EQ(0, controller.GetBytesToTransfer());
