@@ -183,14 +183,14 @@ void HostServices::ReadOperationResult()
 
     case protobuf_format::json: {
         PbResult result;
-        result.ParseFromArray(execution_result.data(), execution_result.size());
+        result.ParseFromArray(execution_result.data(), static_cast<int>(execution_result.size()));
         MessageToJsonString(result, &data);
         break;
     }
 
     case protobuf_format::text: {
         PbResult result;
-        result.ParseFromArray(execution_result.data(), execution_result.size());
+        result.ParseFromArray(execution_result.data(), static_cast<int>(execution_result.size()));
         TextFormat::PrintToString(result, &data);
         break;
     }
@@ -298,8 +298,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         break;
 
     case protobuf_format::json: {
-        string cmd((const char*) buf.data(), length);
-        if (!JsonStringToMessage(cmd, &command).ok()) {
+        if (string cmd((const char*) buf.data(), length); !JsonStringToMessage(cmd, &command).ok()) {
             LogTrace("Failed to deserialize protobuf JSON data");
             return false;
         }
@@ -307,8 +306,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     }
 
     case protobuf_format::text: {
-        string cmd((const char*) buf.data(), length);
-        if (!TextFormat::ParseFromString(cmd, &command)) {
+        if (string cmd((const char*) buf.data(), length); !TextFormat::ParseFromString(cmd, &command)) {
             LogTrace("Failed to deserialize protobuf text format data");
             return false;
         }
