@@ -66,7 +66,7 @@ private:
 
 	void StartStopUnit() const;
     void ExecuteOperation();
-    void ReadOperationResult();
+    void ReceiveOperationResults();
 
     int ModeSense6(cdb_t, vector<uint8_t>&) const override;
 	int ModeSense10(cdb_t, vector<uint8_t>&) const override;

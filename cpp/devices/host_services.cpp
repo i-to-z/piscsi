@@ -48,7 +48,7 @@
 // | 9   |                           Control                                     |
 // +==============================================================================
 //
-//   b) ReadOperationResult
+//   b) ReceiveOperationResults
 //
 // +==============================================================================
 // |  Bit|   7    |   6    |   5    |   4    |   3    |   2    |   1    |   0    |
@@ -78,7 +78,7 @@
 // The piscsi commands that can be executed are defined in the piscsi_interface.proto file.
 // The BIN, JSON and TEXT flags control the input and output format of the protobuf data.
 // Exactly one of them must be set. Input and output format do not have to be identical.
-// ReadOperationResult returns the result of the last operation executed.
+// ReceiveOperationResults returns the result of the last operation executed.
 //
 
 #include "shared/piscsi_exceptions.h"
@@ -107,7 +107,7 @@ bool HostServices::Init(const param_map& params)
     AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
     AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
     AddCommand(scsi_command::eCmdExecuteOperation, [this] { ExecuteOperation(); });
-    AddCommand(scsi_command::eCmdReadOperationResult, [this] { ReadOperationResult(); });
+    AddCommand(scsi_command::eCmdReceiveOperationResults, [this] { ReceiveOperationResults(); });
 
 	SetReady(true);
 
@@ -165,7 +165,7 @@ void HostServices::ExecuteOperation()
     EnterDataOutPhase();
 }
 
-void HostServices::ReadOperationResult()
+void HostServices::ReceiveOperationResults()
 {
     const protobuf_format output_format = ConvertFormat();
 

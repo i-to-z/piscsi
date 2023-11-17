@@ -110,7 +110,7 @@ enum class scsi_command {
     eCmdReportLuns = 0xA0,
     // Host services specific commands
     eCmdExecuteOperation = 0xC0,
-    eCmdReadOperationResult = 0xC1
+    eCmdReceiveOperationResults = 0xC1
 };
 
 enum class status {
@@ -189,6 +189,6 @@ static const unordered_map<scsi_command, pair<int, string>> command_mapping = {
     { scsi_command::eCmdWriteLong16, make_pair(16, "WriteLong16") },
     { scsi_command::eCmdReportLuns, make_pair(12, "ReportLuns") },
     { scsi_command::eCmdExecuteOperation, make_pair(10, "ExecuteOperation") },
-    { scsi_command::eCmdReadOperationResult, make_pair(10, "ReadOperationResult") }
+    { scsi_command::eCmdReceiveOperationResults, make_pair(10, "ReceiveOperationResults") }
 };
 }

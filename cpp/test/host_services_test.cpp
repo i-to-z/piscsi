@@ -88,7 +88,7 @@ TEST(HostServicesTest, ExecuteOperation)
             Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 }
 
-TEST(HostServicesTest, ReadOperationResult)
+TEST(HostServicesTest, ReceiveOperationResults)
 {
     auto [controller, services] = CreateDevice(SCHS);
     // Required by the bullseye clang++ compiler
@@ -96,13 +96,13 @@ TEST(HostServicesTest, ReadOperationResult)
 
     // Illegal format
     controller->SetCmdByte(1, 0b000);
-    EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdReadOperationResult); }, Throws<scsi_exception>(AllOf(
+    EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdReceiveOperationResults); }, Throws<scsi_exception>(AllOf(
             Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
             Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 
     // Illegal format
     controller->SetCmdByte(1, 0b111);
-    EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdReadOperationResult); }, Throws<scsi_exception>(AllOf(
+    EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdReceiveOperationResults); }, Throws<scsi_exception>(AllOf(
             Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
             Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 }
