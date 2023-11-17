@@ -78,7 +78,7 @@ private:
 	static protobuf_format ConvertFormat(int);
 
 	// Operation results per initiator
-	unordered_map<int, shared_ptr<PbResult>> operation_results;
+	unordered_map<int, string> execution_results;
 
 	shared_ptr<CommandDispatcher> dispatcher;
 

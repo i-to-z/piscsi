@@ -149,7 +149,7 @@ void HostServices::StartStopUnit() const
 
 void HostServices::ExecuteOperation()
 {
-    operation_results.erase(GetController()->GetInitiatorId());
+    execution_results.erase(GetController()->GetInitiatorId());
 
     input_format = ConvertFormat(GetController()->GetCmdByte(1) & 0b00000111);
 
@@ -168,35 +168,40 @@ void HostServices::ReadOperationResult()
 {
     const protobuf_format output_format = ConvertFormat(GetController()->GetCmdByte(1) & 0b00000111);
 
-    const auto& it = operation_results.find(GetController()->GetInitiatorId());
-    if (it == operation_results.end()) {
+    const auto& it = execution_results.find(GetController()->GetInitiatorId());
+    if (it == execution_results.end()) {
         throw scsi_exception(sense_key::aborted_command);
     }
-    const auto& operation_result = it->second;
-
-    const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
+    const string& execution_result = it->second;
 
     string data;
     switch (output_format) {
     case protobuf_format::binary:
-        data = operation_result->SerializeAsString();
+        data = execution_result;
         break;
 
-    case protobuf_format::json:
-        MessageToJsonString(*operation_result, &data);
+    case protobuf_format::json: {
+        PbResult result;
+        result.ParseFromArray(execution_result.data(), execution_result.size());
+        MessageToJsonString(result, &data);
         break;
+    }
 
-    case protobuf_format::text:
-        TextFormat::PrintToString(*operation_result, &data);
+    case protobuf_format::text: {
+        PbResult result;
+        result.ParseFromArray(execution_result.data(), execution_result.size());
+        TextFormat::PrintToString(result, &data);
         break;
+    }
 
     default:
         assert(false);
         break;
     }
 
-    operation_results.erase(GetController()->GetInitiatorId());
+    execution_results.erase(GetController()->GetInitiatorId());
 
+    const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
     const auto length = static_cast<int>(min(allocation_length, data.size()));
     if (length > 65535) {
         throw scsi_exception(sense_key::aborted_command);
@@ -318,14 +323,14 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
         break;
     }
 
-    auto operation_result = make_shared<PbResult>();
+    PbResult result;
     if (CommandContext context(command, piscsi_image.GetDefaultFolder(), protobuf_util::GetParam(command, "locale"));
-        !dispatcher->DispatchCommand(context, *operation_result, fmt::format("(ID:LUN {0}:{1}) - ", GetId(), GetLun()))) {
+        !dispatcher->DispatchCommand(context, result, fmt::format("(ID:LUN {0}:{1}) - ", GetId(), GetLun()))) {
         LogTrace("Failed to execute " + PbOperation_Name(command.operation()) + " operation");
         return false;
     }
 
-    operation_results[GetController()->GetInitiatorId()] = operation_result;
+    execution_results[GetController()->GetInitiatorId()] = result.SerializeAsString();
 
     return true;
 }
