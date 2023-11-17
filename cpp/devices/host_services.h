@@ -16,7 +16,6 @@
 #include "piscsi/piscsi_image.h"
 #include "piscsi/piscsi_response.h"
 #include "mode_page_device.h"
-#include "generated/piscsi_interface.pb.h"
 #include <span>
 #include <vector>
 #include <map>
