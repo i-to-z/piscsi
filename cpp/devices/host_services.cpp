@@ -195,7 +195,7 @@ void HostServices::ReadOperationResult()
 
     operation_results.erase(GetController()->GetInitiatorId());
 
-    auto length = static_cast<int>(min(allocation_length, data.size()));
+    const auto length = static_cast<int>(min(allocation_length, data.size()));
     if (length > 65535) {
         throw scsi_exception(sense_key::aborted_command);
     }
