@@ -483,8 +483,6 @@ void GPIOBUS_Virtual::EnableIRQ()
 //---------------------------------------------------------------------------
 void GPIOBUS_Virtual::PinSetSignal(int hw_pin, bool ast)
 {
-    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)hw_pin)
-
     // Check for invalid pin
     if (hw_pin < 0) {
         return;

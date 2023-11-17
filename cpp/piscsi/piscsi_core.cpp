@@ -450,7 +450,7 @@ bool Piscsi::ExecuteCommand(CommandContext& context)
 
     context.SetDefaultFolder(piscsi_image.GetDefaultFolder());
     PbResult result;
-    const bool status = dispatcher->DispatchCommand(context, result);
+    const bool status = dispatcher->DispatchCommand(context, result, "");
     if (status && context.GetCommand().operation() == PbOperation::SHUT_DOWN) {
         CleanUp();
         return false;

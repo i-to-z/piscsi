@@ -26,7 +26,7 @@ public:
 	    : piscsi_image(i), response(r), executor(e) { }
 	~CommandDispatcher() = default;
 
-	bool DispatchCommand(const CommandContext&, PbResult&);
+	bool DispatchCommand(const CommandContext&, PbResult&, const string&);
 
 	bool ShutDown(AbstractController::piscsi_shutdown_mode) const;
 
