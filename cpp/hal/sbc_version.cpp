@@ -81,7 +81,7 @@ void SBC_Version::Init()
     if (input_stream.fail()) {
 #if defined(__x86_64__) || defined(__X86__)
         // We expect this to fail on x86
-    	spdlog::debug("Detected " + GetAsString());
+    	spdlog::trace("Detected " + GetAsString());
         sbc_version = sbc_version_type::sbc_unknown;
         return;
 #else
@@ -97,7 +97,7 @@ void SBC_Version::Init()
     for (const auto& [key, value] : proc_device_tree_mapping) {
     	if (device_tree_model.starts_with(key)) {
     		sbc_version = value;
-    		spdlog::debug("Detected " + GetAsString());
+    		spdlog::trace("Detected " + GetAsString());
     		return;
     	}
     }
