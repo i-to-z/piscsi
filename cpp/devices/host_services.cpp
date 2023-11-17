@@ -78,6 +78,7 @@
 // The piscsi commands that can be executed are defined in the piscsi_interface.proto file.
 // The BIN, JSON and TEXT flags control the input and output format of the protobuf data.
 // Exactly one of them must be set. Input and output format do not have to be identical.
+// ReadOperationResult returns the result of the last operation executed.
 //
 
 #include "shared/piscsi_exceptions.h"
