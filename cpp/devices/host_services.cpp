@@ -152,7 +152,7 @@ void HostServices::ExecuteOperation()
 {
     execution_results.erase(GetController()->GetInitiatorId());
 
-    input_format = ConvertFormat(GetController()->GetCmdByte(1) & 0b00000111);
+    input_format = ConvertFormat();
 
     const auto length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
     if (!length) {
@@ -167,7 +167,7 @@ void HostServices::ExecuteOperation()
 
 void HostServices::ReadOperationResult()
 {
-    const protobuf_format output_format = ConvertFormat(GetController()->GetCmdByte(1) & 0b00000111);
+    const protobuf_format output_format = ConvertFormat();
 
     const auto& it = execution_results.find(GetController()->GetInitiatorId());
     if (it == execution_results.end()) {
@@ -328,9 +328,9 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     return true;
 }
 
-HostServices::protobuf_format HostServices::ConvertFormat(int format)
+HostServices::protobuf_format HostServices::ConvertFormat() const
 {
-    switch (format) {
+    switch (GetController()->GetCmdByte(1) & 0b00000111) {
     case 0x001:
         return protobuf_format::binary;
         break;

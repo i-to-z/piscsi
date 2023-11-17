@@ -75,7 +75,7 @@ private:
 
 	bool WriteByteSequence(span<const uint8_t>) override;
 
-	static protobuf_format ConvertFormat(int);
+	protobuf_format ConvertFormat() const;
 
 	// Operation results per initiator
 	unordered_map<int, string> execution_results;
