@@ -233,8 +233,6 @@ int ScsiMon::run(const vector<char *> &args)
             data_idx++;
             prev_sample = this_sample;
         }
-
-        continue;
     }
 
     // Collect one last sample, otherwise it looks like the end of the data was cut off

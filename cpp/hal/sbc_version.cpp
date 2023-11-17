@@ -63,11 +63,6 @@ string SBC_Version::GetAsString()
     }
 }
 
-SBC_Version::sbc_version_type SBC_Version::GetSbcVersion()
-{
-    return sbc_version;
-}
-
 //---------------------------------------------------------------------------
 //
 //	Determine which version of single board computer (Pi) is being used

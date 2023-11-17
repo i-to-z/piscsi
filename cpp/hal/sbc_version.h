@@ -38,8 +38,6 @@ class SBC_Version
 
     static void Init();
 
-    static sbc_version_type GetSbcVersion();
-
     static bool IsRaspberryPi();
 
     static string GetAsString();

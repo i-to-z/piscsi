@@ -76,7 +76,6 @@ TEST(ScsiHdNecTest, TestAddFormatPage)
 	hd.SetRemovable(true);
 	// Non changeable
 	hd.SetUpModePages(pages, 0x03, false);
-	page_3 = pages[3];
 	EXPECT_EQ(0x20, to_integer<int>(page_3[20]));
 
 	pages.clear();

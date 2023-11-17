@@ -27,7 +27,6 @@ TEST(ScsiMoTest, Inquiry)
 
 TEST(ScsiMoTest, SupportsSaveParameters)
 {
-	map<int, vector<byte>> pages;
 	MockSCSIMO mo(0);
 
 	EXPECT_TRUE(mo.SupportsSaveParameters());
@@ -83,44 +82,37 @@ TEST(ScsiMoTest, TestAddVendorPage)
 
 	mo.SetSectorSizeInBytes(512);
 	mo.SetUpModePages(pages, 0x20, false);
-	page_32 = pages[32];
 	EXPECT_EQ(0, GetInt16(page_32, 8)) << "Wrong number of spare blocks";
 	EXPECT_EQ(0, GetInt16(page_32, 10));
 
 	mo.SetBlockCount(248826);
 	mo.SetUpModePages(pages, 0x20, false);
-	page_32 = pages[32];
 	EXPECT_EQ(1024, GetInt16(page_32, 8)) << "Wrong number of spare blocks";
 	EXPECT_EQ(1, GetInt16(page_32, 10));
 
 	mo.SetBlockCount(446325);
 	mo.SetUpModePages(pages, 0x20, false);
-	page_32 = pages[32];
 	EXPECT_EQ(1025, GetInt16(page_32, 8)) << "Wrong number of spare blocks";
 	EXPECT_EQ(10, GetInt16(page_32, 10));
 
 	mo.SetBlockCount(1041500);
 	mo.SetUpModePages(pages, 0x20, false);
-	page_32 = pages[32];
 	EXPECT_EQ(2250, GetInt16(page_32, 8)) << "Wrong number of spare blocks";
 	EXPECT_EQ(18, GetInt16(page_32, 10));
 
 	mo.SetSectorSizeInBytes(2048);
 	mo.SetBlockCount(0x12345678);
 	mo.SetUpModePages(pages, 0x20, false);
-	page_32 = pages[32];
 	EXPECT_EQ(0, GetInt16(page_32, 8)) << "Wrong number of spare blocks";
 	EXPECT_EQ(0, GetInt16(page_32, 10));
 
 	mo.SetBlockCount(310352);
 	mo.SetUpModePages(pages, 0x20, false);
-	page_32 = pages[32];
 	EXPECT_EQ(2244, GetInt16(page_32, 8)) << "Wrong number of spare blocks";
 	EXPECT_EQ(11, GetInt16(page_32, 10));
 
 	mo.SetBlockCount(605846);
 	mo.SetUpModePages(pages, 0x20, false);
-	page_32 = pages[32];
 	EXPECT_EQ(4437, GetInt16(page_32, 8)) << "Wrong number of spare blocks";
 	EXPECT_EQ(18, GetInt16(page_32, 10));
 
