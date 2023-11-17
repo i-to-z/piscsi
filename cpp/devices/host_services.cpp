@@ -290,7 +290,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     switch (input_format) {
     case protobuf_format::binary:
         if (!command.ParseFromArray(buf.data(), length)) {
-            LogTrace("Failed deserialize protobuf binary data");
+            LogTrace("Failed to deserialize protobuf binary data");
             return false;
         }
         break;
