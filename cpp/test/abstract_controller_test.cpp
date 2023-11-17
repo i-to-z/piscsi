@@ -22,13 +22,13 @@ TEST(AbstractControllerTest, AllocateCmd)
 	EXPECT_EQ(1234, controller.GetCmd().size());
 }
 
-TEST(AbstractControllerTest, AllocateBuffer)
+TEST(AbstractControllerTest, SetLength)
 {
 	MockAbstractController controller;
 
-	controller.AllocateBuffer(1);
+	controller.SetLength(1);
 	EXPECT_LE(1, controller.GetBuffer().size());
-	controller.AllocateBuffer(10000);
+	controller.SetLength(10000);
 	EXPECT_LE(10000, controller.GetBuffer().size());
 }
 

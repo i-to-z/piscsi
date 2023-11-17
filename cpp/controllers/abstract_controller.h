@@ -65,13 +65,12 @@ public:
 	void ProcessOnController(int);
 
 	// TODO These should probably be extracted into a new TransferHandler class
-	void AllocateBuffer(size_t);
 	void CopyToBuffer(void *, int);
 	auto& GetBuffer() { return ctrl.buffer; }
 	auto GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
 	auto GetLength() const { return ctrl.length; }
-	void SetLength(uint32_t l) { ctrl.length = l; }
+	void SetLength(uint32_t);
 	bool HasBlocks() const { return ctrl.blocks; }
 	void SetBlocks(uint32_t b) { ctrl.blocks = b; }
 	void DecrementBlocks() { --ctrl.blocks; }

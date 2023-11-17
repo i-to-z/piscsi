@@ -173,12 +173,12 @@ public:
 	MOCK_METHOD(void, MsgIn, (), ());
 	MOCK_METHOD(void, MsgOut, (), ());
 
-	MockAbstractController() : AbstractController(*mock_bus, 0, 32) {}
+	MockAbstractController() : AbstractController(*mock_bus, 0, 32) { }
 	explicit MockAbstractController(int target_id) : AbstractController(*mock_bus, target_id, 32) {
-		AllocateBuffer(512);
+		SetLength(512);
 	}
 	MockAbstractController(shared_ptr<BUS> bus, int target_id) : AbstractController(*bus, target_id, 32) {
-		AllocateBuffer(512);
+	    SetLength(512);
 	}
 	~MockAbstractController() override = default;
 };

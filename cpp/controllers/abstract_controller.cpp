@@ -17,7 +17,10 @@ using namespace scsi_defs;
 
 AbstractController::AbstractController(BUS& bus, int target_id, int max_luns) : bus(bus), target_id(target_id), max_luns(max_luns)
 {
-	device_logger.SetIdAndLun(target_id, -1);
+    // The initial buffer just has to be big enough for a CDB
+    ctrl.buffer.resize(16);
+
+    device_logger.SetIdAndLun(target_id, -1);
 }
 
 void AbstractController::AllocateCmd(size_t size)
@@ -27,20 +30,20 @@ void AbstractController::AllocateCmd(size_t size)
 	}
 }
 
-void AbstractController::AllocateBuffer(size_t size)
+void AbstractController::SetLength(uint32_t length)
 {
-	if (size > ctrl.buffer.size()) {
-		ctrl.buffer.resize(size);
-	}
+    if (length > ctrl.buffer.size()) {
+        ctrl.buffer.resize(length);
+    }
+
+    ctrl.length = length;
 }
 
 void AbstractController::CopyToBuffer(void *src, int length) //NOSONAR Any kind of source data is permitted
 {
-    AllocateBuffer(length);
+    SetLength(length);
 
     memcpy(ctrl.buffer.data(), src, length);
-
-    SetLength(length);
 }
 
 void AbstractController::SetByteTransfer(bool b)

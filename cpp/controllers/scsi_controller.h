@@ -15,6 +15,7 @@
 #pragma once
 
 #include "shared/scsi.h"
+#include "controllers/controller_manager.h"
 #include "abstract_controller.h"
 #include <array>
 
@@ -33,8 +34,6 @@ class ScsiController : public AbstractController
 	// REQ/ACK offset(limited to 16)
 	static const uint8_t MAX_SYNC_OFFSET = 16;
 
-	const int DEFAULT_BUFFER_SIZE = 0x1000;
-
 	using scsi_t = struct _scsi_t {
 		// Synchronous transfer
 		bool syncenable;				// Synchronous transfer possible
@@ -50,7 +49,7 @@ class ScsiController : public AbstractController
 
 public:
 
-	ScsiController(BUS&, int);
+	ScsiController(BUS& bus, int target_id) : AbstractController(bus, target_id, ControllerManager::GetScsiLunMax()) { }
 	~ScsiController() override = default;
 
 	void Reset() override;

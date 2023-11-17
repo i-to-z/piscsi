@@ -249,9 +249,6 @@ bool SCSIBR::ReadWrite(cdb_t cdb, vector<uint8_t>& buf)
 
 void SCSIBR::GetMessage10()
 {
-	// Ensure a sufficient buffer size (because it is not a transfer for each block)
-	GetController()->AllocateBuffer(0x1000000);
-
 	GetController()->SetLength(GetMessage10(GetController()->GetCmd(), GetController()->GetBuffer()));
 	if (GetController()->GetLength() <= 0) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
@@ -277,9 +274,6 @@ void SCSIBR::SendMessage10() const
 	if (GetController()->GetLength() <= 0) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
-
-	// Ensure a sufficient buffer size (because it is not a transfer for each block)
-	GetController()->AllocateBuffer(0x1000000);
 
 	// Set next block
 	GetController()->SetBlocks(1);

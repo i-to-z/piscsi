@@ -109,8 +109,6 @@ bool HostServices::Init(const param_map& params)
     AddCommand(scsi_command::eCmdExecuteOperation, [this] { ExecuteOperation(); });
     AddCommand(scsi_command::eCmdReadOperationResult, [this] { ReadOperationResult(); });
 
-    GetController()->AllocateBuffer(EXECUTE_BUFFER_SIZE);
-
 	SetReady(true);
 
 	return true;

@@ -16,7 +16,6 @@
 #include "shared/piscsi_exceptions.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "controllers/controller_manager.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
 #include "devices/mode_page_device.h"
@@ -29,13 +28,6 @@
 #endif
 
 using namespace scsi_defs;
-
-ScsiController::ScsiController(BUS& bus, int target_id) : AbstractController(bus, target_id, ControllerManager::GetScsiLunMax())
-{
-	// The initial buffer size will default to either the default buffer size OR
-	// the size of an Ethernet message, whichever is larger.
-	AllocateBuffer(std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN));
-}
 
 void ScsiController::Reset()
 {

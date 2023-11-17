@@ -340,9 +340,6 @@ void SCSIDaynaPort::Read6()
 
 void SCSIDaynaPort::Write6() const
 {
-	// Ensure a sufficient buffer size (because it is not transfer for each block)
-	GetController()->AllocateBuffer(DAYNAPORT_BUFFER_SIZE);
-
 	const int data_format = GetController()->GetCmdByte(5);
 
 	if (data_format == 0x00) {
