@@ -114,9 +114,10 @@ void Disk::Read(access_mode mode)
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
 	if (valid) {
 		GetController()->SetBlocks(blocks);
-		GetController()->SetLength(Read(GetController()->GetBuffer(), start));
 
-		LogTrace("Length is " + to_string(GetController()->GetLength()));
+		const int length = Read(GetController()->GetBuffer(), start);
+        LogTrace("Length is " + to_string(length));
+		GetController()->SetLength(length);
 
 		// Set next block
 		GetController()->SetNext(start + 1);

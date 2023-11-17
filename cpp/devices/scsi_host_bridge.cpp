@@ -249,10 +249,11 @@ bool SCSIBR::ReadWrite(cdb_t cdb, vector<uint8_t>& buf)
 
 void SCSIBR::GetMessage10()
 {
-	GetController()->SetLength(GetMessage10(GetController()->GetCmd(), GetController()->GetBuffer()));
-	if (GetController()->GetLength() <= 0) {
-		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
-	}
+    const int length = GetMessage10(GetController()->GetCmd(), GetController()->GetBuffer());
+    if (length <= 0) {
+        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+    }
+    GetController()->SetLength(length);
 
 	// Set next block
 	GetController()->SetBlocks(1);
@@ -270,10 +271,11 @@ void SCSIBR::GetMessage10()
 //---------------------------------------------------------------------------
 void SCSIBR::SendMessage10() const
 {
-	GetController()->SetLength(GetInt24(GetController()->GetCmd(), 6));
-	if (GetController()->GetLength() <= 0) {
-		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
-	}
+    const int length = GetInt24(GetController()->GetCmd(), 6);
+    if (length <= 0) {
+        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+    }
+    GetController()->SetLength(length);
 
 	// Set next block
 	GetController()->SetBlocks(1);

@@ -329,8 +329,9 @@ void SCSIDaynaPort::Read6()
 	s << "READ(6) command, record: $" << setfill('0') << setw(8) << hex << record;
 	LogTrace(s.str());
 
-	GetController()->SetLength(Read(GetController()->GetCmd(), GetController()->GetBuffer(), record));
-	LogTrace("Length is " + to_string(GetController()->GetLength()));
+	const int length = Read(GetController()->GetCmd(), GetController()->GetBuffer(), record);
+    LogTrace("Length is " + to_string(length));
+	GetController()->SetLength(length);
 
 	// Set next block
 	GetController()->SetNext(record + 1);
@@ -342,25 +343,23 @@ void SCSIDaynaPort::Write6() const
 {
 	const int data_format = GetController()->GetCmdByte(5);
 
+	int length = 0;
 	if (data_format == 0x00) {
-		GetController()->SetLength(GetInt16(GetController()->GetCmd(), 3));
+	    length = GetInt16(GetController()->GetCmd(), 3);
 	}
 	else if (data_format == 0x80) {
-		GetController()->SetLength(GetInt16(GetController()->GetCmd(), 3) + 8);
+	    length = GetInt16(GetController()->GetCmd(), 3) + 8;
 	}
-	else {
-		stringstream s;
-		s << "Unknown data format: " << setfill('0') << setw(2) << hex << data_format;
-		LogWarn(s.str());
-	}
+
+    if (length <= 0) {
+        throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
+    }
 
 	stringstream s;
-	s << "Length: " << GetController()->GetLength() << ", format: $" << setfill('0') << setw(2) << hex << data_format;
+	s << "Length: " << length << ", format: $" << setfill('0') << setw(2) << hex << data_format;
 	LogTrace(s.str());
 
-	if (GetController()->GetLength() <= 0) {
-		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
-	}
+    GetController()->SetLength(length);
 
 	// Set next block
 	GetController()->SetBlocks(1);
@@ -433,13 +432,15 @@ void SCSIDaynaPort::SetInterfaceMode() const
 
 void SCSIDaynaPort::SetMcastAddr() const
 {
-	GetController()->SetLength(GetController()->GetCmdByte(4));
-	if (GetController()->GetLength() == 0) {
+    const int length = GetController()->GetCmdByte(4);
+	if (!length) {
 		stringstream s;
 		s << "Unsupported SetMcastAddr command: " << setfill('0') << setw(2) << hex << GetController()->GetCmdByte(2);
 		LogWarn(s.str());
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
+
+	GetController()->SetLength(length);
 
 	EnterDataOutPhase();
 }
