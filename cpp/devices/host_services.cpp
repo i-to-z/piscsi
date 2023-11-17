@@ -328,15 +328,15 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 HostServices::protobuf_format HostServices::ConvertFormat(int format)
 {
     switch (format) {
-    case 0x01:
+    case 0x001:
         return protobuf_format::binary;
         break;
 
-    case 0x02:
+    case 0b010:
         return protobuf_format::json;
         break;
 
-    case 0x04:
+    case 0b100:
         return protobuf_format::text;
         break;
 
