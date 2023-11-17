@@ -285,33 +285,35 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     const auto length = GetInt16(GetController()->GetCmd(), 7);
 
     PbCommand command;
-    bool status = false;
-
     switch (input_format) {
     case protobuf_format::binary:
-        status = command.ParseFromArray(buf.data(), length);
+        if (!command.ParseFromArray(buf.data(), length)) {
+            LogTrace("Failed deserialize protobuf binary data");
+            return false;
+        }
         break;
 
     case protobuf_format::json: {
         string cmd((const char*) buf.data(), length);
-        status = JsonStringToMessage(cmd, &command).ok();
+        if (!JsonStringToMessage(cmd, &command).ok()) {
+            LogTrace("Failed to deserialize protobuf JSON data");
+            return false;
+        }
         break;
     }
 
     case protobuf_format::text: {
         string cmd((const char*) buf.data(), length);
-        status = TextFormat::ParseFromString(cmd, &command);
+        if (!TextFormat::ParseFromString(cmd, &command)) {
+            LogTrace("Failed to deserialize protobuf text format data");
+            return false;
+        }
         break;
     }
 
     default:
         assert(false);
         break;
-    }
-
-    if (!status) {
-        LogTrace("Error deserializing protobuf input data");
-        return false;
     }
 
     auto operation_result = make_shared<PbResult>();
