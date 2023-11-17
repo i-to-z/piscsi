@@ -30,7 +30,7 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION, to_string(operation));
 	}
 
-	spdlog::trace(identifier + "Received " + PbOperation_Name(operation) + " command");
+	spdlog::trace(identifier + "Executing " + PbOperation_Name(operation) + " command");
 
     switch (operation) {
     case LOG_LEVEL:
