@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2022-2023 Uwe Seimet
 //
-// Host Services with realtime clock and shutdown support
+// Host Services with support for realtime clock, shutdown and command execution
 //
 //---------------------------------------------------------------------------
 
