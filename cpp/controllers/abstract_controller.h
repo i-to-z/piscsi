@@ -65,7 +65,7 @@ public:
 	void ProcessOnController(int);
 
 	// TODO These should probably be extracted into a new TransferHandler class
-	void CopyToBuffer(void *, int);
+	void CopyToBuffer(const void *, int);
 	auto& GetBuffer() { return ctrl.buffer; }
 	auto GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }

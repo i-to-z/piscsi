@@ -40,7 +40,7 @@ void AbstractController::SetLength(uint32_t length)
     ctrl.length = length;
 }
 
-void AbstractController::CopyToBuffer(void *src, int length) //NOSONAR Any kind of source data is permitted
+void AbstractController::CopyToBuffer(const void *src, int length) //NOSONAR Any kind of source data is permitted
 {
     SetLength(length);
 
