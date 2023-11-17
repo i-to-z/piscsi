@@ -29,12 +29,6 @@ class HostServices: public ModePageDevice
 
 public:
 
-    enum class protobuf_format {
-        binary = 0b001,
-        json = 0b010,
-        text = 0b100
-    };
-
 	explicit HostServices(int lun) : ModePageDevice(SCHS, lun) {}
 	~HostServices() override = default;
 
@@ -50,6 +44,12 @@ protected:
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 
 private:
+
+    enum class protobuf_format {
+        binary = 0b001,
+        json = 0b010,
+        text = 0b100
+    };
 
 	using mode_page_datetime = struct __attribute__((packed)) {
 		// Major and minor version of this data structure (e.g. 1.0)
