@@ -284,7 +284,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
     const auto length = GetInt16(GetController()->GetCmd(), 7);
 
     PbCommand command;
-    bool status;
+    bool status = false;
 
     switch (input_format) {
     case protobuf_format::binary:

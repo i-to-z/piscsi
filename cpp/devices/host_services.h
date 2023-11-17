@@ -30,9 +30,9 @@ class HostServices: public ModePageDevice
 public:
 
     enum class protobuf_format {
-        binary = 1,
-        json = 2,
-        text = 3
+        binary = 0b001,
+        json = 0b010,
+        text = 0b100
     };
 
 	explicit HostServices(int lun) : ModePageDevice(SCHS, lun) {}
