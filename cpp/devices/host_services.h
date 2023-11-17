@@ -25,6 +25,7 @@ using namespace piscsi_interface;
 
 class HostServices: public ModePageDevice
 {
+    inline static const int EXECUTE_BUFFER_SIZE = 65535;
 
 public:
 

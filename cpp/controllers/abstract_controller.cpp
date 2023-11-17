@@ -10,6 +10,7 @@
 #include "shared/piscsi_exceptions.h"
 #include "devices/primary_device.h"
 #include "abstract_controller.h"
+#include <cstring>
 #include <ranges>
 
 using namespace scsi_defs;
@@ -31,6 +32,15 @@ void AbstractController::AllocateBuffer(size_t size)
 	if (size > ctrl.buffer.size()) {
 		ctrl.buffer.resize(size);
 	}
+}
+
+void AbstractController::CopyToBuffer(void *src, int length) //NOSONAR Any kind of source data is permitted
+{
+    AllocateBuffer(length);
+
+    memcpy(ctrl.buffer.data(), src, length);
+
+    SetLength(length);
 }
 
 void AbstractController::SetByteTransfer(bool b)

@@ -66,6 +66,7 @@ public:
 
 	// TODO These should probably be extracted into a new TransferHandler class
 	void AllocateBuffer(size_t);
+	void CopyToBuffer(void *, int);
 	auto& GetBuffer() { return ctrl.buffer; }
 	auto GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }

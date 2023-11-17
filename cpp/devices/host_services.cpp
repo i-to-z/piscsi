@@ -109,6 +109,8 @@ bool HostServices::Init(const param_map& params)
     AddCommand(scsi_command::eCmdExecuteOperation, [this] { ExecuteOperation(); });
     AddCommand(scsi_command::eCmdReadOperationResult, [this] { ReadOperationResult(); });
 
+    GetController()->AllocateBuffer(EXECUTE_BUFFER_SIZE);
+
 	SetReady(true);
 
 	return true;
@@ -208,12 +210,7 @@ void HostServices::ReadOperationResult()
         EnterStatusPhase();
     }
     else {
-        // Ensure a sufficient buffer size
-        GetController()->AllocateBuffer(length);
-
-        memcpy(GetController()->GetBuffer().data(), data.data(), length);
-
-        GetController()->SetLength(static_cast<uint32_t>(length));
+        GetController()->CopyToBuffer(data.data(), length);
 
         EnterDataInPhase();
     }
@@ -290,9 +287,6 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 {
     const auto length = GetInt16(GetController()->GetCmd(), 7);
-
-    // Ensure a sufficient buffer size
-    GetController()->AllocateBuffer(length);
 
     PbCommand command;
     switch (input_format) {
