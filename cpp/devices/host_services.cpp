@@ -204,10 +204,6 @@ void HostServices::ReadOperationResult()
 
     const auto allocation_length = static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7));
     const auto length = static_cast<int>(min(allocation_length, data.size()));
-    if (length > 65535) {
-        throw scsi_exception(sense_key::aborted_command);
-    }
-
     if (!length) {
         EnterStatusPhase();
     }
