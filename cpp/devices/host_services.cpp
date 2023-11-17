@@ -295,7 +295,7 @@ bool HostServices::WriteByteSequence(span<const uint8_t> buf)
 
     auto operation_result = make_shared<PbResult>();
     if (CommandContext context(command, piscsi_image.GetDefaultFolder(), protobuf_util::GetParam(command, "locale"));
-        !dispatcher->DispatchCommand(context, *operation_result, GetIdentifier())) {
+        !dispatcher->DispatchCommand(context, *operation_result, fmt::format("(ID:LUN {0}:{1}) - ", GetId(), GetLun()))) {
         LogTrace("Error dispatching operation");
         return false;
     }

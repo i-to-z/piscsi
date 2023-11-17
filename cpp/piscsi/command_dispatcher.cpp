@@ -19,7 +19,7 @@ using namespace piscsi_interface;
 using namespace piscsi_util;
 using namespace protobuf_util;
 
-bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult& result, const string& device)
+bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult& result, const string& identifier)
 {
 	const PbCommand& command = context.GetCommand();
 	const PbOperation operation = command.operation();
@@ -30,7 +30,7 @@ bool CommandDispatcher::DispatchCommand(const CommandContext& context, PbResult&
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION, to_string(operation));
 	}
 
-	spdlog::trace(device + " Received " + PbOperation_Name(operation) + " command");
+	spdlog::trace(identifier + "Received " + PbOperation_Name(operation) + " command");
 
     switch (operation) {
     case LOG_LEVEL:
