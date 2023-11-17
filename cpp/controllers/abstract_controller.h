@@ -84,7 +84,7 @@ public:
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);
 	auto GetBytesToTransfer() const { return bytes_to_transfer; }
-	void SetBytesToTransfer(uint32_t b) { bytes_to_transfer = b; }
+	void InitBytesToTransfer() { bytes_to_transfer = ctrl.length; }
 
 protected:
 

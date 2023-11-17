@@ -601,7 +601,7 @@ bool ScsiController::XferMsg(int msg)
 void ScsiController::ReceiveBytes()
 {
 	if (HasValidLength()) {
-		SetBytesToTransfer(GetLength());
+		InitBytesToTransfer();
 		UpdateOffsetAndLength();
 		return;
 	}
