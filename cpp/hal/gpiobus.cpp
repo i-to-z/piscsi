@@ -103,7 +103,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
             return 0;
         }
 
-        WaitACK(OFF);
+        ret = WaitACK(OFF);
 
         if (!ret) {
             EnableIRQ();

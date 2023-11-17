@@ -656,7 +656,7 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 		if (mode == RW16) {
 			count = GetInt32(GetController()->GetCmd(), 10);
 		}
-		else if (mode != SEEK6 && mode != SEEK10) {
+		else if (mode != SEEK10) {
 			count = GetInt16(GetController()->GetCmd(), 7);
 		}
 		else {
