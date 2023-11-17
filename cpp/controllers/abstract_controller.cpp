@@ -26,6 +26,7 @@ AbstractController::AbstractController(BUS& bus, int target_id, int max_luns) : 
 void AbstractController::AllocateCmd(size_t size)
 {
 	if (size > ctrl.cmd.size()) {
+	    LogTrace(fmt::format("Resizing transfer buffer to {} bytes", size));
 		ctrl.cmd.resize(size);
 	}
 }
